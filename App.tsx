@@ -1,28 +1,33 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React from 'react';
+import { StatusBar, StyleSheet, useColorScheme, View, Text } from 'react-native';
+import OnBoarding from './src/screens/Splash/OnBoarding';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AOnBoarding from './src/screens/Splash/AOnBoarding';
+import BOnBoarding from './src/screens/Splash/BOnBoarding';
+import Welcome from './src/screens/Account/Welcome';
+import CreateAccount from './src/screens/Account/CreateAccount';
+import Home from './src/screens/Home/Home';
+import Budgeting from './src/screens/Categories/Budgeting/Budgeting';
+import AddExpenses from './src/screens/Categories/Budgeting/AddExpenses';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
-    </View>
-  );
+const stack = createNativeStackNavigator();
+
+export default function App() {
+  return<>
+  <NavigationContainer>
+    <stack.Navigator screenOptions={{ headerShown: false }}>  
+      <stack.Screen name="OnBoarding" component={OnBoarding} />
+      <stack.Screen name="AOnBoarding" component={AOnBoarding} />
+      <stack.Screen name="BOnBoarding" component={BOnBoarding} />
+      <stack.Screen name="Welcome" component={Welcome} />
+      <stack.Screen name="CreateAccount" component={CreateAccount} />      
+      <stack.Screen name="Home" component={Home} />      
+      <stack.Screen name="Budgeting" component={Budgeting} />      
+      <stack.Screen name="AddExpenses" component={AddExpenses} />      
+
+    </stack.Navigator>
+    </NavigationContainer></>
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;
