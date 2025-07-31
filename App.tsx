@@ -11,12 +11,14 @@ import Home from './src/screens/Home/Home';
 import Budgeting from './src/screens/Categories/Budgeting/Budgeting';
 import AddExpenses from './src/screens/Categories/Budgeting/AddExpenses';
 
+import MainContainer from './src/components/MainContainer ';
+
 
 
 const stack = createNativeStackNavigator();
 
 export default function App() {
-  return<>
+  return<> 
   <NavigationContainer>
     <stack.Navigator screenOptions={{ headerShown: false }}>  
       <stack.Screen name="OnBoarding" component={OnBoarding} />
@@ -27,6 +29,8 @@ export default function App() {
       <stack.Screen name="Home" component={Home} />      
       <stack.Screen name="Budgeting" component={Budgeting} />      
       <stack.Screen name="AddExpenses" component={AddExpenses} />      
+
+      <stack.Screen name="MainApp" component={MainContainer} /> 
 
     </stack.Navigator>
     </NavigationContainer></>

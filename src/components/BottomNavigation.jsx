@@ -1,17 +1,23 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Color, FontFamily, FontSize } from '../constants/GlobleStyle';
+import HomeIcon from "../assets/Home.svg";
+import CategoryIcon from "../assets/Category.svg";
+import FinShortIcon from "../assets/finShort.svg";
+import AnalyticsIcon from "../assets/Analysis.svg";
+import ProfileIcon from "../assets/Profile.svg";
 
 const BottomNavigation = ({ activeTab, onTabPress }) => {
   const tabs = [
-    { id: 'home', label: 'Home', icon: '🏠' },
-    { id: 'analytics', label: 'Analytics', icon: '📊' },
-    { id: 'transactions', label: 'Transactions', icon: '↔️' },
-    { id: 'wallet', label: 'Wallet', icon: '💳' },
-    { id: 'profile', label: 'Profile', icon: '👤' },
+    { id: 'home', label: 'Home', icon: <HomeIcon width={30} height={30} /> },
+    { id: 'categories', label: 'Categories', icon: <CategoryIcon width={30} height={30} /> },
+    { id: 'finShort', label: 'FinShort', icon: <FinShortIcon width={30} height={30} /> },
+    { id: 'analytics', label: 'Analytics', icon: <AnalyticsIcon width={30} height={30} /> },
+    { id: 'profile', label: 'Prodile', icon: <ProfileIcon width={30} height={30} /> },
+  
   ];
 
-  return (
+ return (
     <View style={styles.container}>
       {tabs.map((tab) => (
         <TouchableOpacity
@@ -26,12 +32,12 @@ const BottomNavigation = ({ activeTab, onTabPress }) => {
             styles.iconContainer,
             activeTab === tab.id && styles.activeIconContainer
           ]}>
-            <Text style={[
+            <View style={[
               styles.icon,
               activeTab === tab.id && styles.activeIcon
             ]}>
               {tab.icon}
-            </Text>
+            </View>
           </View>
           <Text style={[
             styles.label,

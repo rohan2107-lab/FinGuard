@@ -136,8 +136,7 @@ const Home = () => {
         </Pressable>
       </View>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabPress={handleTabPress} />
+      
     </SafeAreaView>
   );
 };
