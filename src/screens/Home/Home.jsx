@@ -11,10 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomNavigation from '../../components/BottomNavigation';
 import { Color, FontFamily, FontSize } from '../../constants/GlobleStyle';
 import { useNavigation } from '@react-navigation/native';
+import TipModal from '../../components/TipModal';
+import ChatbotBubble from '../../components/ChatbotBubble';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
   const navigation = useNavigation();
+  const [showTipModal, setShowTipModal] = useState(false);
+  const userName = 'Rohan'; // dono line tips of the day ke liye hai.....
 
   const handleTabPress = (tabId) => {
     setActiveTab(tabId);
@@ -66,7 +70,7 @@ const Home = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
-            <Text style={styles.greeting}>Hi, User Rahul</Text>
+            <Text style={styles.greeting}>Hi, Dear Rohan</Text>
             <Text style={styles.subGreeting}>Good Morning</Text>
           </View>
           <Pressable style={styles.notificationButton}>
@@ -130,12 +134,13 @@ const Home = () => {
         </View>
 
         {/* Tips of the Day */}
-        <Pressable style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>Tips of the Day</Text>
-          <Text style={styles.tipsArrow}>→</Text>
-        </Pressable>
+<Pressable style={styles.tipsCard} onPress={() => setShowTipModal(true)}>
+  <Text style={styles.tipsTitle}>Tips of the Day</Text>
+  <Text style={styles.tipsArrow}>→</Text>
+</Pressable>
+<TipModal visible={showTipModal} onClose={() => setShowTipModal(false)} userName={userName} />
       </View>
-
+<ChatbotBubble/>
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabPress={handleTabPress} />
     </SafeAreaView>

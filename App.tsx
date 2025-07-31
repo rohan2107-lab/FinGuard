@@ -10,7 +10,7 @@ import CreateAccount from './src/screens/Account/CreateAccount';
 import Home from './src/screens/Home/Home';
 import Budgeting from './src/screens/Categories/Budgeting/Budgeting';
 import AddExpenses from './src/screens/Categories/Budgeting/AddExpenses';
-
+import ChatScreen from './src/screens/ChatScreen';
 
 
 const stack = createNativeStackNavigator();
@@ -26,7 +26,8 @@ export default function App() {
       <stack.Screen name="CreateAccount" component={CreateAccount} />      
       <stack.Screen name="Home" component={Home} />      
       <stack.Screen name="Budgeting" component={Budgeting} />      
-      <stack.Screen name="AddExpenses" component={AddExpenses} />      
+      <stack.Screen name="AddExpenses" component={AddExpenses} />
+      <stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: 'Chat' }} />      
 
     </stack.Navigator>
     </NavigationContainer></>
