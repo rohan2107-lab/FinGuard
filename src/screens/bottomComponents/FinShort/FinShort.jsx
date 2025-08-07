@@ -1,7 +1,7 @@
 import * as React from "react";
 import { StyleSheet, Text, View, Image, Pressable, ScrollView, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Color, Fonts, FontSize } from "../../constants/GlobleStyle";
+import { Color, Fonts, FontSize } from "../../../constants/GlobleStyle";
 
 const FinShort = () => {
   const videoData = [

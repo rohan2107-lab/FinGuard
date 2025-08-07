@@ -1,9 +1,18 @@
 import * as React from "react";
 import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Color, FontFamily, FontSize } from "../../constants/GlobleStyle";
+import { Color, FontFamily, FontSize } from "./../../../constants/GlobleStyle";
+import { useNavigation } from "@react-navigation/native";
+
+// Importing EmergencyHelp component
+import EmergencyHelp from "../../Categories/Emergency/EmergencyHelp";  
 
 const Category = () => {
+
+  const navigation = useNavigation();
+
+  
+
   const categories = [
     { id: 1, name: "Budgeting", icon: "💰" },
     { id: 2, name: "Games", icon: "🎮" },
@@ -14,6 +23,38 @@ const Category = () => {
     { id: 7, name: "Investment Basics", icon: "📈" },
     { id: 8, name: "Emergency Help", icon: "🚨" },
   ];
+
+
+  const handleCategoryPress = (categoryName) => {
+  switch (categoryName) {
+    case "Emergency Help":
+      navigation.navigate("EmergencyHelp");
+      break;
+    case "Games":
+      navigation.navigate("Games");
+      break;
+    case "Goal Tracker":
+      navigation.navigate("GoalTracker");
+      break;
+    case "Gifts":
+      navigation.navigate("Gifts");
+      break;
+    case "Fraud Simulation":
+      navigation.navigate("FraudSimulation");
+      break;
+    case "Financial Calculators":
+      navigation.navigate("FinancialCalculator");
+      break;
+    case "Investment Basics":
+      navigation.navigate("InvestmentBasics");
+      break;
+    case "Budgeting":
+      navigation.navigate("Budgeting")
+      break;
+    default:
+      break;
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -44,10 +85,14 @@ const Category = () => {
           </View>
         </View>
 
-        {/* Categories Grid */}
+         {/* Categories Grid */}
         <View style={styles.categoriesGrid}>
-          {categories.map((category, index) => (
-            <TouchableOpacity key={category.id} style={styles.categoryCard}>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress(category.name)}
+            >
               <View style={styles.categoryIcon}>
                 <Text style={styles.iconText}>{category.icon}</Text>
               </View>
