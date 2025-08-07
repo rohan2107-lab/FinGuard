@@ -11,12 +11,23 @@ import Home from './src/screens/Home/Home';
 import Budgeting from './src/screens/Categories/Budgeting/Budgeting';
 import AddExpenses from './src/screens/Categories/Budgeting/AddExpenses';
 import ChatScreen from './src/screens/ChatScreen';
+import MainContainer from './src/components/MainContainer ';
+// game wala section start..
+import GamesHome from './src/screens/Games/GamesHome';
+import GamesSplash from './src/screens/Games/GamesSplash';
+import BudgetGame from './src/screens/Games/BudgetGame';
+import ScamGame from './src/screens/Games/ScamGame';
+import BillSplitterGame from './src/screens/Games/BillSplitterGame';
+import InvestmentFraudGame from './src/screens/Games/InvestmentFraudGame';
+import MoreGames from './src/screens/Games/MoreGames'; // Optional
+//game wala section end..
+
 
 
 const stack = createNativeStackNavigator();
 
 export default function App() {
-  return<>
+  return<> 
   <NavigationContainer>
     <stack.Navigator screenOptions={{ headerShown: false }}>  
       <stack.Screen name="OnBoarding" component={OnBoarding} />
@@ -27,7 +38,16 @@ export default function App() {
       <stack.Screen name="Home" component={Home} />      
       <stack.Screen name="Budgeting" component={Budgeting} />      
       <stack.Screen name="AddExpenses" component={AddExpenses} />
-      <stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: 'Chat' }} />      
+      <stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: 'Chat' }} />
+      <stack.Screen name="GamesSplash" component={GamesSplash} options={{ headerShown: false }} />
+      <stack.Screen name="GamesHome" component={GamesHome} />
+      <stack.Screen name="BudgetGame" component={BudgetGame} />
+      <stack.Screen name="ScamGame" component={ScamGame} />
+      <stack.Screen name="BillSplitterGame" component={BillSplitterGame} />
+      <stack.Screen name="InvestmentFraudGame" component={InvestmentFraudGame} />
+      <stack.Screen name="MoreGames" component={MoreGames} />      
+
+      <stack.Screen name="MainApp" component={MainContainer} /> 
 
     </stack.Navigator>
     </NavigationContainer></>

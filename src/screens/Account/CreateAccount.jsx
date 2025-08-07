@@ -102,7 +102,7 @@ const CreateAccount = () => {
             and
             <Text style={styles.termsHighlight}> Privacy Policy.</Text>
           </Text>
-          <Pressable style={styles.signUpBtn}  onPress={() => navigation.navigate('Home')}>
+          <Pressable style={styles.signUpBtn}  onPress={() => navigation.navigate('MainApp')}>
             <Text style={styles.signUpBtnText}>Sign Up</Text>
           </Pressable>
           <Text style={styles.bottomText}>

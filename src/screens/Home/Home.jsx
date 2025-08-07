@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -13,7 +13,8 @@ import { Color, FontFamily, FontSize } from '../../constants/GlobleStyle';
 import { useNavigation } from '@react-navigation/native';
 import TipModal from '../../components/TipModal';
 import ChatbotBubble from '../../components/ChatbotBubble';
-
+import { Animated, Easing } from 'react-native';
+import CardSwitcher from '../../components/CardSwitcher';
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
   const navigation = useNavigation();
@@ -23,6 +24,27 @@ const Home = () => {
   const handleTabPress = (tabId) => {
     setActiveTab(tabId);
   };
+
+const blinkingAnim = useRef(new Animated.Value(0)).current;
+
+useEffect(() => {
+  Animated.loop(
+    Animated.sequence([
+      Animated.timing(blinkingAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+      Animated.timing(blinkingAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
+    ])
+  ).start();
+}, []);
 
   const features = [
     {
@@ -123,6 +145,8 @@ const Home = () => {
                 if (feature.title === 'Budgeting') {
                   navigation.navigate('Budgeting');
                 }
+                else if (feature.title === 'Games') {
+                navigation.navigate('GamesSplash');}
               }}
             >
               <View style={[styles.featureIconContainer, { backgroundColor: feature.color }]}>
@@ -134,15 +158,26 @@ const Home = () => {
         </View>
 
         {/* Tips of the Day */}
-<Pressable style={styles.tipsCard} onPress={() => setShowTipModal(true)}>
-  <Text style={styles.tipsTitle}>Tips of the Day</Text>
-  <Text style={styles.tipsArrow}>→</Text>
+<Pressable style={styles.tipsMiniCard} onPress={() => setShowTipModal(true)}>
+  <Text style={styles.tipsMiniText}>Tips of the Day</Text>
+  <Animated.Text
+    style={[
+      styles.blinkingIcon,
+      {
+        opacity: blinkingAnim,
+      },
+    ]}
+  >
+    💡
+  </Animated.Text>
 </Pressable>
+
 <TipModal visible={showTipModal} onClose={() => setShowTipModal(false)} userName={userName} />
+   <CardSwitcher />
       </View>
+
 <ChatbotBubble/>
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabPress={handleTabPress} />
+
     </SafeAreaView>
   );
 };
@@ -331,6 +366,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Color.colorBlack,
   },
+tipsMiniCard: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  alignSelf: 'flex-start',      // 👈 move it to left
+  marginTop: 0,                 // 👈 remove vertical spacing
+  marginBottom: 10,
+  backgroundColor: '#e6f7ff',
+  paddingHorizontal: 14,
+  paddingVertical: 6,
+  borderRadius: 16,
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  marginLeft: 5,                // 👈 optional: nudge slightly from edge
+},
+
+tipsMiniText: {
+  fontSize: 13,
+  fontFamily: FontFamily.poppinsMedium,
+  color: '#003366',
+  marginRight: 8,
+},
+blinkingIcon: {
+  fontSize: 18,
+},
+
 });
 
 export default Home;

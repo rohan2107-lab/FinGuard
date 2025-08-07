@@ -52,10 +52,8 @@ const Budgeting = () => {
           </Pressable>
         </View>
         {/* Buttons */}
-        <Pressable style={styles.actionBtn}>
-          <Text style={styles.actionBtnText}>Watch Videos</Text>
-        </Pressable>
-        <Pressable style={styles.actionBtn}>
+        
+        <Pressable  onPress={() => navigation.navigate('AddExpenses')}  style={styles.actionBtn}>
           <Text style={styles.actionBtnText}>Add Expenses</Text>
         </Pressable>
       </ScrollView>
