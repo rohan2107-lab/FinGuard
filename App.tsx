@@ -10,8 +10,9 @@ import CreateAccount from './src/screens/Account/CreateAccount';
 import Home from './src/screens/Home/Home';
 import Budgeting from './src/screens/Categories/Budgeting/Budgeting';
 import AddExpenses from './src/screens/Categories/Budgeting/AddExpenses';
-
+import ChatScreen from './src/screens/ChatScreen';
 import MainContainer from './src/components/MainContainer ';
+
 import EmergencyHelp from './src/screens/Categories/Emergency/EmergencyHelp';
 import InvestmentBasics from './src/screens/Categories/InvestmentBasics/InvestmentBasics';
 import FinancialCalculator from './src/screens/Categories/FinancialCalculator/FinanceCalculator';
@@ -29,6 +30,16 @@ import EditProfile from './src/screens/bottomComponents/Profile/EditProfile';
 import Security from './src/screens/bottomComponents/Profile/Security';
 import Settings from './src/screens/bottomComponents/Profile/Settings';
 import HelpAndSupport from './src/screens/bottomComponents/Profile/HelpAndSupport';
+// game wala section start..
+import GamesHome from './src/screens/Games/GamesHome';
+import GamesSplash from './src/screens/Games/GamesSplash';
+import BudgetGame from './src/screens/Games/BudgetGame';
+import ScamGame from './src/screens/Games/ScamGame';
+import BillSplitterGame from './src/screens/Games/BillSplitterGame';
+import InvestmentFraudGame from './src/screens/Games/InvestmentFraudGame';
+import MoreGames from './src/screens/Games/MoreGames'; // Optional
+//game wala section end..
+
 
 
 
@@ -45,7 +56,15 @@ export default function App() {
       <stack.Screen name="CreateAccount" component={CreateAccount} />      
       <stack.Screen name="Home" component={Home} />      
       <stack.Screen name="Budgeting" component={Budgeting} />      
-      <stack.Screen name="AddExpenses" component={AddExpenses} />      
+      <stack.Screen name="AddExpenses" component={AddExpenses} />
+      <stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: 'Chat' }} />
+      <stack.Screen name="GamesSplash" component={GamesSplash} options={{ headerShown: false }} />
+      <stack.Screen name="GamesHome" component={GamesHome} />
+      <stack.Screen name="BudgetGame" component={BudgetGame} />
+      <stack.Screen name="ScamGame" component={ScamGame} />
+      <stack.Screen name="BillSplitterGame" component={BillSplitterGame} />
+      <stack.Screen name="InvestmentFraudGame" component={InvestmentFraudGame} />
+      <stack.Screen name="MoreGames" component={MoreGames} />      
 
       <stack.Screen name="MainApp" component={MainContainer} /> 
       <stack.Screen name="EmergencyHelp" component={EmergencyHelp} />

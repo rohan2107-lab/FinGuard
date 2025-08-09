@@ -357,54 +357,53 @@ const InvestmentBasics = () => {
       onRequestClose={() => setModalVisible(false)}
     >
       <SafeAreaView style={styles.modalContainer}>
+        <StatusBar backgroundColor="#10b981" barStyle="light-content" />
         <View style={styles.modalHeader}>
           <Pressable style={styles.closeButton} onPress={() => setModalVisible(false)}>
             <Text style={styles.closeButtonText}>✕</Text>
           </Pressable>
         </View>
-        
         {selectedInvestment && (
-          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.modalScrollView}
+            contentContainerStyle={styles.modalScrollContent}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            nestedScrollEnabled={true}
+          >
             <View style={styles.modalTitleSection}>
               <Text style={styles.modalIcon}>{selectedInvestment.icon}</Text>
               <Text style={styles.modalTitle}>{selectedInvestment.title}</Text>
               <Text style={styles.modalSubtitle}>{selectedInvestment.description}</Text>
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Overview</Text>
               <Text style={styles.sectionContent}>{selectedInvestment.detailedInfo.overview}</Text>
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Benefits</Text>
               {selectedInvestment.detailedInfo.benefits.map((benefit, index) => (
                 <Text key={index} style={styles.bulletPoint}>• {benefit}</Text>
               ))}
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Risks</Text>
               {selectedInvestment.detailedInfo.risks.map((risk, index) => (
                 <Text key={index} style={styles.bulletPoint}>• {risk}</Text>
               ))}
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Who Should Invest</Text>
               <Text style={styles.sectionContent}>{selectedInvestment.detailedInfo.whoShouldInvest}</Text>
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Minimum Investment</Text>
               <Text style={styles.sectionContent}>{selectedInvestment.detailedInfo.minimumInvestment}</Text>
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Tax Implications</Text>
               <Text style={styles.sectionContent}>{selectedInvestment.detailedInfo.taxImplications}</Text>
             </View>
-
             <View style={styles.modalActions}>
               <Pressable style={styles.actionButton} onPress={() => Alert.alert("Investment", "Ready to start investing?")}>
                 <Text style={styles.actionButtonText}>Start Investing</Text>
@@ -427,14 +426,20 @@ const InvestmentBasics = () => {
       onRequestClose={() => setLearningModalVisible(false)}
     >
       <SafeAreaView style={styles.modalContainer}>
+        <StatusBar backgroundColor="#10b981" barStyle="light-content" />
         <View style={styles.modalHeader}>
           <Pressable style={styles.closeButton} onPress={() => setLearningModalVisible(false)}>
             <Text style={styles.closeButtonText}>✕</Text>
           </Pressable>
         </View>
-        
         {selectedLearning && (
-          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.modalScrollView}
+            contentContainerStyle={styles.modalScrollContent}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            nestedScrollEnabled={true}
+          >
             <View style={styles.modalTitleSection}>
               <Text style={styles.modalIcon}>{selectedLearning.icon}</Text>
               <Text style={styles.modalTitle}>{selectedLearning.title}</Text>
@@ -443,33 +448,28 @@ const InvestmentBasics = () => {
                 <Text style={styles.difficulty}>{selectedLearning.difficulty}</Text>
               </View>
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Overview</Text>
               <Text style={styles.sectionContent}>{selectedLearning.content.overview}</Text>
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Key Points</Text>
               {selectedLearning.content.keyPoints.map((point, index) => (
                 <Text key={index} style={styles.bulletPoint}>• {point}</Text>
               ))}
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Examples</Text>
               {selectedLearning.content.examples.map((example, index) => (
                 <Text key={index} style={styles.bulletPoint}>• {example}</Text>
               ))}
             </View>
-
             <View style={styles.detailSection}>
               <Text style={styles.sectionHeader}>Action Tips</Text>
               {selectedLearning.content.actionTips.map((tip, index) => (
                 <Text key={index} style={styles.bulletPoint}>✓ {tip}</Text>
               ))}
             </View>
-
             <View style={styles.modalActions}>
               <Pressable style={styles.actionButton} onPress={() => Alert.alert("Progress", "Lesson completed!")}>
                 <Text style={styles.actionButtonText}>Mark as Complete</Text>
@@ -548,25 +548,6 @@ const InvestmentBasics = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Investment Options</Text>
             {investmentCategories.map((investment) => renderInvestmentCard(investment))}
-          </View>
-
-          {/* Investment Tools */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Investment Tools</Text>
-            <View style={styles.toolsGrid}>
-              {investmentTools.map((tool) => (
-                <Pressable 
-                  key={tool.id} 
-                  style={styles.toolCard}
-                  android_ripple={{ color: 'rgba(0,0,0,0.1)' }}
-                  onPress={() => handleToolPress(tool)}
-                >
-                  <Text style={styles.toolIcon}>{tool.icon}</Text>
-                  <Text style={styles.toolTitle}>{tool.title}</Text>
-                  <Text style={styles.toolDescription}>{tool.description}</Text>
-                </Pressable>
-              ))}
-            </View>
           </View>
 
           {/* Get Started Button */}
@@ -929,9 +910,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#10b981",
   },
-  modalContent: {
+  modalScrollView: {
     flex: 1,
-    padding: 20,
+  },
+  modalScrollContent: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 60,
+    flexGrow: 1,
   },
   modalTitleSection: {
     backgroundColor: "#ffffff",
@@ -1002,8 +988,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalActions: {
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: 24,
+    marginBottom: 40,
   },
   actionButton: {
     backgroundColor: "#10b981",
@@ -1025,7 +1011,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: "#10b981",
-  },
+  }
 });
-
 export default InvestmentBasics;

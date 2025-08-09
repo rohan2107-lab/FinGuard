@@ -11,7 +11,7 @@ const OnBoardingScreen = () => {
   useEffect(() => { 
     const timer = setTimeout(() => {
       navigation.replace("AOnBoarding"); // Use your actual next screen name
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timer); // Cleanup
   }, []);
@@ -26,6 +26,7 @@ const OnBoardingScreen = () => {
           source={require("../../assets/logo.png")}
         />
       </View>
+      
     </SafeAreaView>
   );
 };

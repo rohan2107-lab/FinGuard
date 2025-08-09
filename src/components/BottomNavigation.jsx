@@ -13,7 +13,7 @@ const BottomNavigation = ({ activeTab, onTabPress }) => {
     { id: 'categories', label: 'Categories', icon: <CategoryIcon width={30} height={30} /> },
     { id: 'finShort', label: 'FinShort', icon: <FinShortIcon width={30} height={30} /> },
     { id: 'analytics', label: 'Analytics', icon: <AnalyticsIcon width={30} height={30} /> },
-    { id: 'profile', label: 'Prodile', icon: <ProfileIcon width={30} height={30} /> },
+    { id: 'profile', label: 'Profile', icon: <ProfileIcon width={30} height={30} /> },
   
   ];
 
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 50,
     paddingHorizontal: 20,
     paddingTop: 15,
-    paddingBottom: 25,
+    paddingBottom: 10,
     marginHorizontal: -20,
     shadowColor: '#000',
     shadowOffset: {
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     // Active tab styling
   },
   iconContainer: {
-    width: 45,
-    height: 45,
+    width: 35,
+    height: 35,
     borderRadius: 22.5,
     alignItems: 'center',
     justifyContent: 'center',

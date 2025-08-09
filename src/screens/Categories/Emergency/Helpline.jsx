@@ -172,23 +172,7 @@ const HelplineDialer = () => {
 
                 <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                     {/* Emergency Numbers */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Emergency Numbers</Text>
-                        <View style={styles.emergencyGrid}>
-                            {emergencyNumbers.map((helpline) => (
-                                <Pressable 
-                                    key={helpline.id}
-                                    style={styles.emergencyGridCard}
-                                    onPress={() => makeCall(helpline.number, helpline.title)}
-                                >
-                                    <Text style={styles.gridIcon}>{helpline.icon}</Text>
-                                    <Text style={styles.gridTitle}>{helpline.title}</Text>
-                                    <Text style={styles.gridNumber}>{helpline.number}</Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-
+                   
                     {/* Bank Helplines */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Bank Helplines</Text>
