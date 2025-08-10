@@ -40,6 +40,11 @@ import InvestmentFraudGame from './src/screens/Games/InvestmentFraudGame';
 import MoreGames from './src/screens/Games/MoreGames'; // Optional
 //game wala section end..
 
+import CreditScoreClimber from './src/screens/Games/CreditScoreClimber';
+import BudgetPlannerGame from './src/screens/Games/BudgetPlannerGame';
+import ScamQuizGame from './src/screens/Games/ScamQuizGame';
+import ExpenseGuessGame from './src/screens/Games/ExpenseGuessGame';
+
 
 
 
@@ -84,6 +89,11 @@ export default function App() {
       <stack.Screen name="Security" component={Security} />
       <stack.Screen name="Settings" component={Settings} />
       <stack.Screen name="HelpAndSupport" component={HelpAndSupport} />
+
+      <stack.Screen name="CreditScoreClimber" component={CreditScoreClimber} />
+      <stack.Screen name="BudgetPlannerGame" component={BudgetPlannerGame} />
+      <stack.Screen name="ScamQuizGame" component={ScamQuizGame} />
+      <stack.Screen name="ExpenseGuessGame" component={ExpenseGuessGame} />
 
      
       

@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'rea
 export default function MoreGames({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>More Games</Text>
+      <Text style={styles.header}>More Game</Text>
 
       <TouchableOpacity style={styles.gameCard} onPress={() => navigation.navigate('BudgetPlannerGame')}>
         <Image source={require('../../assets/new.png')} style={styles.gameImage} />

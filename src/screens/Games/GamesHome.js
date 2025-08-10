@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Animated, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Animated, TouchableWithoutFeedback } from 'react-native';
 
 import LottieView from 'lottie-react-native';
 
@@ -44,7 +44,9 @@ export default function GamesHome({ navigation }) {
         onPress={onPress}
       >
         <Animated.View style={[styles.gameCard, { transform: [{ scale }] }]}>
-          <Image source={image} style={styles.gameImage} />
+          <View style={styles.imageContainer}>
+            <Image source={image} style={styles.gameImage} />
+          </View>
           <Text style={styles.gameText}>{text}</Text>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -62,37 +64,58 @@ export default function GamesHome({ navigation }) {
       />
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Animated.Text style={[styles.header, getAnimatedStyle()]}>Games</Animated.Text>
+        <Animated.Text style={[styles.header, getAnimatedStyle()]}>Financial Games</Animated.Text>
+        <Animated.Text style={[styles.subtitle, getAnimatedStyle()]}>Learn while you play!</Animated.Text>
 
-        <AnimatedCard
-          onPress={() => navigation.navigate('BudgetGame')}
-          image={require('../../assets/piggy.jpg')}
-          text="₹5000 in 5 Days"
-        />
+        <View style={styles.gamesGrid}>
+          <AnimatedCard
+            onPress={() => navigation.navigate('BudgetGame')}
+            image={require('../../assets/piggy.jpg')}
+            text="₹5000 in 5 Days"
+          />
 
-        <AnimatedCard
-          onPress={() => navigation.navigate('ScamGame')}
-          image={require('../../assets/scammer.jpg')}
-          text="Spot The Scam"
-        />
+          <AnimatedCard
+            onPress={() => navigation.navigate('ScamGame')}
+            image={require('../../assets/scammer.jpg')}
+            text="Spot The Scam"
+          />
 
-        <AnimatedCard
-          onPress={() => navigation.navigate('BillSplitterGame')}
-          image={require('../../assets/new.png')}
-          text="Bill Splitter Challenge"
-        />
+          <AnimatedCard
+            onPress={() => navigation.navigate('BillSplitterGame')}
+            image={require('../../assets/new.png')}
+            text="Bill Splitter Challenge"
+          />
 
-        <AnimatedCard
-          onPress={() => navigation.navigate('InvestmentFraudGame')}
-          image={require('../../assets/new.png')}
-          text="Fake Investment Detector"
-        />
+          <AnimatedCard
+            onPress={() => navigation.navigate('InvestmentFraudGame')}
+            image={require('../../assets/new.png')}
+            text="Fake Investment Detector"
+          />
 
-        <TouchableWithoutFeedback onPress={() => navigation.navigate('MoreGames')}>
-          <Animated.View style={[styles.moreButton, getAnimatedStyle()]}>
-            <Text style={styles.moreText}>More</Text>
-          </Animated.View>
-        </TouchableWithoutFeedback>
+          <AnimatedCard
+            onPress={() => navigation.navigate('BudgetPlannerGame')}
+            image={require('../../assets/new.png')}
+            text="Budget Planner Puzzle"
+          />
+
+          <AnimatedCard
+            onPress={() => navigation.navigate('ScamQuizGame')}
+            image={require('../../assets/new.png')}
+            text="ATM & Scam Safety Quiz"
+          />
+
+          <AnimatedCard
+            onPress={() => navigation.navigate('CreditScoreClimber')}
+            image={require('../../assets/new.png')}
+            text="Credit Score Climber"
+          />
+
+          <AnimatedCard
+            onPress={() => navigation.navigate('ExpenseGuessGame')}
+            image={require('../../assets/new.png')}
+            text="Daily Expense Guess"
+          />
+        </View>
 
       </ScrollView>
     </View>
@@ -103,36 +126,66 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#eaffec',
     alignItems: 'center',
-    paddingTop: 50,
+    paddingTop: 60,
     paddingBottom: 30,
+    paddingHorizontal: 10,
   },
   header: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 8,
     color: '#222',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  gamesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 5,
   },
   gameCard: {
-    flexDirection: 'row',
     backgroundColor: '#f0ffe6',
-    padding: 20,
-    width: '90%',
-    borderRadius: 20,
-    marginBottom: 20,
+    padding: 16,
+    width: '47%',
+    borderRadius: 16,
+    marginBottom: 16,
     alignItems: 'center',
     elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  gameImage: { width: 70, height: 70, marginRight: 15 },
-  gameText: { fontSize: 18, fontWeight: '600', color: '#222' },
-  moreButton: {
-    backgroundColor: '#00d084',
-    paddingVertical: 15,
-    width: '50%',
-    borderRadius: 30,
-    marginTop: 20,
-    alignItems: 'center',
+  imageContainer: {
+    backgroundColor: '#e6f7e1',
+    padding: 12,
+    borderRadius: 50,
+    marginBottom: 12,
+    elevation: 1,
+    shadowColor: '#00d084',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  moreText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  gameImage: { 
+    width: 50, 
+    height: 50,
+    borderRadius: 25,
+  },
+  gameText: { 
+    fontSize: 14, 
+    fontWeight: '700', 
+    color: '#222',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
   backgroundAnimation: {
     position: 'absolute',
     width: '100%',
