@@ -149,6 +149,17 @@ const Home = () => {
     },
   ];
 
+  //Learning card data......(Rohan)
+  const { width } = Dimensions.get('window');
+  const learningCards = [
+  { id: '1', title: 'Finance Basics', icon: '💵', color: '#4A90E2', route: 'FinanceTutorial' },
+  { id: '2', title: 'SIP Learning', icon: '📊', color: '#27AE60', route: 'SIPTutorial' },
+  { id: '3', title: 'Mutual Funds', icon: '📈', color: '#F39C12', route: 'MutualFundsTutorial' },
+  { id: '4', title: 'Fraud Awareness', icon: '🕵️‍♂️', color: '#E74C3C', route: 'FraudTutorial' },
+  { id: '5', title: 'Tax Planning', icon: '🧾', color: '#9B59B6', route: 'TaxTutorial' },
+];
+
+
   const mainFeatures = allFeatures.filter(feature => [1, 4].includes(feature.id));
   const additionalFeatures = allFeatures.filter(feature => ![1, 4].includes(feature.id));
 
@@ -428,7 +439,30 @@ const Home = () => {
           </View>
 
           <TipModal visible={showTipModal} onClose={() => setShowTipModal(false)} userName={userName} />
-          
+
+          {/* Learning Tutorials...(Rohan) */}
+<View style={{ marginTop: 10 }}>
+  <Text style={styles.sectionTitle}>      Learn & Grow</Text>
+  <FlatList
+    data={learningCards}
+    renderItem={({ item }) => (
+      <Pressable
+        style={[styles.learningCard, { backgroundColor: item.color }]}
+        onPress={() => navigation.navigate(item.route)}
+      >
+        <Text style={styles.learningIcon}>{item.icon}</Text>
+        <Text style={styles.learningTitle}>{item.title}</Text>
+      </Pressable>
+    )}
+    keyExtractor={(item) => item.id}
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    snapToInterval={(width - 60) / 2 + 16}
+    decelerationRate="fast"
+    contentContainerStyle={{ paddingHorizontal: 20 }}
+  />
+</View>
+
           {/* Card Switcher */}
           <View style={styles.cardSwitcherContainer}>
             <CardSwitcher />
@@ -788,6 +822,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  // learning tutorial style...(Rohan)
+learningCard: {
+  width: (width - 60) / 2,
+  height: 140,
+  borderRadius: 16,
+  marginRight: 16,
+  padding: 16,
+  justifyContent: 'center',
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 6,
+  elevation: 4,
+},
+learningIcon: {
+  fontSize: 32,
+  marginBottom: 10,
+},
+learningTitle: {
+  fontSize: 14,
+  fontFamily: FontFamily.poppinsSemiBold,
+  color: 'white',
+  textAlign: 'center',
+},
+
+
 });
 
 export default Home;

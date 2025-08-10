@@ -39,7 +39,13 @@ import BillSplitterGame from './src/screens/Games/BillSplitterGame';
 import InvestmentFraudGame from './src/screens/Games/InvestmentFraudGame';
 import MoreGames from './src/screens/Games/MoreGames'; // Optional
 //game wala section end..
-
+// tutorials wala section start..
+import FinanceTutorial from './src/screens/tutorials/FinanceTutorial';
+import SIPTutorial from './src/screens/tutorials/SIPTutorial';
+import MutualFundsTutorial from './src/screens/tutorials/MutualFundsTutorial';
+import FraudTutorial from './src/screens/tutorials/FraudTutorial';
+import TaxTutorial from './src/screens/tutorials/TaxTutorial';
+// tutorials wala section end..
 
 
 
@@ -85,7 +91,11 @@ export default function App() {
       <stack.Screen name="Settings" component={Settings} />
       <stack.Screen name="HelpAndSupport" component={HelpAndSupport} />
 
-     
+     <stack.Screen name="FinanceTutorial" component={FinanceTutorial} />
+     <stack.Screen name="SIPTutorial" component={SIPTutorial} />
+     <stack.Screen name="MutualFundsTutorial" component={MutualFundsTutorial} />
+     <stack.Screen name="FraudTutorial" component={FraudTutorial} />
+     <stack.Screen name="TaxTutorial" component={TaxTutorial} />
       
 
     </stack.Navigator>
