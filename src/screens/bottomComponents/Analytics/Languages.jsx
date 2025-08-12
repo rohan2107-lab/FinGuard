@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const Analytics = () => {
+const Languages = () => {
   return (
     <View>
-      <Text>Analytics</Text>
+      <Text>Languages</Text>
     </View>
   )
 }
 
-export default Analytics
+export default Languages

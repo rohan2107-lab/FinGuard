@@ -88,31 +88,31 @@ export default function GamesHome({ navigation }) {
 
           <AnimatedCard
             onPress={() => navigation.navigate('InvestmentFraudGame')}
-            image={require('../../assets/new.png')}
+            image={require('../../assets/bribe.png')}
             text="Fake Investment Detector"
           />
 
           <AnimatedCard
             onPress={() => navigation.navigate('BudgetPlannerGame')}
-            image={require('../../assets/new.png')}
+            image={require('../../assets/budget.png')}
             text="Budget Planner Puzzle"
           />
 
           <AnimatedCard
             onPress={() => navigation.navigate('ScamQuizGame')}
-            image={require('../../assets/new.png')}
+            image={require('../../assets/atm.png')}
             text="ATM & Scam Safety Quiz"
           />
 
           <AnimatedCard
             onPress={() => navigation.navigate('CreditScoreClimber')}
-            image={require('../../assets/new.png')}
+            image={require('../../assets/credit.png')}
             text="Credit Score Climber"
           />
 
           <AnimatedCard
             onPress={() => navigation.navigate('ExpenseGuessGame')}
-            image={require('../../assets/new.png')}
+            image={require('../../assets/dailyExpense.png')}
             text="Daily Expense Guess"
           />
         </View>

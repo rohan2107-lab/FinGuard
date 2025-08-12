@@ -1,16 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const ChatScreen = () => {
   const [messages, setMessages] = useState([
     { id: '1', text: '👋 Hi there! I’m FinGuard. How can I help you today?', sender: 'bot' },
   ]);
   const [input, setInput] = useState('');
+  const navigation = useNavigation();
 
   const sendMessage = () => {
     if (input.trim() === '') return;
     const userMessage = { id: Date.now().toString(), text: input, sender: 'user' };
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
   };
 
@@ -21,48 +33,90 @@ const ChatScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 80 }}
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Type a message..."
-          value={input}
-          onChangeText={setInput}
-          style={styles.input}
+    <SafeAreaView style={styles.safeArea}>
+      {/* Header */}
+<View style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+    <Ionicons name="chevron-back" size={24} color="#fff" />
+  </TouchableOpacity>
+
+  <Text style={styles.headerTitle}>FinGuard Chat</Text>
+
+  <View style={styles.logoContainer}>
+    <Image
+      source={require('../assets/banklogo.png')} // Adjust path as needed
+      style={styles.logo}
+      resizeMode="contain"
+    />
+  </View>
+</View>
+
+
+      {/* Chat Body */}
+      <View style={styles.container}>
+        <FlatList
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.chatContent}
         />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-          <Text style={{ color: '#fff' }}>Send</Text>
-        </TouchableOpacity>
+
+        {/* Input Bar */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Type a message..."
+            value={input}
+            onChangeText={setInput}
+            style={styles.input}
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+            <Text style={styles.sendText}>Send</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f2f2f2', padding: 10 },
-  inputContainer: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    right: 10,
-    backgroundColor: '#fff',
-    borderRadius: 30,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    elevation: 4,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#ffffff',
   },
-  input: { flex: 1, fontSize: 16, paddingHorizontal: 10 },
-  sendButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
+header: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  backgroundColor: '#4CAF50',
+  paddingVertical: 14,
+  paddingHorizontal: 16,
+  elevation: 4,
+},
+logoContainer: {
+  flex: 1,
+  alignItems: 'flex-end',
+},
+logo: {
+  width: 40,
+  height: 40,
+},
+
+  backButton: {
+    marginRight: 12,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  container: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: '#f5f5f5',
+  },
+  chatContent: {
+    paddingBottom: 80,
   },
   message: {
     marginVertical: 6,
@@ -80,6 +134,35 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    right: 10,
+    backgroundColor: '#fff',
+    borderRadius: 30,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    elevation: 5,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 10,
+    color: '#000',
+  },
+  sendButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
 

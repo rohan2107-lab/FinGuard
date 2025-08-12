@@ -6,6 +6,7 @@ import Baseshape from "../../assets/base-shape.svg";
 import Vector from "../../assets/Eye-Pass.svg";
 import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
 import { useNavigation } from "@react-navigation/native";
+import axios from 'axios';
 
 const CreateAccount = () => {
   const [fullName, setFullName] = useState("");
@@ -17,6 +18,37 @@ const CreateAccount = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const navigation = useNavigation();
+  // api setup start...(Rohan)
+const [loading, setLoading] = useState(false);
+
+const handleSignUp = async () => {
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+  setLoading(true);
+  try {
+    const response = await axios.post('http://10.20.106.48:8000/api/auth/signup', {
+      fullName,
+      email,
+      mobile,
+      dob,
+      password,
+    });
+    if (response.status === 201 || response.status === 200) {
+      alert('Account created successfully!');
+      navigation.navigate('MainApp');
+    } else {
+      alert('Signup failed: ' + response.data.message);
+    }
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+    alert('Error signing up: ' + (error.response?.data?.message || error.message));
+  }
+  setLoading(false);
+};
+
+// api setup end....(Rohan)
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -102,9 +134,10 @@ const CreateAccount = () => {
             and
             <Text style={styles.termsHighlight}> Privacy Policy.</Text>
           </Text>
-          <Pressable style={styles.signUpBtn}  onPress={() => navigation.navigate('MainApp')}>
-            <Text style={styles.signUpBtnText}>Sign Up</Text>
-          </Pressable>
+          <Pressable style={styles.signUpBtn} onPress={handleSignUp} disabled={loading}>
+  <Text style={styles.signUpBtnText}>{loading ? 'Signing Up...' : 'Sign Up'}</Text>
+</Pressable>
+
           <Text style={styles.bottomText}>
             Already have an account?{' '}
             <Text style={styles.bottomLogin} onPress={() => navigation.navigate('Welcome')}>Log In</Text>

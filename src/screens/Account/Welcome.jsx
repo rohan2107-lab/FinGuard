@@ -8,12 +8,40 @@ import Google from "../../assets/Google.svg";
 import Vector from "../../assets/Eye-Pass.svg";
 import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
 import { useNavigation } from "@react-navigation/native";
+import axios from 'axios';
 
 const Welcome = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  // login api setup start ..(rohan)
+  const handleLogin = async () => {
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+  setLoading(true);
+  try {
+    const response = await axios.post('http://10.20.106.48:8000/api/auth/login', {
+      email,
+      password,
+    });
+    if (response.status === 200) {
+      alert("Login successful!");
+      // You can store your JWT token here (response.data.token) if needed
+      navigation.navigate('MainApp'); // Navigate to main app screen
+    } else {
+      alert("Login failed: " + response.data.message);
+    }
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+    alert("Login error: " + (error.response?.data?.message || error.message));
+  }
+  setLoading(false);
+};
+//login api setup end..(Rohan)
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBg} />
@@ -47,9 +75,15 @@ const Welcome = () => {
               <Vector width={22} height={22} />
             </Pressable>
           </View>
-          <Pressable style={styles.loginBtn}>
-            <Text style={styles.loginBtnText}>Log In</Text>
-          </Pressable>
+          <Pressable 
+  style={[styles.loginBtn, loading && {opacity: 0.6}]} 
+  onPress={handleLogin} 
+  disabled={loading}
+>
+  <Text style={styles.loginBtnText}>
+    {loading ? "Logging In..." : "Log In"}
+  </Text>
+</Pressable>
           <Pressable style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </Pressable>

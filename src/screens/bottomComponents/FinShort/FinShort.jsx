@@ -116,21 +116,6 @@ const FinShort = () => {
           </Pressable>
         </View>
 
-        {/* Stats Section */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statIcon}>📹</Text>
-            <Text style={styles.statLabel}>Videos Watched</Text>
-            <Text style={styles.statValue}>24</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statIcon}>⏱️</Text>
-            <Text style={styles.statLabel}>Total Watch Time</Text>
-            <Text style={styles.statValue}>2h 45m</Text>
-          </View>
-        </View>
-
         {/* Categories */}
         <View style={styles.categoriesSection}>
           <FlatList
@@ -185,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 38,
     paddingTop: 20,
-    marginBottom: 15,
+    marginBottom: 30,
   },
   backButton: {
     width: 19,
@@ -215,42 +200,6 @@ const styles = StyleSheet.create({
   },
   notificationIcon: {
     fontSize: 14,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 10,
-    marginHorizontal: 30,
-    marginBottom: 10,
-    alignItems: 'center',
-    borderRadius:15,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statIcon: {
-    fontSize: 20,
-    marginBottom: 5,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: Fonts?.poppinsRegular || 'System',
-    color: Color.colorDarkslategray200 || '#2F4F4F',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  statValue: {
-    fontSize: 14,
-    fontFamily: Fonts?.poppinsSemiBold || 'System',
-    fontWeight: '600',
-    color: Color.colorWhite || '#FFFFFF',
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: Color.colorHoneydew || '#F0FFF0',
-    marginHorizontal: 15,
   },
   categoriesSection: {
     marginBottom: 20,

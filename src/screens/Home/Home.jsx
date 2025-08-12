@@ -9,17 +9,21 @@ import {
   ScrollView,
   Dimensions,
   FlatList,
+  ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomNavigation from '../../components/BottomNavigation';
 import { Color, FontFamily, FontSize } from '../../constants/GlobleStyle';
 import { useNavigation } from '@react-navigation/native';
 import TipModal from '../../components/TipModal';
 import ChatbotBubble from '../../components/ChatbotBubble';
-import { Animated, Easing } from 'react-native';
 import CardSwitcher from '../../components/CardSwitcher';
 
 const { width } = Dimensions.get('window');
+
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -29,7 +33,8 @@ const Home = () => {
   const [isSearching, setIsSearching] = useState(false);
   const navigation = useNavigation();
   const [showTipModal, setShowTipModal] = useState(false);
-  const userName = 'Rohan';
+  const [fullName, setFullname] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const handleTabPress = (tabId) => {
     setActiveTab(tabId);
@@ -37,6 +42,47 @@ const Home = () => {
 
   const blinkingAnim = useRef(new Animated.Value(0)).current;
   const expandAnim = useRef(new Animated.Value(0)).current;
+
+   const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return ('Good Morning 🌄');
+    if (hour < 17) return ('Good Afternoon ☀️');
+    return ('Good Evening 🌙');
+  };
+  
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token'); // token saved after login
+        if (!token) {
+          console.log('No token found');
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch('http://10.20.106.48:8000/api/auth/me', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setFullname(data.fullName); // assuming backend sends { username: "Rahul" }
+        } else {
+          console.log(data.message);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     Animated.loop(
@@ -65,6 +111,10 @@ const Home = () => {
       easing: Easing.bezier(0.4, 0.0, 0.2, 1),
     }).start();
   }, [showAllFeatures]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#000" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
 
   const allFeatures = [
     {
@@ -147,6 +197,15 @@ const Home = () => {
       description: 'Get emergency financial help',
       route: 'EmergencyHelp'
     },
+  ];
+
+  // Learning card data
+  const learningCards = [
+    { id: '1', title: 'Finance Basics', icon: '💵', color: '#4A90E2', route: 'FinanceTutorial' },
+    { id: '2', title: 'SIP Learning', icon: '📊', color: '#27AE60', route: 'SIPTutorial' },
+    { id: '3', title: 'Mutual Funds', icon: '📈', color: '#F39C12', route: 'MutualFundsTutorial' },
+    { id: '4', title: 'Fraud Awareness', icon: '🕵️‍♂️', color: '#E74C3C', route: 'FraudTutorial' },
+    { id: '5', title: 'Tax Planning', icon: '🧾', color: '#9B59B6', route: 'TaxTutorial' },
   ];
 
   const mainFeatures = allFeatures.filter(feature => [1, 4].includes(feature.id));
@@ -289,19 +348,22 @@ const Home = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container}>
       {/* Enhanced Top Section */}
       <View style={styles.topSection}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
-            <Text style={styles.greeting}>Hi, Dear Rohan</Text>
-            <Text style={styles.subGreeting}>Good Morning ☀️</Text>
+            <Text style={styles.greeting}>
+              {('hi')}, {fullName ? fullName : ('guest')}
+            </Text>
+            <Text style={styles.subGreeting}>{getTimeGreeting()} </Text>
           </View>
           <Pressable style={styles.notificationButton}>
             <Text style={styles.notificationIcon}>🔔</Text>
           </Pressable>
         </View>
+
 
         {/* Enhanced Stats Section */}
         <View style={styles.statsContainer}>
@@ -427,8 +489,31 @@ const Home = () => {
             </Pressable>
           </View>
 
-          <TipModal visible={showTipModal} onClose={() => setShowTipModal(false)} userName={userName} />
-          
+          <TipModal visible={showTipModal} onClose={() => setShowTipModal(false)} userName={fullName} />
+
+          {/* Learning Tutorials */}
+          <View style={{ marginTop: 10 }}>
+            <Text style={styles.sectionTitle}>      Learn & Grow</Text>
+            <FlatList
+              data={learningCards}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[styles.learningCard, { backgroundColor: item.color }]}
+                  onPress={() => navigation.navigate(item.route)}
+                >
+                  <Text style={styles.learningIcon}>{item.icon}</Text>
+                  <Text style={styles.learningTitle}>{item.title}</Text>
+                </Pressable>
+              )}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={(width - 60) / 2 + 16}
+              decelerationRate="fast"
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+            />
+          </View>
+
           {/* Card Switcher */}
           <View style={styles.cardSwitcherContainer}>
             <CardSwitcher />
@@ -787,6 +872,30 @@ const styles = StyleSheet.create({
   cardSwitcherContainer: {
     paddingHorizontal: 20,
     marginBottom: 20,
+  },
+  // Learning tutorial styles
+  learningCard: {
+    width: (width - 60) / 2,
+    height: 140,
+    borderRadius: 16,
+    marginRight: 16,
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  learningIcon: {
+    fontSize: 32,
+    marginBottom: 10,
+  },
+  learningTitle: {
+    fontSize: 14,
+    fontFamily: FontFamily.poppinsSemiBold,
+    color: 'white',
+    textAlign: 'center',
   },
 });
 

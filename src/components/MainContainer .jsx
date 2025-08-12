@@ -5,7 +5,7 @@ import Home from '../screens/Home/Home';
 import Budgeting from '../screens/Categories/Budgeting/Budgeting';
 import Category from '../screens/bottomComponents/Category/Category';
 import FinShort from '../screens/bottomComponents/FinShort/FinShort';
-import Analytics from '../screens/bottomComponents/Analytics/Analytics';
+import Analytics from '../screens/bottomComponents/Analytics/Languages';
 import Profile from '../screens/bottomComponents/Profile/Profile';
 // import other screens as needed
 
