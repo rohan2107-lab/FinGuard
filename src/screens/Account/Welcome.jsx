@@ -24,7 +24,7 @@ const Welcome = () => {
   }
   setLoading(true);
   try {
-    const response = await axios.post('http://10.246.66.48:8000/api/auth/login', {
+    const response = await axios.post('http://10.246.66.93:8000/api/auth/login', {
       email,
       password,
     });
