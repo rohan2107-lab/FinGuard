@@ -4,17 +4,52 @@ import { Color, FontFamily, FontSize } from '../constants/GlobleStyle';
 import HomeIcon from "../assets/Home.svg";
 import CategoryIcon from "../assets/Category.svg";
 import FinShortIcon from "../assets/finShort.svg";
-import AnalyticsIcon from "../assets/Analysis.svg";
+import AnalyticsIcon from "../assets/language1.svg";
 import ProfileIcon from "../assets/Profile.svg";
+import { useLanguage } from '../contexts/LanguageContext';
 
 const BottomNavigation = ({ activeTab, onTabPress }) => {
-  const tabs = [
-    { id: 'home', label: 'Home', icon: <HomeIcon width={30} height={30} /> },
-    { id: 'categories', label: 'Categories', icon: <CategoryIcon width={30} height={30} /> },
-    { id: 'finShort', label: 'FinShort', icon: <FinShortIcon width={30} height={30} /> },
-    { id: 'analytics', label: 'Languages', icon: <AnalyticsIcon width={30} height={30} /> },
-    { id: 'profile', label: 'Profile', icon: <ProfileIcon width={30} height={30} /> },
+  const { currentLanguage } = useLanguage();
   
+  // Tab labels in different languages
+  const tabLabels = {
+    home: {
+      english: 'Home',
+      hindi: 'होम',
+      punjabi: 'ਹੋਮ'
+    },
+    categories: {
+      english: 'Categories',
+      hindi: 'श्रेणियाँ',
+      punjabi: 'ਸ਼੍ਰੇਣੀਆਂ'
+    },
+    finShort: {
+      english: 'FinShort',
+      hindi: 'फिनशॉर्ट',
+      punjabi: 'ਫਿਨਸ਼ੋਰਟ'
+    },
+    analytics: {
+      english: 'Languages',
+      hindi: 'भाषाएँ',
+      punjabi: 'ਭਾਸ਼ਾਵਾਂ'
+    },
+    profile: {
+      english: 'Profile',
+      hindi: 'प्रोफाइल',
+      punjabi: 'ਪ੍ਰੋਫਾਈਲ'
+    }
+  };
+  
+  const getLabel = (tabId) => {
+    return tabLabels[tabId][currentLanguage] || tabLabels[tabId].english;
+  };
+  
+  const tabs = [
+    { id: 'home', label: getLabel('home'), icon: <HomeIcon width={30} height={30} /> },
+    { id: 'categories', label: getLabel('categories'), icon: <CategoryIcon width={30} height={30} /> },
+    { id: 'finShort', label: getLabel('finShort'), icon: <FinShortIcon width={30} height={30} /> },
+    { id: 'analytics', label: getLabel('analytics'), icon: <AnalyticsIcon width={30} height={30} /> },
+    { id: 'profile', label: getLabel('profile'), icon: <ProfileIcon width={30} height={30} /> },
   ];
 
  return (
@@ -107,4 +142,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomNavigation; 
+export default BottomNavigation;

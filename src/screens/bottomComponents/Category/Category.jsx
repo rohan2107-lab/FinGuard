@@ -3,25 +3,73 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color, FontFamily, FontSize } from "./../../../constants/GlobleStyle";
 import { useNavigation } from "@react-navigation/native";
+import { useLanguage } from "../../../contexts/LanguageContext";
+import translations from "../../../utils/translations";
 
 // Importing EmergencyHelp component
 import EmergencyHelp from "../../Categories/Emergency/EmergencyHelp";  
 
 const Category = () => {
-
   const navigation = useNavigation();
-
+  const { currentLanguage, getLocalizedText } = useLanguage();
   
+  // Get category translations
+  const getCategoryName = (englishName) => {
+    const categoryTranslations = {
+      "Budgeting": {
+        english: "Budgeting",
+        hindi: "बजटिंग",
+        punjabi: "ਬਜਟਿੰਗ"
+      },
+      "Games": {
+        english: "Financial Games",
+        hindi: "वित्तीय खेल",
+        punjabi: "ਵਿੱਤੀ ਖੇਡਾਂ"
+      },
+      "Goal Tracker": {
+        english: "Goal Tracker",
+        hindi: "लक्ष्य ट्रैकर",
+        punjabi: "ਟੀਚਾ ਟਰੈਕਰ"
+      },
+      "Gifts": {
+        english: "Gifts & Rewards",
+        hindi: "उपहार और पुरस्कार",
+        punjabi: "ਤੋਹਫ਼ੇ ਅਤੇ ਇਨਾਮ"
+      },
+      "Fraud Simulation": {
+        english: "Fraud Protection",
+        hindi: "धोखाधड़ी सुरक्षा",
+        punjabi: "ਧੋਖਾਧੜੀ ਸੁਰੱਖਿਆ"
+      },
+      "Financial Calculators": {
+        english: "Calculator",
+        hindi: "कैलकुलेटर",
+        punjabi: "ਕੈਲਕੁਲੇਟਰ"
+      },
+      "Investment Basics": {
+        english: "Investment",
+        hindi: "निवेश",
+        punjabi: "ਨਿਵੇਸ਼"
+      },
+      "Emergency Help": {
+        english: "Emergency",
+        hindi: "आपातकालीन",
+        punjabi: "ਐਮਰਜੈਂਸੀ"
+      }
+    };
+    
+    return categoryTranslations[englishName][currentLanguage] || englishName;
+  };
 
   const categories = [
-    { id: 1, name: "Budgeting", icon: "💰" },
-    { id: 2, name: "Games", icon: "🎮" },
-    { id: 3, name: "Goal Tracker", icon: "🎯" },
-    { id: 4, name: "Gifts", icon: "🎁" },
-    { id: 5, name: "Fraud Simulation", icon: "🛡️" },
-    { id: 6, name: "Financial Calculators", icon: "🧮" },
-    { id: 7, name: "Investment Basics", icon: "📈" },
-    { id: 8, name: "Emergency Help", icon: "🚨" },
+    { id: 1, name: "Budgeting", displayName: getCategoryName("Budgeting"), icon: "💰" },
+    { id: 2, name: "Games", displayName: getCategoryName("Games"), icon: "🎮" },
+    { id: 3, name: "Goal Tracker", displayName: getCategoryName("Goal Tracker"), icon: "🎯" },
+    { id: 4, name: "Gifts", displayName: getCategoryName("Gifts"), icon: "🎁" },
+    { id: 5, name: "Fraud Simulation", displayName: getCategoryName("Fraud Simulation"), icon: "🛡️" },
+    { id: 6, name: "Financial Calculators", displayName: getCategoryName("Financial Calculators"), icon: "🧮" },
+    { id: 7, name: "Investment Basics", displayName: getCategoryName("Investment Basics"), icon: "📈" },
+    { id: 8, name: "Emergency Help", displayName: getCategoryName("Emergency Help"), icon: "🚨" },
   ];
 
 
@@ -64,7 +112,9 @@ const Category = () => {
           <TouchableOpacity style={styles.backButton}>
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Categories</Text>
+          <Text style={styles.title}>
+            {translations.categories[currentLanguage]?.categories || "Categories"}
+          </Text>
           <TouchableOpacity style={styles.notificationButton}>
             <Text style={styles.notificationIcon}>🔔</Text>
           </TouchableOpacity>
@@ -96,7 +146,7 @@ const Category = () => {
               <View style={styles.categoryIcon}>
                 <Text style={styles.iconText}>{category.icon}</Text>
               </View>
-              <Text style={styles.categoryName}>{category.name}</Text>
+              <Text style={styles.categoryName}>{category.displayName}</Text>
             </TouchableOpacity>
           ))}
         </View>
