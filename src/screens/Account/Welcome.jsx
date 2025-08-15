@@ -24,7 +24,7 @@ const Welcome = () => {
   }
   setLoading(true);
   try {
-    const response = await axios.post('http://10.20.106.48:8000/api/auth/login', {
+    const response = await axios.post('http://10.246.66.48:8000/api/auth/login', {
       email,
       password,
     });
@@ -95,7 +95,6 @@ const Welcome = () => {
           </Text>
           <Text style={styles.orText}>or sign up with</Text>
           <View style={styles.socialRow}>
-            <Pressable style={styles.socialBtn}><Facebook width={33} height={33} /></Pressable>
             <Pressable style={styles.socialBtn}><Google width={33} height={33} /></Pressable>
           </View>
           <Text style={styles.bottomText}>

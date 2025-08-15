@@ -14,7 +14,7 @@ const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topSection}>
-        <Text style={styles.title}>Ready To Take{"\n"}Charge Of Your Financial Future?</Text>
+        <Text style={styles.title}>Ready To Take{"\n"}Charge Of Your Financial Future</Text>
       </View>
       <View style={styles.bottomSection}>
         <View style={styles.illustrationWrapper}>
@@ -27,10 +27,7 @@ const navigation = useNavigation();
         <Pressable style={styles.nextButton} onPress={() => {navigation.navigate("Welcome")}}>
           <Text style={styles.nextText}>Next</Text>
         </Pressable>
-        <View style={styles.dotsContainer}>
-          <View style={styles.dotActive} />
-          <View style={styles.dotInactive} />
-        </View>
+      
       </View>
     </SafeAreaView>
   );
@@ -78,9 +75,10 @@ const styles = StyleSheet.create({
     height: 180,
   },
   nextButton: {
-    marginTop: 16,
-    alignItems: "center",
+    marginTop: 50,
+    alignItems: "flex-end",
     justifyContent: "center",
+    marginBottom: 20,
   },
   nextText: {
     fontSize: 22,
@@ -90,26 +88,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
-  dotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  dotActive: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Color.colorMediumseagreen,
-    marginHorizontal: 4,
-  },
-  dotInactive: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#C4C4C4",
-    marginHorizontal: 4,
-  },
+ 
 });
 
 export default BOnBoarding;

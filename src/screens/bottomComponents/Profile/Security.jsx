@@ -303,43 +303,7 @@ const Security = () => {
             </View>
           ))}
 
-          {/* Recent Activity */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>Recent Activity</Text>
-            {lastActivity.map((activity, index) => (
-              <Pressable
-                key={index}
-                style={styles.activityItem}
-                onPress={() => handleDeviceAction(activity.device, 'view')}
-                android_ripple={{ color: 'rgba(0,0,0,0.05)', radius: 200 }}
-              >
-                <View style={styles.activityContent}>
-                  <View style={[styles.activityIcon, activity.current && styles.activityIconCurrent]}>
-                    <Text style={styles.activityIconText}>📱</Text>
-                  </View>
-                  <View style={styles.activityInfo}>
-                    <Text style={styles.activityDevice}>{activity.device}</Text>
-                    <Text style={styles.activityLocation}>{activity.location}</Text>
-                    <Text style={styles.activityTime}>{activity.time}</Text>
-                  </View>
-                  {activity.current && (
-                    <View style={styles.currentBadge}>
-                      <Text style={styles.currentText}>Current</Text>
-                    </View>
-                  )}
-                  {!activity.current && (
-                    <Pressable
-                      style={styles.removeDeviceButton}
-                      onPress={() => handleDeviceAction(activity.device, 'remove')}
-                      android_ripple={{ color: 'rgba(239, 68, 68, 0.1)', radius: 15 }}
-                    >
-                      <Text style={styles.removeDeviceText}>✕</Text>
-                    </Pressable>
-                  )}
-                </View>
-              </Pressable>
-            ))}
-          </View>
+      
 
           <View style={styles.bottomSpacing} />
         </View>

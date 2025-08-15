@@ -48,6 +48,27 @@ const FinanceCalculator = () => {
     result: null
   });
 
+  // Tax Calculator State
+  const [taxData, setTaxData] = useState({
+    income: '',
+    regime: 'old', // 'old' or 'new'
+    hra: '',
+    section80C: '',
+    section80D: '',
+    result: null
+  });
+
+  // Retirement Planner State
+  const [retirementData, setRetirementData] = useState({
+    currentAge: '',
+    retirementAge: '',
+    monthlyExpenses: '',
+    inflation: '',
+    expectedReturn: '',
+    currentSavings: '',
+    result: null
+  });
+
   const calculatorTools = [
     {
       id: 1,
@@ -98,6 +119,112 @@ const FinanceCalculator = () => {
       iconColor: "#059669"
     }
   ];
+
+  // Tax Calculation Logic
+  const calculateTax = () => {
+    const income = parseFloat(taxData.income);
+    const hra = parseFloat(taxData.hra) || 0;
+    const section80C = parseFloat(taxData.section80C) || 0;
+    const section80D = parseFloat(taxData.section80D) || 0;
+    
+    if (!income) return;
+
+    let taxableIncome = income;
+    let tax = 0;
+    
+    if (taxData.regime === 'old') {
+      // Old Tax Regime
+      taxableIncome = income - Math.min(hra, income * 0.5, 100000) - Math.min(section80C, 150000) - Math.min(section80D, 25000);
+      
+      if (taxableIncome > 250000) {
+        if (taxableIncome <= 500000) {
+          tax = (taxableIncome - 250000) * 0.05;
+        } else if (taxableIncome <= 1000000) {
+          tax = 250000 * 0.05 + (taxableIncome - 500000) * 0.20;
+        } else {
+          tax = 250000 * 0.05 + 500000 * 0.20 + (taxableIncome - 1000000) * 0.30;
+        }
+      }
+      
+      // Add 4% cess
+      tax = tax * 1.04;
+    } else {
+      // New Tax Regime (2023-24)
+      if (taxableIncome > 300000) {
+        if (taxableIncome <= 600000) {
+          tax = (taxableIncome - 300000) * 0.05;
+        } else if (taxableIncome <= 900000) {
+          tax = 300000 * 0.05 + (taxableIncome - 600000) * 0.10;
+        } else if (taxableIncome <= 1200000) {
+          tax = 300000 * 0.05 + 300000 * 0.10 + (taxableIncome - 900000) * 0.15;
+        } else if (taxableIncome <= 1500000) {
+          tax = 300000 * 0.05 + 300000 * 0.10 + 300000 * 0.15 + (taxableIncome - 1200000) * 0.20;
+        } else {
+          tax = 300000 * 0.05 + 300000 * 0.10 + 300000 * 0.15 + 300000 * 0.20 + (taxableIncome - 1500000) * 0.30;
+        }
+      }
+      
+      // Add 4% cess
+      tax = tax * 1.04;
+    }
+    
+    const netIncome = income - tax;
+    const effectiveRate = (tax / income) * 100;
+    
+    setTaxData({
+      ...taxData,
+      result: {
+        taxableIncome: Math.round(taxableIncome),
+        tax: Math.round(tax),
+        netIncome: Math.round(netIncome),
+        effectiveRate: effectiveRate.toFixed(2)
+      }
+    });
+  };
+
+  // Retirement Planning Logic
+  const calculateRetirement = () => {
+    const currentAge = parseFloat(retirementData.currentAge);
+    const retirementAge = parseFloat(retirementData.retirementAge);
+    const monthlyExpenses = parseFloat(retirementData.monthlyExpenses);
+    const inflation = parseFloat(retirementData.inflation) / 100;
+    const expectedReturn = parseFloat(retirementData.expectedReturn) / 100;
+    const currentSavings = parseFloat(retirementData.currentSavings) || 0;
+    
+    if (!currentAge || !retirementAge || !monthlyExpenses || !inflation || !expectedReturn) return;
+    
+    const yearsToRetirement = retirementAge - currentAge;
+    const retirementYears = 25; // Assuming 25 years after retirement
+    
+    // Calculate future monthly expenses at retirement
+    const futureMonthlyExpenses = monthlyExpenses * Math.pow(1 + inflation, yearsToRetirement);
+    
+    // Calculate corpus needed at retirement
+    const realReturnRate = (expectedReturn - inflation) / (1 + inflation);
+    const corpusNeeded = (futureMonthlyExpenses * 12) * ((1 - Math.pow(1 + realReturnRate, -retirementYears)) / realReturnRate);
+    
+    // Calculate future value of current savings
+    const futureValueCurrentSavings = currentSavings * Math.pow(1 + expectedReturn, yearsToRetirement);
+    
+    // Calculate additional corpus needed
+    const additionalCorpusNeeded = Math.max(0, corpusNeeded - futureValueCurrentSavings);
+    
+    // Calculate monthly SIP required
+    const monthlyReturn = expectedReturn / 12;
+    const totalMonths = yearsToRetirement * 12;
+    const monthlySIPRequired = additionalCorpusNeeded * monthlyReturn / (Math.pow(1 + monthlyReturn, totalMonths) - 1);
+    
+    setRetirementData({
+      ...retirementData,
+      result: {
+        corpusNeeded: Math.round(corpusNeeded),
+        futureMonthlyExpenses: Math.round(futureMonthlyExpenses),
+        monthlySIPRequired: Math.round(monthlySIPRequired),
+        yearsToRetirement: yearsToRetirement,
+        currentSavingsFutureValue: Math.round(futureValueCurrentSavings)
+      }
+    });
+  };
 
   // SIP Calculator Logic
   const calculateSIP = () => {
@@ -197,6 +324,214 @@ const FinanceCalculator = () => {
     setModalVisible(false);
     setActiveCalculator(null);
   };
+
+  const renderTaxCalculator = () => (
+    <View style={styles.calculatorContainer}>
+      <Text style={styles.calculatorTitle}>Tax Calculator</Text>
+      
+      <View style={styles.regimeSelector}>
+        <Text style={styles.inputLabel}>Tax Regime</Text>
+        <View style={styles.regimeButtons}>
+          <Pressable 
+            style={[styles.regimeButton, taxData.regime === 'old' && styles.regimeButtonActive]}
+            onPress={() => setTaxData({...taxData, regime: 'old'})}
+          >
+            <Text style={[styles.regimeButtonText, taxData.regime === 'old' && styles.regimeButtonTextActive]}>Old Regime</Text>
+          </Pressable>
+          <Pressable 
+            style={[styles.regimeButton, taxData.regime === 'new' && styles.regimeButtonActive]}
+            onPress={() => setTaxData({...taxData, regime: 'new'})}
+          >
+            <Text style={[styles.regimeButtonText, taxData.regime === 'new' && styles.regimeButtonTextActive]}>New Regime</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Annual Income (₹)</Text>
+        <TextInput
+          style={styles.input}
+          value={taxData.income}
+          onChangeText={(text) => setTaxData({...taxData, income: text})}
+          placeholder="1000000"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      {taxData.regime === 'old' && (
+        <>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>HRA (₹)</Text>
+            <TextInput
+              style={styles.input}
+              value={taxData.hra}
+              onChangeText={(text) => setTaxData({...taxData, hra: text})}
+              placeholder="100000"
+              keyboardType="numeric"
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Section 80C (₹)</Text>
+            <TextInput
+              style={styles.input}
+              value={taxData.section80C}
+              onChangeText={(text) => setTaxData({...taxData, section80C: text})}
+              placeholder="150000"
+              keyboardType="numeric"
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Section 80D (₹)</Text>
+            <TextInput
+              style={styles.input}
+              value={taxData.section80D}
+              onChangeText={(text) => setTaxData({...taxData, section80D: text})}
+              placeholder="25000"
+              keyboardType="numeric"
+              placeholderTextColor="#94a3b8"
+            />
+          </View>
+        </>
+      )}
+
+      <Pressable style={styles.calculateButton} onPress={calculateTax}>
+        <Text style={styles.calculateButtonText}>Calculate Tax</Text>
+      </Pressable>
+
+      {taxData.result && (
+        <View style={styles.resultContainer}>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Taxable Income:</Text>
+            <Text style={styles.resultValue}>₹{taxData.result.taxableIncome.toLocaleString()}</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Tax Payable:</Text>
+            <Text style={[styles.resultValue, {color: '#ef4444'}]}>₹{taxData.result.tax.toLocaleString()}</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Net Income:</Text>
+            <Text style={[styles.resultValue, {color: '#10b981', fontSize: 18, fontWeight: '800'}]}>₹{taxData.result.netIncome.toLocaleString()}</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Effective Tax Rate:</Text>
+            <Text style={styles.resultValue}>{taxData.result.effectiveRate}%</Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderRetirementPlanner = () => (
+    <View style={styles.calculatorContainer}>
+      <Text style={styles.calculatorTitle}>Retirement Planner</Text>
+      
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Current Age</Text>
+        <TextInput
+          style={styles.input}
+          value={retirementData.currentAge}
+          onChangeText={(text) => setRetirementData({...retirementData, currentAge: text})}
+          placeholder="30"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Retirement Age</Text>
+        <TextInput
+          style={styles.input}
+          value={retirementData.retirementAge}
+          onChangeText={(text) => setRetirementData({...retirementData, retirementAge: text})}
+          placeholder="60"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Current Monthly Expenses (₹)</Text>
+        <TextInput
+          style={styles.input}
+          value={retirementData.monthlyExpenses}
+          onChangeText={(text) => setRetirementData({...retirementData, monthlyExpenses: text})}
+          placeholder="50000"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Expected Inflation (% p.a.)</Text>
+        <TextInput
+          style={styles.input}
+          value={retirementData.inflation}
+          onChangeText={(text) => setRetirementData({...retirementData, inflation: text})}
+          placeholder="6"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Expected Return (% p.a.)</Text>
+        <TextInput
+          style={styles.input}
+          value={retirementData.expectedReturn}
+          onChangeText={(text) => setRetirementData({...retirementData, expectedReturn: text})}
+          placeholder="12"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Current Savings (₹)</Text>
+        <TextInput
+          style={styles.input}
+          value={retirementData.currentSavings}
+          onChangeText={(text) => setRetirementData({...retirementData, currentSavings: text})}
+          placeholder="500000"
+          keyboardType="numeric"
+          placeholderTextColor="#94a3b8"
+        />
+      </View>
+
+      <Pressable style={styles.calculateButton} onPress={calculateRetirement}>
+        <Text style={styles.calculateButtonText}>Plan Retirement</Text>
+      </Pressable>
+
+      {retirementData.result && (
+        <View style={styles.resultContainer}>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Years to Retirement:</Text>
+            <Text style={styles.resultValue}>{retirementData.result.yearsToRetirement} years</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Future Monthly Expenses:</Text>
+            <Text style={styles.resultValue}>₹{retirementData.result.futureMonthlyExpenses.toLocaleString()}</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Corpus Needed:</Text>
+            <Text style={[styles.resultValue, {color: '#059669', fontSize: 18, fontWeight: '800'}]}>₹{retirementData.result.corpusNeeded.toLocaleString()}</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Current Savings Future Value:</Text>
+            <Text style={styles.resultValue}>₹{retirementData.result.currentSavingsFutureValue.toLocaleString()}</Text>
+          </View>
+          <View style={styles.resultRow}>
+            <Text style={styles.resultLabel}>Monthly SIP Required:</Text>
+            <Text style={[styles.resultValue, {color: '#10b981', fontSize: 16, fontWeight: '700'}]}>₹{retirementData.result.monthlySIPRequired.toLocaleString()}</Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
 
   const renderSIPCalculator = () => (
     <View style={styles.calculatorContainer}>
@@ -448,6 +783,8 @@ const FinanceCalculator = () => {
       case 2: return renderLoanCalculator();
       case 3: return renderFDCalculator();
       case 4: return renderPPFCalculator();
+      case 5: return renderTaxCalculator();
+      case 6: return renderRetirementPlanner();
       default: return <Text>Calculator not available</Text>;
     }
   };
@@ -486,7 +823,7 @@ const FinanceCalculator = () => {
               <Pressable 
                 key={tool.id} 
                 style={[styles.toolCard, { backgroundColor: tool.bgColor }]}
-                onPress={() => tool.id <= 4 ? openCalculator(tool.id) : null}
+                onPress={() => openCalculator(tool.id)}
                 android_ripple={{ color: 'rgba(0,0,0,0.1)' }}
               >
                 <View style={[styles.toolIconContainer, { backgroundColor: tool.iconColor }]}>
@@ -494,11 +831,6 @@ const FinanceCalculator = () => {
                 </View>
                 <Text style={styles.toolTitle}>{tool.title}</Text>
                 <Text style={styles.toolDescription}>{tool.description}</Text>
-                {tool.id > 4 && (
-                  <View style={styles.comingSoonBadge}>
-                    <Text style={styles.comingSoonText}>Coming Soon</Text>
-                  </View>
-                )}
               </Pressable>
             ))}
           </View>
@@ -511,6 +843,8 @@ const FinanceCalculator = () => {
               <Text style={styles.tipText}>• Compare loan offers from multiple banks</Text>
               <Text style={styles.tipText}>• PPF has 15-year lock-in with tax benefits</Text>
               <Text style={styles.tipText}>• FDs are safe but offer lower returns than equity</Text>
+              <Text style={styles.tipText}>• Plan retirement early for a comfortable future</Text>
+              <Text style={styles.tipText}>• Choose tax regime based on your deductions</Text>
             </View>
           </View>
         </ScrollView>
@@ -665,20 +999,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 18,
   },
-  comingSoonBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#f97316',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  comingSoonText: {
-    fontSize: 10,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
   tipsSection: {
     backgroundColor: "#ffffff",
     borderRadius: 20,
@@ -812,6 +1132,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1e293b",
     fontWeight: "700",
+  },
+  // Tax Calculator specific styles
+  regimeSelector: {
+    marginBottom: 20,
+  },
+  regimeButtons: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    padding: 4,
+  },
+  regimeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  regimeButtonActive: {
+    backgroundColor: '#10b981',
+  },
+  regimeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  regimeButtonTextActive: {
+    color: '#ffffff',
   },
 });
 
