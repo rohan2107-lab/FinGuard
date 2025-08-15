@@ -32,10 +32,7 @@ const AOnBoarding = () => {
         <Pressable style={styles.nextButton} onPress={handleNextPress}>
           <Text style={styles.nextText}>Next</Text>
         </Pressable>
-        <View style={styles.dotsContainer}>
-          <View style={styles.dotActive} />
-          <View style={styles.dotInactive} />
-        </View>
+        
       </View>
     </SafeAreaView>
   );

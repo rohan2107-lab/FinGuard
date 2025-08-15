@@ -24,13 +24,13 @@ import CardSwitcher from '../../components/CardSwitcher';
 
 const { width } = Dimensions.get('window');
 
-
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const navigation = useNavigation();
   const [showTipModal, setShowTipModal] = useState(false);
   const [fullName, setFullname] = useState('');
@@ -43,18 +43,17 @@ const Home = () => {
   const blinkingAnim = useRef(new Animated.Value(0)).current;
   const expandAnim = useRef(new Animated.Value(0)).current;
 
-   const getTimeGreeting = () => {
+  const getTimeGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return ('Good Morning 🌄');
     if (hour < 17) return ('Good Afternoon ☀️');
     return ('Good Evening 🌙');
   };
-  
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = await AsyncStorage.getItem('token'); // token saved after login
+        const token = await AsyncStorage.getItem('token');
         if (!token) {
           console.log('No token found');
           setLoading(false);
@@ -71,7 +70,7 @@ const Home = () => {
 
         const data = await res.json();
         if (res.ok) {
-          setFullname(data.fullName); // assuming backend sends { username: "Rahul" }
+          setFullname(data.fullName);
         } else {
           console.log(data.message);
         }
@@ -116,121 +115,216 @@ const Home = () => {
     return <ActivityIndicator size="large" color="#000" style={{ flex: 1, justifyContent: 'center' }} />;
   }
 
+  // Enhanced features list with comprehensive search terms
   const allFeatures = [
     {
       id: 1,
       title: 'Budgeting',
-      searchTerms: ['budget', 'budgeting', 'expense', 'money management', 'spending'],
+      searchTerms: ['budget', 'budgeting', 'expense', 'money management', 'spending', 'track expenses', 'financial planning', 'manage money', 'cost control'],
       icon: '💰',
       color: '#4A90E2',
       gradient: ['#4A90E2', '#357ABD'],
       description: 'Manage your budget and track expenses',
-      route: 'Budgeting'
+      route: 'Budgeting',
+      category: 'Financial Management'
     },
     {
       id: 2,
       title: 'Fraud Simulation',
-      searchTerms: ['fraud', 'security', 'simulation', 'scam', 'protection', 'safety'],
+      searchTerms: ['fraud', 'security', 'simulation', 'scam', 'protection', 'safety', 'cyber security', 'phishing', 'identity theft', 'online safety'],
       icon: '🔐',
       color: '#FF6B6B',
       gradient: ['#FF6B6B', '#EE5A52'],
-      description: 'Learn about fraud protection',
-      route: 'FraudSimulation'
+      description: 'Learn about fraud protection and security',
+      route: 'FraudSimulation',
+      category: 'Security'
     },
     {
       id: 3,
       title: 'Goal Tracker',
-      searchTerms: ['goal', 'tracker', 'target', 'achievement', 'progress', 'planning'],
+      searchTerms: ['goal', 'tracker', 'target', 'achievement', 'progress', 'planning', 'objectives', 'milestones', 'personal goals'],
       icon: '⏰',
       color: '#4ECDC4',
       gradient: ['#4ECDC4', '#44A08D'],
-      description: 'Track your financial goals',
-      route: 'GoalTracker'
+      description: 'Track your financial and personal goals',
+      route: 'GoalTracker',
+      category: 'Planning'
     },
     {
       id: 4,
       title: 'Games',
-      searchTerms: ['games', 'play', 'fun', 'entertainment', 'learning games'],
+      searchTerms: ['games', 'play', 'fun', 'entertainment', 'learning games', 'educational games', 'quiz', 'interactive'],
       icon: '🎮',
       color: '#7B68EE',
       gradient: ['#7B68EE', '#6A5ACD'],
-      description: 'Educational financial games',
-      route: 'GamesSplash'
+      description: 'Educational financial games and activities',
+      route: 'GamesSplash',
+      category: 'Entertainment'
     },
     {
       id: 5,
       title: 'Financial Calculators',
-      searchTerms: ['calculator', 'calculation', 'finance', 'math', 'compute', 'calculate'],
+      searchTerms: ['calculator', 'calculation', 'finance', 'math', 'compute', 'calculate', 'interest', 'loan', 'mortgage', 'investment calculator'],
       icon: '🧮',
       color: '#45B7D1',
       gradient: ['#45B7D1', '#3A9BC1'],
-      description: 'Financial calculation tools',
-      route: 'FinancialCalculator'
+      description: 'Financial calculation tools and calculators',
+      route: 'FinancialCalculator',
+      category: 'Tools'
     },
     {
       id: 6,
       title: 'Gifts',
-      searchTerms: ['gifts', 'rewards', 'present', 'bonus', 'earn'],
+      searchTerms: ['gifts', 'rewards', 'present', 'bonus', 'earn', 'redeem', 'points', 'cashback', 'incentives'],
       icon: '🎁',
       color: '#F39C12',
       gradient: ['#F39C12', '#E67E22'],
-      description: 'Redeem gifts and rewards',
-      route: 'Gifts'
+      description: 'Redeem gifts and rewards from your activities',
+      route: 'Gifts',
+      category: 'Rewards'
     },
     {
       id: 7,
       title: 'Investment Basics',
-      searchTerms: ['investment', 'invest', 'stocks', 'basics', 'learning', 'finance'],
+      searchTerms: ['investment', 'invest', 'stocks', 'basics', 'learning', 'finance', 'portfolio', 'trading', 'mutual funds', 'shares'],
       icon: '📈',
       color: '#27AE60',
       gradient: ['#27AE60', '#229954'],
-      description: 'Learn investment fundamentals',
-      route: 'InvestmentBasics'
+      description: 'Learn investment fundamentals and strategies',
+      route: 'InvestmentBasics',
+      category: 'Learning'
     },
     {
       id: 8,
       title: 'Emergency Help',
-      searchTerms: ['emergency', 'help', 'support', 'assistance', 'urgent', 'crisis'],
+      searchTerms: ['emergency', 'help', 'support', 'assistance', 'urgent', 'crisis', 'financial emergency', 'quick help'],
       icon: '🚨',
       color: '#E74C3C',
       gradient: ['#E74C3C', '#C0392B'],
-      description: 'Get emergency financial help',
-      route: 'EmergencyHelp'
+      description: 'Get emergency financial help and support',
+      route: 'EmergencyHelp',
+      category: 'Support'
     },
   ];
 
-  // Learning card data
+  // Learning card data with enhanced search terms
   const learningCards = [
-    { id: '1', title: 'Finance Basics', icon: '💵', color: '#4A90E2', route: 'FinanceTutorial' },
-    { id: '2', title: 'SIP Learning', icon: '📊', color: '#27AE60', route: 'SIPTutorial' },
-    { id: '3', title: 'Mutual Funds', icon: '📈', color: '#F39C12', route: 'MutualFundsTutorial' },
-    { id: '4', title: 'Fraud Awareness', icon: '🕵️‍♂️', color: '#E74C3C', route: 'FraudTutorial' },
-    { id: '5', title: 'Tax Planning', icon: '🧾', color: '#9B59B6', route: 'TaxTutorial' },
+    { 
+      id: '1', 
+      title: 'Finance Basics', 
+      icon: '💵', 
+      color: '#4A90E2', 
+      route: 'FinanceTutorial',
+      searchTerms: ['finance', 'basics', 'money', 'financial literacy', 'tutorial', 'learning'],
+      description: 'Learn fundamental financial concepts'
+    },
+    { 
+      id: '2', 
+      title: 'SIP Learning', 
+      icon: '📊', 
+      color: '#27AE60', 
+      route: 'SIPTutorial',
+      searchTerms: ['sip', 'systematic investment plan', 'recurring investment', 'monthly investment'],
+      description: 'Understand Systematic Investment Plans'
+    },
+    { 
+      id: '3', 
+      title: 'Mutual Funds', 
+      icon: '📈', 
+      color: '#F39C12', 
+      route: 'MutualFundsTutorial',
+      searchTerms: ['mutual funds', 'investment', 'portfolio', 'fund management'],
+      description: 'Learn about mutual fund investments'
+    },
+    { 
+      id: '4', 
+      title: 'Fraud Awareness', 
+      icon: '🕵️‍♂️', 
+      color: '#E74C3C', 
+      route: 'FraudTutorial',
+      searchTerms: ['fraud', 'awareness', 'scam', 'security', 'protection'],
+      description: 'Stay protected from financial frauds'
+    },
+    { 
+      id: '5', 
+      title: 'Tax Planning', 
+      icon: '🧾', 
+      color: '#9B59B6', 
+      route: 'TaxTutorial',
+      searchTerms: ['tax', 'planning', 'income tax', 'tax saving', 'deductions'],
+      description: 'Plan your taxes efficiently'
+    },
+  ];
+
+  // Combine all searchable content
+  const allSearchableContent = [
+    ...allFeatures.map(feature => ({
+      ...feature,
+      type: 'feature'
+    })),
+    ...learningCards.map(card => ({
+      ...card,
+      type: 'learning',
+      searchTerms: card.searchTerms || [],
+      category: 'Learning'
+    }))
   ];
 
   const mainFeatures = allFeatures.filter(feature => [1, 4].includes(feature.id));
   const additionalFeatures = allFeatures.filter(feature => ![1, 4].includes(feature.id));
 
-  // Search functionality
+  // Enhanced search functionality
   const handleSearch = (query) => {
     setSearchQuery(query);
     
     if (query.trim() === '') {
       setSearchResults([]);
       setIsSearching(false);
+      setShowSearchResults(false);
       return;
     }
 
     setIsSearching(true);
+    setShowSearchResults(true);
+    
     const lowercaseQuery = query.toLowerCase();
     
-    const results = allFeatures.filter(feature => 
-      feature.title.toLowerCase().includes(lowercaseQuery) ||
-      feature.searchTerms.some(term => term.toLowerCase().includes(lowercaseQuery)) ||
-      feature.description.toLowerCase().includes(lowercaseQuery)
-    );
+    // Search through all content with fuzzy matching
+    const results = allSearchableContent.filter(item => {
+      const titleMatch = item.title.toLowerCase().includes(lowercaseQuery);
+      const descriptionMatch = item.description && item.description.toLowerCase().includes(lowercaseQuery);
+      const categoryMatch = item.category && item.category.toLowerCase().includes(lowercaseQuery);
+      
+      // Search through search terms
+      const searchTermsMatch = item.searchTerms && item.searchTerms.some(term => 
+        term.toLowerCase().includes(lowercaseQuery) || 
+        lowercaseQuery.includes(term.toLowerCase())
+      );
+      
+      // Fuzzy search - check if query words are contained in title or search terms
+      const queryWords = lowercaseQuery.split(' ').filter(word => word.length > 2);
+      const fuzzyMatch = queryWords.some(word => 
+        item.title.toLowerCase().includes(word) ||
+        (item.searchTerms && item.searchTerms.some(term => term.toLowerCase().includes(word)))
+      );
+      
+      return titleMatch || descriptionMatch || categoryMatch || searchTermsMatch || fuzzyMatch;
+    });
     
-    setSearchResults(results);
+    // Sort results by relevance
+    const sortedResults = results.sort((a, b) => {
+      const aTitle = a.title.toLowerCase();
+      const bTitle = b.title.toLowerCase();
+      
+      // Exact title match gets highest priority
+      if (aTitle.includes(lowercaseQuery) && !bTitle.includes(lowercaseQuery)) return -1;
+      if (!aTitle.includes(lowercaseQuery) && bTitle.includes(lowercaseQuery)) return 1;
+      
+      // Then sort by title length (shorter titles are more relevant)
+      return aTitle.length - bTitle.length;
+    });
+    
+    setSearchResults(sortedResults);
   };
 
   const handleFeaturePress = (feature) => {
@@ -238,6 +332,7 @@ const Home = () => {
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
+    setShowSearchResults(false);
     
     if (feature.route) {
       navigation.navigate(feature.route);
@@ -248,6 +343,7 @@ const Home = () => {
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
+    setShowSearchResults(false);
   };
 
   const renderFeatureCard = (feature, index = 0) => (
@@ -281,8 +377,9 @@ const Home = () => {
     </Pressable>
   );
 
-  const renderSearchResult = ({ item }) => (
+  const renderSearchResult = ({ item, index }) => (
     <Pressable
+      key={`${item.type}-${item.id}-${index}`}
       style={styles.searchResultItem}
       onPress={() => handleFeaturePress(item)}
       android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
@@ -293,6 +390,9 @@ const Home = () => {
       <View style={styles.searchResultContent}>
         <Text style={styles.searchResultTitle}>{item.title}</Text>
         <Text style={styles.searchResultDescription}>{item.description}</Text>
+        {item.category && (
+          <Text style={styles.searchResultCategory}>{item.category}</Text>
+        )}
       </View>
       <Text style={styles.searchResultArrow}>→</Text>
     </Pressable>
@@ -348,22 +448,21 @@ const Home = () => {
   );
 
   return (
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Enhanced Top Section */}
       <View style={styles.topSection}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
             <Text style={styles.greeting}>
-              {('hi')}, {fullName ? fullName : ('guest')}
+              Hi, {fullName ? fullName : 'Guest'}
             </Text>
-            <Text style={styles.subGreeting}>{getTimeGreeting()} </Text>
+            <Text style={styles.subGreeting}>{getTimeGreeting()}</Text>
           </View>
           <Pressable style={styles.notificationButton}>
             <Text style={styles.notificationIcon}>🔔</Text>
           </Pressable>
         </View>
-
 
         {/* Enhanced Stats Section */}
         <View style={styles.statsContainer}>
@@ -386,10 +485,12 @@ const Home = () => {
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search features..."
+              placeholder="Search features, tutorials, games..."
               placeholderTextColor={Color.colorGray}
               value={searchQuery}
               onChangeText={handleSearch}
+              returnKeyType="search"
+              autoCorrect={false}
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={clearSearch} style={styles.clearButton}>
@@ -401,27 +502,28 @@ const Home = () => {
       </View>
 
       {/* Search Results Overlay */}
-      {isSearching && (
+      {showSearchResults && (
         <View style={styles.searchOverlay}>
           <View style={styles.searchResultsContainer}>
             {searchResults.length > 0 ? (
               <>
                 <Text style={styles.searchResultsHeader}>
-                  Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
+                  Found {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
                 </Text>
                 <FlatList
                   data={searchResults}
                   renderItem={renderSearchResult}
-                  keyExtractor={(item) => item.id.toString()}
+                  keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
                   showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 20 }}
                 />
               </>
             ) : (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsIcon}>🔍</Text>
-                <Text style={styles.noResultsText}>No results found</Text>
+                <Text style={styles.noResultsText}>No results found for "{searchQuery}"</Text>
                 <Text style={styles.noResultsSubtext}>
-                  Try searching for "budget", "games", "calculator", etc.
+                  Try searching for: "budget", "games", "calculator", "investment", "fraud", "goals", "learning"
                 </Text>
               </View>
             )}
@@ -430,7 +532,7 @@ const Home = () => {
       )}
 
       {/* Scrollable Main Content Area - Hidden when searching */}
-      {!isSearching && (
+      {!showSearchResults && (
         <ScrollView 
           style={styles.mainContent}
           showsVerticalScrollIndicator={false}
@@ -718,6 +820,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: FontFamily.poppinsRegular,
     color: Color.colorGray,
+    marginBottom: 2,
+  },
+  searchResultCategory: {
+    fontSize: 11,
+    fontFamily: FontFamily.poppinsRegular,
+    color: Color.colorGray,
+    fontStyle: 'italic',
   },
   searchResultArrow: {
     fontSize: 18,

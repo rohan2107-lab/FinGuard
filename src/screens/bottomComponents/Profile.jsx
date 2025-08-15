@@ -6,11 +6,81 @@ import {
   Image,
   Pressable,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Color, Fonts, FontSize } from "../../constants/GlobleStyle";
 
 const Profile = () => {
+  const navigation = useNavigation();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Clear all stored user data
+              await AsyncStorage.multiRemove([
+                'userToken',
+                'userData',
+                'refreshToken',
+                'isLoggedIn'
+              ]);
+              
+              // Alternative: Clear all AsyncStorage data
+              // await AsyncStorage.clear();
+              
+              // Navigate to login screen and reset navigation stack
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Welcome' }], // Replace 'Login' with your actual login screen name
+              });
+              
+              // Alternative navigation methods:
+              // navigation.navigate('Login');
+              // navigation.replace('Login');
+              
+            } catch (error) {
+              console.error('Error during logout:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleEditProfile = () => {
+    navigation.navigate('EditProfile');
+  };
+
+  const handleSecurity = () => {
+    navigation.navigate('Security'); 
+  };
+
+  const handleSettings = () => {
+    navigation.navigate('Settings'); 
+  };
+
+  const handleHelp = () => {
+    navigation.navigate('Help'); 
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -18,7 +88,7 @@ const Profile = () => {
         <View style={styles.headerBackground}>
           {/* Header */}
           <View style={styles.header}>
-            <Pressable style={styles.backButton}>
+            <Pressable style={styles.backButton} onPress={handleBack}>
               <Text style={styles.backIcon}>←</Text>
             </Pressable>
             <Text style={styles.profile}>Profile</Text>
@@ -48,35 +118,35 @@ const Profile = () => {
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleEditProfile}>
             <View style={[styles.menuIcon, styles.editProfileIcon]}>
               <Text style={styles.iconText}>👤</Text>
             </View>
             <Text style={styles.menuText}>Edit Profile</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleSecurity}>
             <View style={[styles.menuIcon, styles.securityIcon]}>
               <Text style={styles.iconText}>🛡️</Text>
             </View>
             <Text style={styles.menuText}>Security</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleSettings}>
             <View style={[styles.menuIcon, styles.settingIcon]}>
               <Text style={styles.iconText}>⚙️</Text>
             </View>
             <Text style={styles.menuText}>Setting</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleHelp}>
             <View style={[styles.menuIcon, styles.helpIcon]}>
               <Text style={styles.iconText}>❓</Text>
             </View>
             <Text style={styles.menuText}>Help</Text>
           </Pressable>
 
-          <Pressable style={styles.menuItem}>
+          <Pressable style={styles.menuItem} onPress={handleLogout}>
             <View style={[styles.menuIcon, styles.logoutIcon]}>
               <Text style={styles.iconText}>🚪</Text>
             </View>
