@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Image, Text, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -7,12 +7,23 @@ import BaseShape from "../../assets/base-shape.svg";
 import Next from "../../assets/next.svg";
 import Ellipse185 from "../../assets/Ellipse185.svg";
 import { Color, Fonts } from "../../constants/GlobleStyle";
+// import { useEffect } from "react";
 
 const AOnBoarding = () => {
   const navigation = useNavigation();
   const handleNextPress = () => {
     navigation.replace("BOnBoarding");
   };
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('+++++', token);
+      console.log('yesssss')
+    };
+    fetchToken();
+  }, []);
+
+  console.log('guggjg')
 
   return (
     <SafeAreaView style={styles.container}>

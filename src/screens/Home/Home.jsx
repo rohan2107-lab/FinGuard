@@ -21,8 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import TipModal from '../../components/TipModal';
 import ChatbotBubble from '../../components/ChatbotBubble';
 import CardSwitcher from '../../components/CardSwitcher';
-import { useLanguage } from '../../contexts/LanguageContext';
-import translations from '../../utils/translations';
+
 
 const { width } = Dimensions.get('window');
 
@@ -69,17 +68,18 @@ const Home = () => {
     }
   };
 
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
+        const token = await AsyncStorage.getItem('authToken');
         if (!token) {
           console.log('No token found');
           setLoading(false);
           return;
         }
 
-        const res = await fetch('http://10.20.106.48:8000/api/auth/me', {
+        const res = await fetch('http://10.246.66.93:8000/api/auth/me', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
