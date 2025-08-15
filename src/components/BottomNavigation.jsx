@@ -4,20 +4,55 @@ import { Color, FontFamily, FontSize } from '../constants/GlobleStyle';
 import HomeIcon from "../assets/Home.svg";
 import CategoryIcon from "../assets/Category.svg";
 import FinShortIcon from "../assets/finShort.svg";
-import AnalyticsIcon from "../assets/Analysis.svg";
+import AnalyticsIcon from "../assets/language1.svg";
 import ProfileIcon from "../assets/Profile.svg";
+import { useLanguage } from '../contexts/LanguageContext';
 
 const BottomNavigation = ({ activeTab, onTabPress }) => {
+  const { currentLanguage } = useLanguage();
+ 
+  // Tab labels in different languages
+  const tabLabels = {
+    home: {
+      english: 'Home',
+      hindi: 'होम',
+      punjabi: 'ਹੋਮ'
+    },
+    categories: {
+      english: 'Categories',
+      hindi: 'श्रेणियाँ',
+      punjabi: 'ਸ਼੍ਰੇਣੀਆਂ'
+    },
+    finShort: {
+      english: 'FinShort',
+      hindi: 'फिनशॉर्ट',
+      punjabi: 'ਫਿਨਸ਼ੋਰਟ'
+    },
+    analytics: {
+      english: 'Languages',
+      hindi: 'भाषाएँ',
+      punjabi: 'ਭਾਸ਼ਾਵਾਂ'
+    },
+    profile: {
+      english: 'Profile',
+      hindi: 'प्रोफाइल',
+      punjabi: 'ਪ੍ਰੋਫਾਈਲ'
+    }
+  };
+ 
+  const getLabel = (tabId) => {
+    return tabLabels[tabId][currentLanguage] || tabLabels[tabId].english;
+  };
+ 
   const tabs = [
-    { id: 'home', label: 'Home', icon: <HomeIcon width={30} height={30} /> },
-    { id: 'categories', label: 'Categories', icon: <CategoryIcon width={30} height={30} /> },
-    { id: 'finShort', label: 'FinShort', icon: <FinShortIcon width={30} height={30} /> },
-    { id: 'analytics', label: 'Languages', icon: <AnalyticsIcon width={30} height={30} /> },
-    { id: 'profile', label: 'Profile', icon: <ProfileIcon width={30} height={30} /> },
-  
+    { id: 'home', label: getLabel('home'), icon: <HomeIcon width={20} height={20} /> },
+    { id: 'categories', label: getLabel('categories'), icon: <CategoryIcon width={20} height={20} /> },
+    { id: 'finShort', label: getLabel('finShort'), icon: <FinShortIcon width={20} height={20} /> },
+    { id: 'analytics', label: getLabel('analytics'), icon: <AnalyticsIcon width={20} height={20} /> },
+    { id: 'profile', label: getLabel('profile'), icon: <ProfileIcon width={20} height={20} /> },
   ];
 
- return (
+  return (
     <View style={styles.container}>
       {tabs.map((tab) => (
         <TouchableOpacity
@@ -57,8 +92,8 @@ const styles = StyleSheet.create({
     backgroundColor: Color.colorHoneydew,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    paddingHorizontal: 20,
-    paddingTop: 15,
+    paddingHorizontal: 15,
+    paddingTop: 5,
     paddingBottom: 10,
     marginHorizontal: -20,
     shadowColor: '#000',
@@ -79,18 +114,18 @@ const styles = StyleSheet.create({
     // Active tab styling
   },
   iconContainer: {
-    width: 35,
-    height: 35,
-    borderRadius: 22.5,
+    width: 20,
+    height: 20,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   activeIconContainer: {
     backgroundColor: Color.colorMediumseagreen,
   },
   icon: {
-    fontSize: 22,
+    fontSize: 8,
   },
   activeIcon: {
     color: Color.colorWhite,
@@ -103,8 +138,8 @@ const styles = StyleSheet.create({
   },
   activeLabel: {
     color: Color.colorMediumseagreen,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
 
-export default BottomNavigation; 
+export default BottomNavigation;

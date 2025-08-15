@@ -6,30 +6,68 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { useLanguage } from '../contexts/LanguageContext';
+import translations from '../utils/translations';
 
 const { width } = Dimensions.get('window');
 
-const cards = [
+const getCards = (currentLanguage) => {
+  try {
+    // Make sure we have a valid language or default to English
+    const language = currentLanguage && translations.cardSwitcher[currentLanguage] ? currentLanguage : 'english';
+    
+    return [
   {
-    title: 'RBI Update',
-    description: 'New policy on digital lending released. Know your rights!',
+    id: 'rbiUpdate',
+    title: translations.cardSwitcher[language].rbiUpdate.title,
+    description: translations.cardSwitcher[language].rbiUpdate.description,
     backgroundColor: '#e0f7fa',
   },
   {
-    title: 'PSB News',
-    description: 'PSB Bank launches 5.5% savings account scheme for youth.',
+    id: 'psbNews',
+    title: translations.cardSwitcher[language].psbNews.title,
+    description: translations.cardSwitcher[language].psbNews.description,
     backgroundColor: '#f1f8e9',
   },
   {
-    title: 'Rupee Exchange Rates',
-    description: 'Show daily USD/INR or EUR/INR exchange rate.',
+    id: 'rupeeRates',
+    title: translations.cardSwitcher[language].rupeeRates.title,
+    description: translations.cardSwitcher[language].rupeeRates.description,
     backgroundColor: '#fff3e0',
   },
 ];
+  } catch (error) {
+    console.error('Error in CardSwitcher translations:', error);
+    // Return default English cards as fallback
+    return [
+      {
+        id: 'rbiUpdate',
+        title: 'RBI Update',
+        description: 'New policy on digital lending released. Know your rights!',
+        backgroundColor: '#e0f7fa',
+      },
+      {
+        id: 'psbNews',
+        title: 'PSB News',
+        description: 'PSB Bank launches 5.5% savings account scheme for youth.',
+        backgroundColor: '#f1f8e9',
+      },
+      {
+        id: 'rupeeRates',
+        title: 'Rupee Exchange Rates',
+        description: 'Show daily USD/INR or EUR/INR exchange rate.',
+        backgroundColor: '#fff3e0',
+      },
+    ];
+  }
+};
 
 const CardSwitcher = () => {
+  const { currentLanguage } = useLanguage();
   const [index, setIndex] = useState(0);
   const slideAnim = useRef(new Animated.Value(width)).current;
+  
+  const cards = getCards(currentLanguage);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -46,7 +84,7 @@ const CardSwitcher = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [cards, currentLanguage]); // Re-initialize when language changes
 
   const card = cards[index];
 

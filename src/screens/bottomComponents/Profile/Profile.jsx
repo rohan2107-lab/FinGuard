@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import translations from '../../../utils/translations';
 
 
 const { width, height } = Dimensions.get('window');
@@ -23,53 +25,132 @@ const Profile = () => {
     id: "25030024",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
   });
+  const { currentLanguage } = useLanguage();
+  const profileText = translations.profile[currentLanguage] || translations.profile.english;
+  const commonText = translations.common[currentLanguage] || translations.common.english;
 
-  const menuItems = [
-    {
-      id: 'edit',
-      icon: '👤',
-      title: 'Edit Profile',
-      subtitle: 'Update your personal information',
-      backgroundColor: '#3B82F6',
-      action: () => navigation.navigate('EditProfile')
-      
-    },
-    {
-      id: 'security',
-      icon: '🛡️',
-      title: 'Security',
-      subtitle: 'Password and privacy settings',
-      backgroundColor: '#10B981',
-      action: () => navigation.navigate('Security')
-    },
-    {
-      id: 'settings',
-      icon: '⚙️',
-      title: 'Settings',
-      subtitle: 'App preferences and configuration',
-      backgroundColor: '#8B5CF6',
-      action: () => navigation.navigate('Settings')
-    },
-    {
-      id: 'help',
-      icon: '❓',
-      title: 'Help & Support',
-      subtitle: 'Get help and contact support',
-      backgroundColor: '#F59E0B',
-      action: () => navigation.navigate('HelpAndSupport')
-    },
-    {
-      id: 'logout',
-      icon: '🚪',
-      title: 'Logout',
-      subtitle: 'Sign out of your account',
-      backgroundColor: '#EF4444',
-      action: () => Alert.alert('Logout', 'Are you sure you want to logout?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => console.log('Logged out') }
-      ])
-    }
-  ];
+  // Menu items with translations
+  const getMenuItems = () => {
+    const menuTranslations = {
+      edit: {
+        title: {
+          english: 'Edit Profile',
+          hindi: 'प्रोफाइल संपादित करें',
+          punjabi: 'ਪ੍ਰੋਫਾਈਲ ਸੋਧੋ'
+        },
+        subtitle: {
+          english: 'Update your personal information',
+          hindi: 'अपनी व्यक्तिगत जानकारी अपडेट करें',
+          punjabi: 'ਆਪਣੀ ਨਿੱਜੀ ਜਾਣਕਾਰੀ ਅਪਡੇਟ ਕਰੋ'
+        }
+      },
+      security: {
+        title: {
+          english: 'Security',
+          hindi: 'सुरक्षा',
+          punjabi: 'ਸੁਰੱਖਿਆ'
+        },
+        subtitle: {
+          english: 'Password and privacy settings',
+          hindi: 'पासवर्ड और गोपनीयता सेटिंग्स',
+          punjabi: 'ਪਾਸਵਰਡ ਅਤੇ ਪਰਾਈਵੇਸੀ ਸੈਟਿੰਗਾਂ'
+        }
+      },
+      settings: {
+        title: {
+          english: 'Settings',
+          hindi: 'सेटिंग्स',
+          punjabi: 'ਸੈਟਿੰਗਾਂ'
+        },
+        subtitle: {
+          english: 'App preferences and configuration',
+          hindi: 'ऐप प्राथमिकताएँ और कॉन्फ़िगरेशन',
+          punjabi: 'ਐਪ ਪਸੰਦਾਂ ਅਤੇ ਕੌਨਫਿਗਰੇਸ਼ਨ'
+        }
+      },
+      help: {
+        title: {
+          english: 'Help & Support',
+          hindi: 'सहायता और समर्थन',
+          punjabi: 'ਮਦਦ ਅਤੇ ਸਹਾਇਤਾ'
+        },
+        subtitle: {
+          english: 'Get help and contact support',
+          hindi: 'सहायता प्राप्त करें और समर्थन से संपर्क करें',
+          punjabi: 'ਮਦਦ ਪ੍ਰਾਪਤ ਕਰੋ ਅਤੇ ਸਹਾਇਤਾ ਨਾਲ ਸੰਪਰਕ ਕਰੋ'
+        }
+      },
+      logout: {
+        title: {
+          english: 'Logout',
+          hindi: 'लॉग आउट',
+          punjabi: 'ਲੌਗ ਆਊਟ'
+        },
+        subtitle: {
+          english: 'Sign out of your account',
+          hindi: 'अपने खाते से साइन आउट करें',
+          punjabi: 'ਆਪਣੇ ਖਾਤੇ ਤੋਂ ਸਾਈਨ ਆਊਟ ਕਰੋ'
+        }
+      }
+    };
+
+    return [
+      {
+        id: 'edit',
+        icon: '👤',
+        title: menuTranslations.edit.title[currentLanguage] || menuTranslations.edit.title.english,
+        subtitle: menuTranslations.edit.subtitle[currentLanguage] || menuTranslations.edit.subtitle.english,
+        backgroundColor: '#3B82F6',
+        action: () => navigation.navigate('EditProfile')
+      },
+      {
+        id: 'security',
+        icon: '🛡️',
+        title: menuTranslations.security.title[currentLanguage] || menuTranslations.security.title.english,
+        subtitle: menuTranslations.security.subtitle[currentLanguage] || menuTranslations.security.subtitle.english,
+        backgroundColor: '#10B981',
+        action: () => navigation.navigate('Security')
+      },
+      {
+        id: 'settings',
+        icon: '⚙️',
+        title: menuTranslations.settings.title[currentLanguage] || menuTranslations.settings.title.english,
+        subtitle: menuTranslations.settings.subtitle[currentLanguage] || menuTranslations.settings.subtitle.english,
+        backgroundColor: '#8B5CF6',
+        action: () => navigation.navigate('Settings')
+      },
+      {
+        id: 'help',
+        icon: '❓',
+        title: menuTranslations.help.title[currentLanguage] || menuTranslations.help.title.english,
+        subtitle: menuTranslations.help.subtitle[currentLanguage] || menuTranslations.help.subtitle.english,
+        backgroundColor: '#F59E0B',
+        action: () => navigation.navigate('HelpAndSupport')
+      },
+      {
+        id: 'logout',
+        icon: '🚪',
+        title: menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english,
+        subtitle: menuTranslations.logout.subtitle[currentLanguage] || menuTranslations.logout.subtitle.english,
+        backgroundColor: '#EF4444',
+        action: () => Alert.alert(
+          menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english, 
+          currentLanguage === 'hindi' ? 'क्या आप लॉग आउट करना चाहते हैं?' : 
+          currentLanguage === 'punjabi' ? 'ਕੀ ਤੁਸੀਂ ਲੌਗ ਆਊਟ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?' : 
+          'Are you sure you want to logout?', 
+          [
+            { text: commonText.cancel, style: 'cancel' },
+            { text: menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english, 
+              style: 'destructive', 
+              onPress: () => console.log('Logged out') 
+            }
+          ]
+        )
+      }
+    ];
+  };
+  
+  const menuItems = getMenuItems();
   const navigation = useNavigation();
 
   const handleNotificationPress = () => {

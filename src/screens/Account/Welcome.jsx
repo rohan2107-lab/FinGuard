@@ -1,18 +1,22 @@
 import * as React from "react";
-import { useState } from "react";
-import { StyleSheet, View, Text, Pressable, TextInput, Image } from "react-native";
+import { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Baseshape from "../../assets/base-shape.svg";
 import Facebook from "../../assets/Facebook.svg";
 import Google from "../../assets/Google.svg";
 import Vector from "../../assets/Eye-Pass.svg";
-import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
-import { useNavigation,CommonActions } from "@react-navigation/native";
-import axios from 'axios';
+import { Color, Fonts } from "../../constants/GlobleStyle";
+import { useNavigation, CommonActions } from "@react-navigation/native";
+import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-
-
 
 const Welcome = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -21,52 +25,55 @@ const Welcome = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
+  // Added from main branch: check stored token on mount
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await AsyncStorage.getItem("authToken");
+      console.log("+++++", token);
+    };
+    fetchToken();
+  }, []);
 
-
-
-  React.useEffect(() => {
-  const fetchToken = async () => {
-    const token = await AsyncStorage.getItem('authToken');
-    console.log('+++++', token);
+  // Login API setup
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "http://10.246.66.93:8000/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
+      if (response.status === 200) {
+        alert("Login successful!");
+        const token = response.data.data.token;
+        console.log("data", response.data);
+        console.log("token", token);
+        await AsyncStorage.setItem("authToken", token);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "MainApp" }],
+          })
+        );
+      } else {
+        alert("Login failed: " + response.data.message);
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      alert(
+        "Login error: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+    setLoading(false);
   };
 
-  fetchToken();
-}, []);
-  // login api setup start ..(rohan)
-  const handleLogin = async () => {
-  if (!email || !password) {
-    alert("Please enter email and password");
-    return;
-  }
-  setLoading(true);
-  try {
-    const response = await axios.post('http://10.246.66.93:8000/api/auth/login', {
-      email,
-      password,
-    });
-    if (response.status === 200) {
-      alert("Login successful!");
-      const token =response.data.data.token
-      console.log('data',response.data)
-      console.log('data',response.data.data.token)
-     await AsyncStorage.setItem('authToken', token);
-      // You can store your JWT token here (response.data.token) if needed
-      navigation.dispatch(
-  CommonActions.reset({
-    index: 0,
-    routes: [{ name: 'MainApp' }],
-  })
-); // Navigate to main app screen
-    } else {
-      alert("Login failed: " + response.data.message);
-    }
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    alert("Login error: " + (error.response?.data?.message || error.message));
-  }
-  setLoading(false);
-};
-//login api setup end..(Rohan)
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBg} />
@@ -77,7 +84,7 @@ const Welcome = () => {
           <TextInput
             style={styles.input}
             placeholder="example@example.com"
-            placeholderTextColor={Color.colorDarkslategray100 + '80'}
+            placeholderTextColor={Color.colorDarkslategray100 + "80"}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -87,7 +94,7 @@ const Welcome = () => {
             <TextInput
               style={[styles.input, { flex: 1, marginBottom: 0 }]}
               placeholder="Password"
-              placeholderTextColor={Color.colorDarkslategray100 + '80'}
+              placeholderTextColor={Color.colorDarkslategray100 + "80"}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!passwordVisible}
@@ -100,30 +107,41 @@ const Welcome = () => {
               <Vector width={22} height={22} />
             </Pressable>
           </View>
-          <Pressable 
-  style={[styles.loginBtn, loading && {opacity: 0.6}]} 
-  onPress={handleLogin} 
-  disabled={loading}
->
-  <Text style={styles.loginBtnText}>
-    {loading ? "Logging In..." : "Log In"}
-  </Text>
-</Pressable>
+          <Pressable
+            style={[styles.loginBtn, loading && { opacity: 0.6 }]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.loginBtnText}>
+              {loading ? "Logging In..." : "Log In"}
+            </Text>
+          </Pressable>
           <Pressable style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </Pressable>
           <Pressable style={styles.signUpBtn}>
-            <Text style={styles.signUpBtnText}   onPress={() => {navigation.navigate("CreateAccount")}}>Sign Up</Text>
+            <Text
+              style={styles.signUpBtnText}
+              onPress={() => {
+                navigation.navigate("CreateAccount");
+              }}
+            >
+              Sign Up
+            </Text>
           </Pressable>
           <Text style={styles.fingerprintText}>
-            Use <Text style={styles.fingerprintHighlight}>Fingerprint</Text> To Access
+            Use <Text style={styles.fingerprintHighlight}>Fingerprint</Text> To
+            Access
           </Text>
           <Text style={styles.orText}>or sign up with</Text>
           <View style={styles.socialRow}>
-            <Pressable style={styles.socialBtn}><Google width={33} height={33} /></Pressable>
+            <Pressable style={styles.socialBtn}>
+              <Google width={33} height={33} />
+            </Pressable>
           </View>
           <Text style={styles.bottomText}>
-            Don’t have an account? <Text style={styles.bottomSignUp}>Sign Up</Text>
+            Don’t have an account?{" "}
+            <Text style={styles.bottomSignUp}>Sign Up</Text>
           </Text>
         </View>
       </View>
@@ -137,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.colorMediumseagreen,
   },
   topBg: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -155,23 +173,23 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 40,
     paddingHorizontal: 24,
     paddingTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
     zIndex: 2,
   },
   title: {
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: "600",
     fontFamily: Fonts.poppinsSemiBold,
     color: Color.colorDarkslategray200,
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   form: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   label: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     fontSize: 15,
     fontFamily: Fonts.poppinsMedium,
     color: Color.colorDarkslategray200,
@@ -179,9 +197,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   input: {
-    width: '100%',
+    width: "100%",
     height: 44,
-    backgroundColor: '#E6F5F0',
+    backgroundColor: "#E6F5F0",
     borderRadius: 18,
     paddingHorizontal: 16,
     fontSize: 16,
@@ -190,10 +208,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   passwordWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: '#E6F5F0',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#E6F5F0",
     borderRadius: 18,
     marginBottom: 8,
   },
@@ -202,18 +220,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   loginBtn: {
-    width: '100%',
+    width: "100%",
     height: 44,
     backgroundColor: Color.colorMediumseagreen,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 16,
   },
   loginBtnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     fontFamily: Fonts.poppinsSemiBold,
   },
   forgotPassword: {
@@ -224,21 +242,21 @@ const styles = StyleSheet.create({
     color: Color.colorDarkslategray200,
     fontSize: 14,
     fontFamily: Fonts.leagueSpartanSemiBold,
-    textAlign: 'center',
+    textAlign: "center",
   },
   signUpBtn: {
-    width: '100%',
+    width: "100%",
     height: 44,
-    backgroundColor: '#E6F5F0',
+    backgroundColor: "#E6F5F0",
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 4,
   },
   signUpBtnText: {
     color: Color.colorMediumseagreen,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     fontFamily: Fonts.poppinsSemiBold,
   },
   fingerprintText: {
@@ -246,7 +264,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.poppinsSemiBold,
     color: Color.colorDarkslategray100,
-    textAlign: 'center',
+    textAlign: "center",
   },
   fingerprintHighlight: {
     color: Color.colorRoyalblue,
@@ -257,12 +275,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: Fonts.leagueSpartanLight,
     color: Color.colorDarkslategray200,
-    textAlign: 'center',
+    textAlign: "center",
   },
   socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 12,
     marginBottom: 12,
   },
@@ -273,7 +291,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: Fonts.leagueSpartanLight,
     color: Color.colorDarkslategray200,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
   },
   bottomSignUp: {

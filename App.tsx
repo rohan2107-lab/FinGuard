@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 
 import { useEffect, useState } from 'react';
 
@@ -67,7 +68,7 @@ export default function App() {
    
 
   return (
-    
+    <LanguageProvider>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="OnBoarding" component={OnBoarding} />
@@ -113,6 +114,6 @@ export default function App() {
           <Stack.Screen name="TaxTutorial" component={TaxTutorial} />
         </Stack.Navigator>
       </NavigationContainer>
-    
+    </LanguageProvider>
   );
 }
