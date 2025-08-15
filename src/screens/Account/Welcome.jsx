@@ -7,8 +7,9 @@ import Facebook from "../../assets/Facebook.svg";
 import Google from "../../assets/Google.svg";
 import Vector from "../../assets/Eye-Pass.svg";
 import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation ,CommonActions} from "@react-navigation/native";
 import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Welcome = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -16,7 +17,7 @@ const Welcome = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  // login api setup start ..(rohan)
+// login api setup start ..(rohan)
   const handleLogin = async () => {
   if (!email || !password) {
     alert("Please enter email and password");
@@ -30,8 +31,17 @@ const Welcome = () => {
     });
     if (response.status === 200) {
       alert("Login successful!");
+      const token =response.data.data.token
+      console.log('data',response.data)
+      console.log('data',response.data.data.token)
+     await AsyncStorage.setItem('authToken', token);
       // You can store your JWT token here (response.data.token) if needed
-      navigation.navigate('MainApp'); // Navigate to main app screen
+      navigation.dispatch(
+  CommonActions.reset({
+    index: 0,
+    routes: [{ name: 'MainApp' }],
+  })
+); // Navigate to main app screen
     } else {
       alert("Login failed: " + response.data.message);
     }

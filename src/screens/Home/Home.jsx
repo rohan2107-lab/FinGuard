@@ -673,8 +673,8 @@ const Home = () => {
           {/* Learning Tutorials */}
           <View style={{ marginTop: 10 }}>
             <Text style={styles.sectionTitle}>
-              {currentLanguage === 'hindi' ? 'सीखें और बढ़ें' :
-               currentLanguage === 'punjabi' ? 'ਸਿੱਖੋ ਅਤੇ ਵਧੋ' : 'Learn & Grow'}
+              {currentLanguage === 'hindi' ? '  सीखें और बढ़ें' :
+               currentLanguage === 'punjabi' ? '  ਸਿੱਖੋ ਅਤੇ ਵਧੋ' : '   Learn & Grow'}
             </Text>
             <FlatList
               data={learningCards}
