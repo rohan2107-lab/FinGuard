@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Color, Fonts } from "../../constants/GlobleStyle";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { appAxios } from "../../api/apiconfig";
 
 const OnBoardingScreen = () => {
   const navigation = useNavigation();
@@ -88,7 +89,7 @@ React.useEffect(() => {
         return;
       }
 
-      const response = await axios.post('http://10.246.66.93:8000/api/auth/verify', {
+      const response = await appAxios.post('api/auth/verify', {
         token: token,
       });
 

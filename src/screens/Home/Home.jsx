@@ -21,12 +21,16 @@ import { useNavigation } from '@react-navigation/native';
 import TipModal from '../../components/TipModal';
 import ChatbotBubble from '../../components/ChatbotBubble';
 import CardSwitcher from '../../components/CardSwitcher';
+import { useLanguage } from '../../contexts/LanguageContext';
+import translations from '../../utils/translations';
+import { appAxios } from '../../api/apiconfig';
 
 
 const { width } = Dimensions.get('window');
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
+  const [userdata,setUserdata] = useState([]);  
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -72,22 +76,12 @@ const Home = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = await AsyncStorage.getItem('authToken');
-        if (!token) {
-          console.log('No token found');
-          setLoading(false);
-          return;
-        }
+        
 
-        const res = await fetch('http://10.246.66.93:8000/api/auth/me', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const res = await appAxios.get('api/auth/me')
+        const data = res.data;
+        setUserdata(data)
 
-        const data = await res.json();
         if (res.ok) {
           setFullname(data.fullName);
         } else {

@@ -17,6 +17,8 @@ import { Color, Fonts } from "../../constants/GlobleStyle";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import App from "../../../App";
+import { appAxios } from "../../api/apiconfig";
 
 const Welcome = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -42,8 +44,8 @@ const Welcome = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://10.246.66.93:8000/api/auth/login",
+      const response = await appAxios.post(
+        "api/auth/login",
         {
           email,
           password,
