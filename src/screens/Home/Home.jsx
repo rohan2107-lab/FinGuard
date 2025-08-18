@@ -24,6 +24,8 @@ import CardSwitcher from '../../components/CardSwitcher';
 import { useLanguage } from '../../contexts/LanguageContext';
 import translations from '../../utils/translations';
 
+import { appAxios } from "../../api/apiconfig";
+
 const { width } = Dimensions.get('window');
 
 const Home = () => {
@@ -36,7 +38,9 @@ const Home = () => {
   const navigation = useNavigation();
   const [showTipModal, setShowTipModal] = useState(false);
   const [fullName, setFullname] = useState('');
+  const [username, setUsername] = useState(''); // Added missing state
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false); // Added missing state
   
   // Get language context
   const { currentLanguage } = useLanguage();
@@ -47,6 +51,43 @@ const Home = () => {
 
   const handleTabPress = (tabId) => {
     setActiveTab(tabId);
+  };
+
+  const fetchUserProfile = async () => {
+    setProfileLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const config = token ? {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        timeout: 10000
+      } : { timeout: 10000 };
+
+      const response = await appAxios.get('/api/auth/me', config);
+      console.log("Profile API Response:", response.data);
+
+      const apiData = response.data;
+      if (!apiData?.success) {
+        throw new Error(apiData?.message || 'Failed to fetch profile');
+      }
+
+      const profile = apiData.data;
+      if (profile?.fullName) {
+        setUsername(profile.fullName);
+        setFullname(profile.fullName); // Set both states for consistency
+      } else {
+        throw new Error('Full name missing in profile data');
+      }
+
+    } catch (err) {
+      console.error("Error fetching profile:", err.message);
+      setUsername('Guest'); // fallback
+      setFullname('Guest'); // Set both states for consistency
+    } finally {
+      setProfileLoading(false);
+      setLoading(false); // Set main loading to false after profile fetch
+    }
   };
 
   const blinkingAnim = useRef(new Animated.Value(0)).current;
@@ -70,36 +111,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          console.log('No token found');
-          setLoading(false);
-          return;
-        }
-
-        const res = await fetch('http://10.20.106.48:8000/api/auth/me', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          setFullname(data.fullName);
-        } else {
-          console.log(data.message);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      setLoading(false);
-    };
-
-    fetchUser();
+    fetchUserProfile();
   }, []);
 
   useEffect(() => {
@@ -119,7 +131,7 @@ const Home = () => {
         }),
       ])
     ).start();
-  }, []);
+  }, [blinkingAnim]);
 
   useEffect(() => {
     Animated.timing(expandAnim, {
@@ -128,10 +140,14 @@ const Home = () => {
       useNativeDriver: false,
       easing: Easing.bezier(0.4, 0.0, 0.2, 1),
     }).start();
-  }, [showAllFeatures]);
+  }, [showAllFeatures, expandAnim]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#000" style={{ flex: 1, justifyContent: 'center' }} />;
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#000" style={{ flex: 1, justifyContent: 'center' }} />
+      </SafeAreaView>
+    );
   }
 
   // Enhanced features list with comprehensive search terms
@@ -507,7 +523,7 @@ const Home = () => {
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
             <Text style={styles.greeting}>
-              Hi, {fullName ? fullName : 'Guest'}
+              Hi,{fullName ? fullName : 'username'}
             </Text>
             <Text style={styles.subGreeting}>{getTimeGreeting()}</Text>
           </View>

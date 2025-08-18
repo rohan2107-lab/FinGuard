@@ -14,6 +14,7 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, CommonActions } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,24 +29,25 @@ const HelpAndSupport = () => {
     subject: '',
     message: ''
   });
+  const navigation = useNavigation();
 
   const handleBackPress = () => {
-    Alert.alert('Back', 'Navigate back to profile screen');
+    navigation.goBack();// Replace with your actual previous screen name
   };
 
   const handleContactOption = (type) => {
     switch (type) {
       case 'email':
-        Linking.openURL('mailto:support@example.com');
+        Linking.openURL('mailto:rjsingh9063@gmail.com');
         break;
       case 'phone':
-        Linking.openURL('tel:+1234567890');
+        Linking.openURL('tel:+916389763921');
         break;
       case 'chat':
         Alert.alert('Live Chat', 'Starting live chat session...');
         break;
       case 'whatsapp':
-        Linking.openURL('https://wa.me/1234567890');
+        Linking.openURL('https://wa.me/6389763921');
         break;
     }
   };
@@ -138,38 +140,12 @@ const HelpAndSupport = () => {
           action: () => openModal('faq'),
           color: '#3B82F6'
         },
-        {
-          id: 'tutorials',
-          title: 'Video Tutorials',
-          subtitle: 'Step-by-step guides and tips',
-          icon: '📺',
-          type: 'action',
-          action: () => openModal('tutorials'),
-          color: '#8B5CF6'
-        },
-        {
-          id: 'troubleshooting',
-          title: 'Troubleshooting',
-          subtitle: 'Solve common issues quickly',
-          icon: '⚠️',
-          type: 'action',
-          action: () => Alert.alert('Troubleshooting', 'Opening troubleshooting guide...'),
-          color: '#F59E0B'
-        }
       ]
     },
     {
-      title: 'Contact Support',
+      title: 'Contact Us',
       items: [
-        {
-          id: 'live-chat',
-          title: 'Live Chat',
-          subtitle: 'Chat with our support team',
-          icon: '💬',
-          type: 'action',
-          action: () => handleContactOption('chat'),
-          color: '#10B981'
-        },
+        
         {
           id: 'email',
           title: 'Email Support',
@@ -200,26 +176,10 @@ const HelpAndSupport = () => {
       ]
     },
     {
-      title: 'Resources',
+      title: 'Feedback',
       items: [
-        {
-          id: 'user-guide',
-          title: 'User Guide',
-          subtitle: 'Comprehensive app documentation',
-          icon: '📖',
-          type: 'action',
-          action: () => Alert.alert('User Guide', 'Opening user guide...'),
-          color: '#7C3AED'
-        },
-        {
-          id: 'whats-new',
-          title: 'What\'s New',
-          subtitle: 'Latest features and updates',
-          icon: '🆕',
-          type: 'action',
-          action: () => Alert.alert('What\'s New', 'Showing latest updates...'),
-          color: '#F59E0B'
-        },
+        
+    
         {
           id: 'feedback',
           title: 'Send Feedback',
@@ -234,15 +194,6 @@ const HelpAndSupport = () => {
     {
       title: 'Community',
       items: [
-        {
-          id: 'community-forum',
-          title: 'Community Forum',
-          subtitle: 'Connect with other users',
-          icon: '👥',
-          type: 'action',
-          action: () => Alert.alert('Community', 'Opening community forum...'),
-          color: '#3B82F6'
-        },
         {
           id: 'social-media',
           title: 'Follow Us',
@@ -481,7 +432,7 @@ const HelpAndSupport = () => {
           <View style={styles.header}>
             <Pressable 
               style={styles.headerButton} 
-              onPress={handleBackPress}
+              onPress={handleBackPress }
               android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 25 }}
             >
               <Text style={styles.backIcon}>←</Text>
@@ -489,13 +440,7 @@ const HelpAndSupport = () => {
             
             <Text style={styles.headerTitle}>Help & Support</Text>
             
-            <Pressable 
-              style={styles.searchButton}
-              onPress={() => Alert.alert('Search', 'Search help articles functionality')}
-              android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 20 }}
-            >
-              <Text style={styles.searchIcon}>🔍</Text>
-            </Pressable>
+          
           </View>
         </SafeAreaView>
       </View>
@@ -511,14 +456,7 @@ const HelpAndSupport = () => {
             <Text style={styles.quickActionsTitle}>Need Help?</Text>
             <Text style={styles.quickActionsSubtitle}>Choose the fastest way to get support</Text>
             <View style={styles.quickActionsGrid}>
-              <Pressable 
-                style={styles.quickActionButton}
-                onPress={() => handleContactOption('chat')}
-                android_ripple={{ color: 'rgba(0,0,0,0.05)', radius: 50 }}
-              >
-                <Text style={styles.quickActionIcon}>💬</Text>
-                <Text style={styles.quickActionText}>Live Chat</Text>
-              </Pressable>
+             
               
               <Pressable 
                 style={styles.quickActionButton}
@@ -602,6 +540,9 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     position: 'relative',
     overflow: 'hidden',
+    paddingTop: -5,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   decorativeCircle: {
     position: 'absolute',
