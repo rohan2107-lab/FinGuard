@@ -185,7 +185,7 @@ const Home = () => {
     {
       id: 5,
       title: currentLanguage === 'hindi' ? 'वित्तीय कैलकुलेटर' :
-             currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਕੈਲਕੁਲੇਟਰ' : 'Financial Calculators',
+             currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਕੈਲਕੁਲੇਟਰ' : 'Financial   Tools',//yaha change
       searchTerms: ['calculator', 'calculation', 'finance', 'math', 'compute', 'calculate', 'interest', 'loan', 'mortgage', 'investment calculator'],
       icon: '🧮',
       color: '#45B7D1',
@@ -464,7 +464,7 @@ const Home = () => {
         }
       ]}>
         <Text style={styles.featureIcon}>
-          {showAllFeatures ? '↑' : '↓'}
+          {showAllFeatures ? '↓' : '↓'}
         </Text>
       </Animated.View>
       <Text style={styles.featureTitle}>

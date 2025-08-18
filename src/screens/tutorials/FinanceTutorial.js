@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ScrollView,
   ActivityIndicator,
   Alert,
   Modal,
   Dimensions
 } from 'react-native';
+import Video from 'react-native-video';
 
 const { width, height } = Dimensions.get('window');
 
@@ -18,60 +19,130 @@ export default function FinanceBasicsModule() {
   const [learningContent, setLearningContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [contentLoading, setContentLoading] = useState(false);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'tutorial', 'video'
+  const [videoLoading, setVideoLoading] = useState(true);
 
-  // Configure your backend URL - Update this with your actual backend URL
-  const API_BASE_URL = 'http://10.172.41.93:8000'; // Update with your backend URL
-  
+  const API_BASE_URL = 'http://10.172.41.93:8000';
+
   useEffect(() => {
-    fetchSIPLearningContent();
+    fetchFinanceBasicsContent();
   }, []);
 
-  const fetchSIPLearningContent = async () => {
+  const fetchFinanceBasicsContent = async () => {
     try {
       setLoading(true);
-      console.log('Fetching SIP learning content from:', `${API_BASE_URL}/api/financial/finance-basics`);
-      
+      console.log('Fetching Finance Basics learning content from:', `${API_BASE_URL}/api/financial/finance-basics`);
+
       const response = await fetch(`${API_BASE_URL}/api/financial/finance-basics`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          // Add authorization header if needed
-          // 'Authorization': `Bearer ${yourAuthToken}`,
         },
       });
-      
-      console.log('Response status:', response.status);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.log('Error response:', errorText);
         throw new Error(`Failed to fetch learning content: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      console.log('Fetched data:', data);
-      
-      // Filter only published content
-      const publishedContent = Array.isArray(data) ? data.filter(item => item.isPublished) : [];
-      setLearningContent(publishedContent);
-      
+
+      if (data && data.data && data.data.content && Array.isArray(data.data.content)) {
+        setLearningContent(data.data.content);
+      } else if (Array.isArray(data)) {
+        setLearningContent(data);
+      } else {
+        console.warn('Unexpected data structure:', data);
+        const testData = [
+          {
+            _id: 'test1',
+            title: 'Understanding Compound Interest',
+            description: "Learn how compound interest works and why it's important for wealth building",
+            content: "Tax planning is a crucial aspect of financial management...",
+            detailedContent: "This comprehensive guide covers all aspects of tax planning including...",
+            videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+            videoTitle: 'Compound Interest Explained',
+            videoDescription: 'A comprehensive guide to compound interest',
+            difficulty: 'beginner',
+            estimatedTime: 45,
+            tags: ['compound-interest', 'saving', 'investing', 'beginners'],
+            prerequisites: ['Basic math', 'Understanding of simple interest'],
+            learningObjectives: ['Calculate compound interest', 'Understand time value of money'],
+            isPublished: true,
+          },
+          {
+            _id: 'test2',
+            title: 'Building Your First Budget',
+            description: "Step-by-step guide to creating and maintaining a personal budget that works.",
+            content: "A budget is your roadmap to financial success.",
+            detailedContent: `# Building Your First Budget
+A budget is your roadmap to financial success. It helps you control your spending, save money, and reach your financial goals.
+...
+`,
+            videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+            videoTitle: 'How to Create Your First Budget - Step by Step',
+            videoDescription: 'Learn how to build a realistic budget that you can actually stick to.',
+            difficulty: 'beginner',
+            estimatedTime: 25,
+            tags: ['budgeting', 'money management', 'savings'],
+          }
+        ];
+        setLearningContent(testData);
+      }
     } catch (error) {
       console.error('Error fetching learning content:', error);
       Alert.alert(
-        'Connection Error', 
-        `Unable to connect to server. Please check:\n\n1. Backend server is running on ${API_BASE_URL}\n2. Network connection\n3. API endpoint is accessible\n\nError: ${error.message}`
+        'Connection Error',
+        `Unable to connect to server. Showing test data instead.`
       );
-      setLearningContent([]);
+      const testData = [
+        {
+          _id: 'error-test1',
+          title: 'Introduction to Personal Finance',
+          description: 'Learn the fundamentals of managing your personal finances effectively.',
+          content: 'This is the short introduction to personal finance.',
+          detailedContent: 'This is the full, detailed guide to personal finance, including sections on budgeting, saving, and investing.',
+          videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+          videoTitle: 'Personal Finance Basics',
+          videoDescription: 'A comprehensive introduction to personal finance.',
+          isPublished: true,
+          difficulty: 'beginner',
+          estimatedTime: 30
+        },
+        {
+          _id: 'error-test2',
+          title: 'Investment Fundamentals',
+          description: 'Understanding different types of investments and how to get started.',
+          content: 'Here are the basics of investing.',
+          detailedContent: 'This tutorial covers the different types of investments, including stocks, bonds, and mutual funds, and explains key principles like diversification.',
+          videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+          videoTitle: 'Investment Basics for Beginners',
+          videoDescription: 'Learn the fundamentals of investing.',
+          isPublished: true,
+          difficulty: 'intermediate',
+          estimatedTime: 45
+        }
+      ];
+      setLearningContent(testData);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleContentSelect = (content) => {
-    setSelectedContent(content);
+  const handleTitlePress = (content) => {
+    const contentToDisplay = content.detailedContent || content.content;
+    if (contentToDisplay) {
+      setSelectedContent({
+        ...content,
+        tutorial: contentToDisplay
+      });
+      setViewMode('tutorial');
+    } else {
+      Alert.alert('No Content', 'No detailed content is available for this topic.');
+    }
   };
 
   const handleVideoPress = (content) => {
@@ -81,19 +152,22 @@ export default function FinanceBasicsModule() {
         title: content.videoTitle || content.title,
         description: content.videoDescription || content.description
       });
+      setVideoLoading(true);
       setVideoModalVisible(true);
     } else {
-      Alert.alert('No Video', 'No video is available for this content.');
+      Alert.alert('No Video', 'No valid video is available for this content.');
     }
   };
 
   const handleBackToList = () => {
     setSelectedContent(null);
+    setViewMode('list');
   };
 
   const closeVideoModal = () => {
     setVideoModalVisible(false);
     setSelectedVideo(null);
+    setVideoLoading(true);
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -122,158 +196,155 @@ export default function FinanceBasicsModule() {
     return `${hours}h ${remainingMinutes}m`;
   };
 
-  const renderContentItem = ({ item }) => (
-    <View style={styles.contentItem}>
-      <TouchableOpacity 
-        style={styles.contentMain}
-        onPress={() => handleContentSelect(item)}
-      >
-        <View style={styles.contentHeader}>
-          <View style={styles.titleContainer}>
+  const renderContentItem = ({ item }) => {
+    return (
+      <View style={styles.contentItem}>
+        <View style={styles.contentRow}>
+          <TouchableOpacity
+            style={styles.titleSection}
+            onPress={() => handleTitlePress(item)}
+          >
             <Text style={styles.contentTitle}>{item.title}</Text>
+            <Text style={styles.contentDescription} numberOfLines={2}>
+              {item.content || item.description}
+            </Text>
             <View style={styles.metaInfo}>
-              <Text style={styles.difficultyBadge}>
+              <Text style={[styles.difficultyBadge, { color: getDifficultyColor(item.difficulty) }]}>
                 {getDifficultyIcon(item.difficulty)} {item.difficulty || 'General'}
               </Text>
-              <Text style={styles.timeEstimate}>
-                ⏱️ {formatTime(item.estimatedTime)}
-              </Text>
+              <Text style={styles.timeEstimate}>⏱ {formatTime(item.estimatedTime)}</Text>
             </View>
-          </View>
-          
-          {item.videoUrl && (
-            <TouchableOpacity 
-              style={styles.videoButton}
-              onPress={() => handleVideoPress(item)}
-            >
-              <Text style={styles.videoIcon}>▶️</Text>
-              <Text style={styles.videoText}>Video</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        
-        {item.description && (
-          <Text style={styles.contentPreview} numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
-        
-        {item.tags && item.tags.length > 0 && (
-          <View style={styles.tagsPreview}>
-            {item.tags.slice(0, 3).map((tag, index) => (
-              <Text key={index} style={styles.tagPreview}>#{tag}</Text>
-            ))}
-            {item.tags.length > 3 && (
-              <Text style={styles.tagPreview}>+{item.tags.length - 3} more</Text>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
-  );
+          </TouchableOpacity>
 
-  const renderContentDetail = () => (
-    <ScrollView style={styles.detailContainer}>
-      <View style={styles.detailHeader}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        
-        {selectedContent.videoUrl && (
-          <TouchableOpacity 
+          <TouchableOpacity
+            style={styles.videoIconSection}
+            onPress={() => handleVideoPress(item)}
+          >
+            <View style={styles.videoButton}>
+              <Text style={styles.videoIcon}>▶️</Text>
+            </View>
+            <Text style={styles.videoLabel}>Watch</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderTutorialContent = () => {
+    if (!selectedContent || !selectedContent.tutorial) {
+      return (
+        <View style={styles.noTutorialContainer}>
+          <Text style={styles.noTutorialText}>No tutorial content available for this topic.</Text>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
+            <Text style={styles.backButtonText}>← Back to List</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return (
+      <ScrollView style={styles.tutorialContainer}>
+        <View style={styles.tutorialHeader}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
+            <Text style={styles.backButtonText}>← Back to List</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.headerVideoButton}
             onPress={() => handleVideoPress(selectedContent)}
           >
             <Text style={styles.headerVideoIcon}>▶️</Text>
           </TouchableOpacity>
-        )}
-      </View>
-      
-      <View style={styles.detailCard}>
-        <Text style={styles.detailTitle}>{selectedContent.title}</Text>
-        
-        <View style={styles.detailMeta}>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Difficulty:</Text>
-            <Text style={[styles.metaValue, { color: getDifficultyColor(selectedContent.difficulty) }]}>
-              {getDifficultyIcon(selectedContent.difficulty)} {selectedContent.difficulty || 'General'}
-            </Text>
-          </View>
-          
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Estimated Time:</Text>
-            <Text style={styles.metaValue}>⏱️ {formatTime(selectedContent.estimatedTime)}</Text>
-          </View>
         </View>
-        
-        {selectedContent.description && (
-          <View style={styles.contentSection}>
-            <Text style={styles.sectionTitle}>📝 Description</Text>
-            <Text style={styles.contentText}>{selectedContent.description}</Text>
-          </View>
-        )}
-        
-        {selectedContent.learningObjectives && selectedContent.learningObjectives.length > 0 && (
-          <View style={styles.contentSection}>
-            <Text style={styles.sectionTitle}>🎯 Learning Objectives</Text>
-            {selectedContent.learningObjectives.map((objective, index) => (
-              <View key={index} style={styles.listItem}>
-                <Text style={styles.listBullet}>•</Text>
-                <Text style={styles.listText}>{objective}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-        
-        {selectedContent.prerequisites && selectedContent.prerequisites.length > 0 && (
-          <View style={styles.contentSection}>
-            <Text style={styles.sectionTitle}>📚 Prerequisites</Text>
-            {selectedContent.prerequisites.map((prerequisite, index) => (
-              <View key={index} style={styles.listItem}>
-                <Text style={styles.listBullet}>•</Text>
-                <Text style={styles.listText}>{prerequisite}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-        
-        {selectedContent.videoUrl && (
-          <View style={styles.contentSection}>
-            <Text style={styles.sectionTitle}>🎥 Video Content</Text>
-            <TouchableOpacity 
-              style={styles.videoCard}
-              onPress={() => handleVideoPress(selectedContent)}
-            >
-              <View style={styles.videoCardContent}>
-                <Text style={styles.videoCardIcon}>▶️</Text>
-                <View style={styles.videoCardText}>
-                  <Text style={styles.videoCardTitle}>
-                    {selectedContent.videoTitle || selectedContent.title}
-                  </Text>
-                  {selectedContent.videoDescription && (
-                    <Text style={styles.videoCardDescription}>
-                      {selectedContent.videoDescription}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
-        
-        {selectedContent.tags && selectedContent.tags.length > 0 && (
-          <View style={styles.contentSection}>
-            <Text style={styles.sectionTitle}>🏷️ Tags</Text>
-            <View style={styles.tagsContainer}>
-              {selectedContent.tags.map((tag, index) => (
-                <Text key={index} style={styles.tag}>#{tag}</Text>
-              ))}
+
+        <View style={styles.tutorialCard}>
+          <Text style={styles.tutorialTitle}>{selectedContent.title}</Text>
+
+          <View style={styles.tutorialMeta}>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Difficulty:</Text>
+              <Text style={[styles.metaValue, { color: getDifficultyColor(selectedContent.difficulty) }]}>
+                {getDifficultyIcon(selectedContent.difficulty)} {selectedContent.difficulty || 'General'}
+              </Text>
+            </View>
+
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Estimated Time:</Text>
+              <Text style={styles.metaValue}>⏱ {formatTime(selectedContent.estimatedTime)}</Text>
             </View>
           </View>
-        )}
-      </View>
-    </ScrollView>
-  );
+
+          <View style={styles.tutorialContent}>
+            {selectedContent.tutorial.split('\n').map((paragraph, index) => {
+              if (paragraph.trim() === '') return null;
+
+              if (paragraph.startsWith('# ')) {
+                return (
+                  <Text key={index} style={styles.tutorialMainHeading}>
+                    {paragraph.replace('# ', '')}
+                  </Text>
+                );
+              } else if (paragraph.startsWith('## ')) {
+                return (
+                  <Text key={index} style={styles.tutorialSubHeading}>
+                    {paragraph.replace('## ', '')}
+                  </Text>
+                );
+              } else if (paragraph.startsWith('### ')) {
+                return (
+                  <Text key={index} style={styles.tutorialSubSubHeading}>
+                    {paragraph.replace('### ', '')}
+                  </Text>
+                );
+              } else if (paragraph.startsWith('- *') || paragraph.startsWith(' **')) {
+                const cleanText = paragraph.replace(/^[-]\s/, '').replace(/\\/g, '');
+                return (
+                  <View key={index} style={styles.bulletPoint}>
+                    <Text style={styles.bulletSymbol}>•</Text>
+                    <Text style={styles.bulletText}>{cleanText}</Text>
+                  </View>
+                );
+              } else if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+                return (
+                  <View key={index} style={styles.bulletPoint}>
+                    <Text style={styles.bulletSymbol}>•</Text>
+                    <Text style={styles.bulletText}>{paragraph.replace(/^[-]\s/, '')}</Text>
+                  </View>
+                );
+              } else if (paragraph.match(/^\d+\./)) {
+                return (
+                  <View key={index} style={styles.numberedPoint}>
+                    <Text style={styles.numberedText}>{paragraph}</Text>
+                  </View>
+                );
+              } else if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                return (
+                  <Text key={index} style={styles.boldText}>
+                    {paragraph.replace(/\*\*/g, '')}
+                  </Text>
+                );
+              } else {
+                return (
+                  <Text key={index} style={styles.tutorialParagraph}>
+                    {paragraph.replace(/\\/g, '')}
+                  </Text>
+                );
+              }
+            })}
+          </View>
+
+          {selectedContent.tags && selectedContent.tags.length > 0 && (
+            <View style={styles.contentSection}>
+              <Text style={styles.sectionTitle}>🏷 Tags</Text>
+              <View style={styles.tagsContainer}>
+                {selectedContent.tags.map((tag, index) => (
+                  <Text key={index} style={styles.tag}>#{tag}</Text>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    );
+  };
 
   const renderVideoModal = () => (
     <Modal
@@ -288,24 +359,38 @@ export default function FinanceBasicsModule() {
             <Text style={styles.closeButtonText}>✕ Close</Text>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.videoContainer}>
-          {/* Video Player Placeholder */}
-          <View style={styles.videoPlayerPlaceholder}>
-            <Text style={styles.videoPlayerText}>🎥</Text>
-            <Text style={styles.videoPlayerTitle}>Video Player</Text>
-            <Text style={styles.videoPlayerSubtitle}>
-              {selectedVideo?.title}
-            </Text>
-            <Text style={styles.videoUrl}>
-              URL: {selectedVideo?.url}
-            </Text>
-            <Text style={styles.videoNote}>
-              Replace this placeholder with react-native-video or similar library
-            </Text>
-          </View>
+          {selectedVideo?.url ? (
+            <>
+              <Video
+                source={{ uri: selectedVideo.url }}
+                style={styles.videoPlayer}
+                controls={true}
+                resizeMode="contain"
+                onLoad={() => setVideoLoading(false)}
+                onError={(e) => {
+                  console.log('Video error:', e);
+                  setVideoLoading(false);
+                  Alert.alert('Video Error', 'The video could not be played.');
+                }}
+                onLoadStart={() => setVideoLoading(true)}
+              />
+              {videoLoading && (
+                <View style={styles.videoLoadingOverlay}>
+                  <ActivityIndicator size="large" color="#FFF" />
+                  <Text style={styles.videoLoadingText}>Loading video...</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={styles.videoPlaceholder}>
+              <Text style={styles.videoPlaceholderIcon}>🎥</Text>
+              <Text style={styles.videoPlaceholderText}>No video available for this topic.</Text>
+            </View>
+          )}
         </View>
-        
+
         {selectedVideo?.description && (
           <View style={styles.videoDescription}>
             <Text style={styles.videoDescriptionTitle}>About this video:</Text>
@@ -327,26 +412,35 @@ export default function FinanceBasicsModule() {
     );
   }
 
-  if (selectedContent) {
-    return renderContentDetail();
+  if (viewMode === 'tutorial') {
+    return renderTutorialContent();
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.mainTitle}>💰 Finance Basics</Text>
+        <Text style={styles.mainTitle}>📚 Learn Finance Basics</Text>
         <Text style={styles.subtitle}>
-          Master SIP & Investment Fundamentals
+          Tap title for tutorial • Tap video icon to watch
         </Text>
+        {learningContent.length > 0 && (
+          <Text style={styles.contentCount}>
+            {learningContent.length} topic{learningContent.length !== 1 ? 's' : ''} available
+          </Text>
+        )}
+
+        <TouchableOpacity style={styles.headerRefreshButton} onPress={fetchFinanceBasicsContent}>
+          <Text style={styles.headerRefreshButtonText}>🔄 Refresh</Text>
+        </TouchableOpacity>
       </View>
-      
+
       {learningContent.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>No Content Available</Text>
           <Text style={styles.emptyDescription}>
-            Finance learning content will appear here once published by administrators.
+            Learning content will appear here once available.
           </Text>
-          <TouchableOpacity style={styles.refreshButton} onPress={fetchSIPLearningContent}>
+          <TouchableOpacity style={styles.refreshButton} onPress={fetchFinanceBasicsContent}>
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -359,7 +453,7 @@ export default function FinanceBasicsModule() {
           showsVerticalScrollIndicator={false}
         />
       )}
-      
+
       {renderVideoModal()}
     </View>
   );
@@ -382,7 +476,6 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   header: {
-    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     backgroundColor: '#667eea',
     padding: 20,
     paddingTop: 60,
@@ -405,6 +498,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  contentCount: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  headerRefreshButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginTop: 12,
+  },
+  headerRefreshButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   listContainer: {
     padding: 20,
@@ -415,28 +529,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
   },
-  contentMain: {
-    padding: 16,
-  },
-  contentHeader: {
+  contentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    alignItems: 'stretch',
   },
-  titleContainer: {
+  titleSection: {
     flex: 1,
-    marginRight: 12,
+    padding: 20,
+    paddingRight: 12,
   },
   contentTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '700',
+    color: '#2c3e50',
     marginBottom: 8,
+    lineHeight: 24,
+  },
+  contentDescription: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    lineHeight: 20,
+    marginBottom: 12,
   },
   metaInfo: {
     flexDirection: 'row',
@@ -445,51 +562,50 @@ const styles = StyleSheet.create({
   },
   difficultyBadge: {
     fontSize: 12,
-    fontWeight: '500',
-    marginRight: 12,
+    fontWeight: '600',
+    marginRight: 16,
   },
   timeEstimate: {
     fontSize: 12,
-    color: '#666',
+    color: '#95a5a6',
+    fontWeight: '500',
+  },
+  videoIconSection: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8f9fa',
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
   },
   videoButton: {
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#e74c3c',
     alignItems: 'center',
-    minWidth: 60,
+    justifyContent: 'center',
+    marginBottom: 6,
+    shadowColor: '#e74c3c',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   videoIcon: {
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  videoText: {
+    fontSize: 20,
     color: 'white',
-    fontSize: 10,
+  },
+  videoLabel: {
+    fontSize: 11,
+    color: '#7f8c8d',
     fontWeight: '600',
   },
-  contentPreview: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  tagsPreview: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  tagPreview: {
-    fontSize: 11,
-    color: '#4A90E2',
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  detailContainer: {
+  tutorialContainer: {
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
-  detailHeader: {
+  tutorialHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -506,18 +622,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   headerVideoButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#e74c3c',
     width: 50,
     height: 50,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#e74c3c',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   headerVideoIcon: {
     fontSize: 20,
     color: 'white',
   },
-  detailCard: {
+  tutorialCard: {
     backgroundColor: 'white',
     margin: 20,
     marginTop: 0,
@@ -529,15 +650,19 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
-  detailTitle: {
+  tutorialTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2c3e50',
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 32,
   },
-  detailMeta: {
+  tutorialMeta: {
     marginBottom: 24,
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 12,
   },
   metaRow: {
     flexDirection: 'row',
@@ -547,70 +672,80 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    color: '#7f8c8d',
+    fontWeight: '600',
   },
   metaValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  contentSection: {
+  tutorialContent: {
     marginBottom: 24,
   },
-  sectionTitle: {
+  tutorialMainHeading: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 16,
+    marginTop: 24,
+  },
+  tutorialSubHeading: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#34495e',
     marginBottom: 12,
+    marginTop: 20,
   },
-  contentText: {
+  tutorialSubSubHeading: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4A90E2',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  tutorialParagraph: {
     fontSize: 15,
-    color: '#444',
+    color: '#5d6d7e',
     lineHeight: 24,
+    marginBottom: 12,
+    textAlign: 'justify',
   },
-  listItem: {
+  bulletPoint: {
     flexDirection: 'row',
     marginBottom: 8,
+    paddingLeft: 16,
   },
-  listBullet: {
+  bulletSymbol: {
     fontSize: 16,
     color: '#4A90E2',
-    marginRight: 8,
+    marginRight: 12,
     fontWeight: 'bold',
+    marginTop: 2,
   },
-  listText: {
+  bulletText: {
     fontSize: 15,
-    color: '#444',
+    color: '#5d6d7e',
     flex: 1,
     lineHeight: 22,
   },
-  videoCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#FF6B6B',
+  numberedPoint: {
+    marginBottom: 8,
+    paddingLeft: 16,
   },
-  videoCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  numberedText: {
+    fontSize: 15,
+    color: '#5d6d7e',
+    lineHeight: 22,
   },
-  videoCardIcon: {
-    fontSize: 24,
-    marginRight: 12,
+  boldText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 8,
+    marginTop: 8,
   },
-  videoCardText: {
-    flex: 1,
-  },
-  videoCardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  videoCardDescription: {
-    fontSize: 14,
-    color: '#666',
+  contentSection: {
+    marginBottom: 24,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -625,6 +760,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginRight: 8,
     marginBottom: 8,
+    fontWeight: '600',
+  },
+  noTutorialContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#F5F7FA',
+  },
+  noTutorialText: {
+    fontSize: 16,
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
   },
   emptyState: {
     flex: 1,
@@ -635,13 +785,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: '#2c3e50',
     marginBottom: 12,
     textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 16,
-    color: '#666',
+    color: '#7f8c8d',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -657,6 +807,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Video Modal Styles
   videoModalContainer: {
     flex: 1,
     backgroundColor: '#000',
@@ -665,7 +816,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 10,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.9)',
   },
   closeButton: {
     alignSelf: 'flex-end',
@@ -680,48 +831,46 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000',
   },
-  videoPlayerPlaceholder: {
-    width: width * 0.9,
-    height: height * 0.4,
-    backgroundColor: '#333',
-    borderRadius: 12,
+  videoPlayer: {
+    width: '100%',
+    aspectRatio: 16 / 9, // Standard video aspect ratio
+  },
+  videoLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
-  videoPlayerText: {
-    fontSize: 48,
-    marginBottom: 12,
+  videoLoadingText: {
+    marginTop: 10,
+    color: '#FFF',
+    fontSize: 16,
   },
-  videoPlayerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
+  videoPlaceholder: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  videoPlayerSubtitle: {
+  videoPlaceholderIcon: {
+    fontSize: 60,
+    marginBottom: 16,
+    color: '#FFF',
+  },
+  videoPlaceholderText: {
     color: '#ccc',
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 16,
     textAlign: 'center',
-  },
-  videoUrl: {
-    color: '#888',
-    fontSize: 12,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  videoNote: {
-    color: '#666',
-    fontSize: 10,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    paddingHorizontal: 20,
   },
   videoDescription: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.9)',
     padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   videoDescriptionTitle: {
     color: 'white',
