@@ -23,6 +23,8 @@ import ChatbotBubble from '../../components/ChatbotBubble';
 import CardSwitcher from '../../components/CardSwitcher';
 import { useLanguage } from '../../contexts/LanguageContext';
 import translations from '../../utils/translations';
+import { appAxios } from '../../api/apiconfig';
+
 
 import { appAxios } from "../../api/apiconfig";
 
@@ -30,6 +32,7 @@ const { width } = Dimensions.get('window');
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
+  const [userdata,setUserdata] = useState([]);  
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -110,8 +113,32 @@ const Home = () => {
     }
   };
 
+
   useEffect(() => {
+
     fetchUserProfile();
+
+    const fetchUser = async () => {
+      try {
+        
+
+        const res = await appAxios.get('api/auth/me')
+        const data = res.data;
+        setUserdata(data)
+
+        if (res.ok) {
+          setFullname(data.fullName);
+        } else {
+          console.log(data.message);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
+
   }, []);
 
   useEffect(() => {

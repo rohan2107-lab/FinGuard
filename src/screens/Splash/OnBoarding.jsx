@@ -1,16 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Text, StyleSheet, View, Image, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Color, Fonts } from "../../constants/GlobleStyle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { appAxios } from "../../api/apiconfig";
 
 const OnBoardingScreen = () => {
   const navigation = useNavigation();
+  const hasNavigated = useRef(false); // ⬅ Flag to prevent double navigation
+
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
   const psbFadeAnim = new Animated.Value(0);
   const psbScaleAnim = new Animated.Value(0.9);
   const rotateAnim = new Animated.Value(0);
+
+
+
 
   // Navigate after 3 seconds with animations
   useEffect(() => {
@@ -49,23 +57,55 @@ const OnBoardingScreen = () => {
       Animated.loop(
         Animated.timing(rotateAnim, {
           toValue: 1,
-          duration: 4500, // Faster rotation: 5 seconds instead of 8
+          duration: 45000, // Faster rotation: 5 seconds instead of 8
           useNativeDriver: true,
         })
       ).start();
     }, 500);
 
     const timer = setTimeout(() => {
+    if (!hasNavigated.current) {
+      hasNavigated.current = true;
       navigation.replace("AOnBoarding");
-    }, 5000);
+    }
+  }, 5000);
 
-    return () => clearTimeout(timer);
+  return () => clearTimeout(timer);
   }, []);
 
   const rotate = rotateAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
+
+
+  
+React.useEffect(() => {
+  const verifyToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        console.warn('❌ Token not found in storage');
+        return;
+      }
+
+      const response = await appAxios.post('api/auth/verify', {
+        token: token,
+      });
+
+      console.log('✅ Token verified:', response.data.success);
+
+      if (response.data.success === true && !hasNavigated.current) {
+        hasNavigated.current = true;
+        navigation.replace('MainApp'); // Use replace to prevent going back
+      }
+    } catch (error) {
+      console.error('❌ Verification error:', error?.response?.data || error.message);
+    }
+  };
+
+  verifyToken();
+}, []);
 
   return (
     <SafeAreaView style={styles.viewBg}>

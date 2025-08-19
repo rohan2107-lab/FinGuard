@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 export default function FinanceTutorial() {
+
   const [learningContent, setLearningContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,12 +42,171 @@ export default function FinanceTutorial() {
     } finally {
       setLoading(false);
     }
+  }
+
+
+
+
+  const [learningContent, setLearningContent] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [financeCategory, setFinanceCategory] = useState(null);
+
+  // Configure your backend URL - Update this with your actual backend URL
+  const API_BASE_URL = 'http://10.172.41.93:8000'; // Common for local development
+  // For production: const API_BASE_URL = 'https://your-domain.com';
+  // For network testing: const API_BASE_URL = 'http://YOUR_IP:PORT';
+  
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      setLoading(true);
+      
+      // First, get all categories to find finance category
+      console.log('Fetching categories from:', `${API_BASE_URL}/api/learning/categories`);
+      await fetchCategories();
+      
+    } catch (error) {
+      console.error('Error initializing app:', error);
+      Alert.alert(
+        'Connection Error', 
+        `Unable to connect to server. Please check:\n\n1. Backend server is running on ${API_BASE_URL}\n2. Network connection\n3. CORS settings if applicable\n\nError: ${error.message}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/learning/categories`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+          // 'Authorization': `Bearer ${yourAuthToken}`,
+        },
+      });
+      
+      console.log('Categories response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('Categories error response:', errorText);
+        throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
+      }
+      
+      const categoriesData = await response.json();
+      console.log('Categories data:', categoriesData);
+      setCategories(categoriesData);
+      
+      // Find finance category
+      const financeCategory = categoriesData.find(cat => 
+        cat.slug === 'finance' || 
+        cat.name.toLowerCase().includes('finance') ||
+        cat.slug === 'finance-basics'
+      );
+      
+      if (financeCategory) {
+        console.log('Found finance category:', financeCategory);
+        setFinanceCategory(financeCategory);
+        await fetchLearningContent(financeCategory.slug);
+      } else {
+        console.log('No finance category found, fetching all content');
+        await fetchAllLearningContent();
+      }
+      
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      // Fallback to fetching all content
+      await fetchAllLearningContent();
+    }
+  };
+
+  const fetchLearningContent = async (categorySlug = 'finance') => {
+    try {
+      console.log('Fetching content for category:', categorySlug);
+      const url = `${API_BASE_URL}/api/learning/content/category/${categorySlug}`;
+      console.log('Fetching from URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+          // 'Authorization': `Bearer ${yourAuthToken}`,
+        },
+      });
+      
+      console.log('Content response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('Content error response:', errorText);
+        throw new Error(`Failed to fetch learning content: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched content data:', data);
+      setLearningContent(Array.isArray(data) ? data : []);
+      
+    } catch (error) {
+      console.error('Error fetching learning content:', error);
+      throw error;
+    }
+  };
+
+  const fetchAllLearningContent = async () => {
+    try {
+      console.log('Fetching all learning content');
+      const response = await fetch(`${API_BASE_URL}/api/learning/content`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+          // 'Authorization': `Bearer ${yourAuthToken}`,
+        },
+      });
+      
+      console.log('All content response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('All content error response:', errorText);
+        throw new Error(`Failed to fetch all learning content: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched all content data:', data);
+      
+      // Filter for finance-related content if no specific category
+      const financeContent = Array.isArray(data) ? data.filter(item => 
+        item.title?.toLowerCase().includes('finance') ||
+        item.description?.toLowerCase().includes('finance') ||
+        item.category?.toLowerCase().includes('finance') ||
+        item.tags?.some(tag => tag.toLowerCase().includes('finance'))
+      ) : [];
+      
+      setLearningContent(financeContent);
+      
+    } catch (error) {
+      console.error('Error fetching all learning content:', error);
+      setLearningContent([]);
+
+    }
   };
 
   const fetchContentDetails = async (contentId) => {
     try {
       setContentLoading(true);
+
       const response = await fetch('${API_BASE_URL}/api/learning/content/${contentId}');
+
       
       if (!response.ok) {
         throw new Error('Failed to fetch content details');
@@ -165,12 +325,16 @@ export default function FinanceTutorial() {
   }
 
   return (
+
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.mainTitle}>💵 Finance Basics</Text>
         <Text style={styles.subtitle}>
           Master the fundamentals of personal finance
         </Text>
+
+      </View>git 
+
       </View>
       
       {learningContent.length === 0 ? (
@@ -179,7 +343,11 @@ export default function FinanceTutorial() {
           <Text style={styles.emptyDescription}>
             Finance learning content will appear here once added by administrators.
           </Text>
+
           <TouchableOpacity style={styles.refreshButton} onPress={fetchLearningContent}>
+
+          <TouchableOpacity style={styles.refreshButton} onPress={initializeApp}>
+
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -192,6 +360,8 @@ export default function FinanceTutorial() {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+
     </View>
   );
 }
@@ -232,8 +402,62 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   listContainer: {
+
     padding: 20,
   },
+  contentItem: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  contentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  contentTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  arrow: {
+    fontSize: 18,
+    color: '#4A90E2',
+    fontWeight: 'bold',
+  },
+  contentPreview: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  duration: {
+    fontSize: 12,
+    color: '#4A90E2',
+    fontWeight: '500',
+  },
+  detailContainer: {
+    flex: 1,
+    backgroundColor: '#F0F4F8',
+  },
+  backButton: {
+
+    padding: 20,
+    paddingTop: 60,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#4A90E2',
+    fontWeight: '600',
+  },
+
   contentItem: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -285,6 +509,7 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
     fontWeight: '600',
   },
+
   detailCard: {
     backgroundColor: 'white',
     margin: 20,

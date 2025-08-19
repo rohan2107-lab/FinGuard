@@ -6,309 +6,613 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Alert,
   Dimensions,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 
 /**
- * ATM & Scam Safety Quiz Component
+ * Enhanced ATM & Scam Safety Game for React Native
  * 
  * Features:
- * - 10 interactive multiple-choice questions
- * - Score tracking and progress display
- * - Question shuffling for randomization
- * - Immediate feedback with explanations
- * - Final results screen with replay option
- * - Mobile-friendly responsive design
- * 
- * To add new questions:
- * 1. Add new question object to QUIZ_DATA array
- * 2. Follow the same structure: question, options, correctAnswer, explanation
- * 3. Make sure correctAnswer is the index (0-3) of the correct option
+ * - Multiple game modes (Quick Quiz, Scenario Challenge, Time Attack)
+ * - 100-point scoring system with performance bonuses
+ * - Realistic scenarios with visual elements
+ * - Streak bonuses and time bonuses
+ * - Achievement system
+ * - Difficulty levels
  */
 
-// Quiz Data - Add or modify questions here
+// Enhanced Quiz Data with difficulty levels and categories
 const QUIZ_DATA = [
+  // ATM Safety - Basic (5 points each)
   {
     id: 1,
-    question: "What should you do if you notice a suspicious device attached to an ATM card slot?",
+    category: "ATM Safety",
+    difficulty: "basic",
+    points: 5,
+    question: "You notice the card slot on an ATM looks different and seems loose. What's your best action?",
+    scenario: "🏧 You're at an ATM late at night and notice something unusual about the card reader.",
     options: [
-      "Use the ATM anyway but be quick",
-      "Try to remove the device yourself",
-      "Do not use the ATM and report it to the bank immediately",
-      "Use a different card slot on the same ATM"
+      "Use it quickly and leave",
+      "Try to fix it yourself", 
+      "Don't use it and report to bank immediately",
+      "Use another slot on same machine"
     ],
     correctAnswer: 2,
-    explanation: "If you notice any suspicious devices, avoid using the ATM entirely and report it to the bank. These could be card skimmers used to steal your card information."
+    explanation: "Card skimmers are often attached to ATM slots. If anything looks suspicious or different, avoid using the ATM entirely and report it to the bank immediately.",
+    timeLimit: 15
   },
   {
     id: 2,
-    question: "You receive an SMS saying your bank account will be closed unless you click a link and verify details. What should you do?",
+    category: "Phone Scams",
+    difficulty: "basic",
+    points: 5,
+    question: "A caller claims to be from your bank and asks for your OTP to 'verify your identity'. What do you do?",
+    scenario: "📞 Unknown number calling: 'Hello, this is State Bank security. We need to verify your account.'",
     options: [
-      "Click the link immediately to save your account",
-      "Call the bank's official number to verify",
-      "Reply to the SMS with your details",
-      "Forward the message to friends for advice"
+      "Give the OTP since they're from the bank",
+      "Ask for their employee ID number",
+      "Never share OTP with anyone calling you",
+      "Give only half the OTP digits"
     ],
-    correctAnswer: 1,
-    explanation: "Banks never ask for sensitive information via SMS or email. Always call the official bank number to verify any suspicious messages. This is a common phishing scam."
+    correctAnswer: 2,
+    explanation: "Banks NEVER ask for OTPs over the phone. OTPs are meant only for you to complete transactions. This is a common fraud technique.",
+    timeLimit: 12
   },
+  // UPI Scams - Intermediate (7 points each)
   {
     id: 3,
-    question: "When entering your ATM PIN, what is the best practice?",
+    category: "UPI Scams",
+    difficulty: "intermediate", 
+    points: 7,
+    question: "You receive a UPI request for ₹1 with message 'Cashback credited - Accept to receive ₹2000 cashback'. The request shows 'PAY ₹1'. What do you do?",
+    scenario: "📱 UPI Notification: 'Pay ₹1 to +91-XXXXX-XXXX' with message about cashback",
     options: [
-      "Enter it quickly so others can't see",
-      "Cover the keypad with your hand while entering",
-      "Look around to see who's watching",
-      "Ask someone to hold your bag while you enter the PIN"
+      "Accept it to get the cashback",
+      "Decline - it's a trick to make me pay",
+      "Contact the sender first",
+      "Accept but only pay ₹0.50"
     ],
     correctAnswer: 1,
-    explanation: "Always cover the keypad with your free hand when entering your PIN. This prevents shoulder surfing and hidden cameras from capturing your PIN."
+    explanation: "This is a UPI reversal scam. The message is misleading - you're actually PAYING ₹1, not receiving money. Always check if it says 'PAY' or 'RECEIVE' before accepting.",
+    timeLimit: 18
   },
   {
     id: 4,
-    question: "Someone calls claiming to be from your bank and asks for your OTP 'for verification purposes'. What should you do?",
+    category: "Investment Scams",
+    difficulty: "intermediate",
+    points: 7,
+    question: "A WhatsApp group admin promises 300% returns in 30 days through 'Stock Market Tips'. They ask for ₹5000 joining fee. What's your response?",
+    scenario: "💬 WhatsApp: 'Join our premium group! Last month members made 400% profit! Limited seats - pay ₹5000 now!'",
     options: [
-      "Give them the OTP since they're from the bank",
-      "Ask for their employee ID first",
-      "Never share your OTP with anyone, even if they claim to be from the bank",
-      "Share only the first 3 digits of the OTP"
+      "Pay and join - sounds profitable",
+      "Negotiate for lower joining fee", 
+      "It's a scam - legitimate investments don't guarantee such returns",
+      "Ask for previous profit statements first"
     ],
     correctAnswer: 2,
-    explanation: "OTPs are meant only for you. Banks will never ask for your OTP over the phone. Sharing your OTP can give fraudsters access to your accounts."
+    explanation: "No legitimate investment guarantees such high returns. This is a classic Ponzi scheme. Real stock market experts don't need joining fees.",
+    timeLimit: 20
   },
+  // Advanced Scenarios (10 points each)
   {
     id: 5,
-    question: "You receive a UPI payment request for ₹1 from an unknown number with message 'Refund Process - Accept to receive ₹5000'. What should you do?",
+    category: "Social Engineering",
+    difficulty: "advanced",
+    points: 10,
+    question: "You get a call: 'Your Aadhaar is linked to money laundering. To avoid arrest, immediately transfer ₹50,000 to this account for verification.' What do you do?",
+    scenario: "☎️ Caller ID shows 'Police Station' - 'This is urgent! Your Aadhaar is compromised in a money laundering case!'",
     options: [
-      "Accept it to get the refund",
-      "Decline and block the number",
-      "Ask them to send ₹5000 first",
-      "Share the request with friends"
+      "Transfer money immediately to avoid arrest",
+      "Ask for FIR number and hang up",
+      "Go to police station with the money",
+      "Transfer smaller amount first"
     ],
     correctAnswer: 1,
-    explanation: "This is a common UPI scam. The ₹1 request is actually a payment request FROM you. Always check if it says 'Pay' or 'Receive' before accepting any UPI request."
+    explanation: "This is a government impersonation scam. Police never ask for money over phone. Real legal issues involve proper documentation and court procedures.",
+    timeLimit: 25
   },
   {
     id: 6,
-    question: "What should you check before using an ATM?",
+    category: "Online Shopping",
+    difficulty: "advanced", 
+    points: 10,
+    question: "An online seller offers iPhone 15 for ₹15,000 (market price ₹80,000) but wants full payment via UPI before delivery. Red flags?",
+    scenario: "🛒 Facebook Marketplace: 'iPhone 15 Pro Max - Brand new, sealed box - ₹15,000 only! Pay now, delivery tomorrow!'",
     options: [
-      "Only if there's security guard present",
-      "Check for proper lighting and cameras",
-      "Look for loose parts, hidden cameras, or suspicious devices",
-      "Both B and C"
-    ],
-    correctAnswer: 3,
-    explanation: "Always inspect the ATM for any suspicious devices, ensure proper lighting, check for security cameras, and look for any loose parts on the card reader or keypad."
-  },
-  {
-    id: 7,
-    question: "You get an email saying you've won ₹10 lakhs in a lottery you never entered. They ask for ₹5000 as processing fee. What should you do?",
-    options: [
-      "Pay the processing fee to claim your prize",
-      "Negotiate for a lower processing fee",
-      "Delete the email - it's a scam",
-      "Ask them to deduct the fee from the prize money"
-    ],
-    correctAnswer: 2,
-    explanation: "This is a classic advance fee scam. Legitimate lotteries don't require you to pay fees to claim prizes. Never send money to claim unexpected prizes."
-  },
-  {
-    id: 8,
-    question: "Your card gets blocked after 3 wrong PIN attempts at an ATM. What should you do?",
-    options: [
-      "Try using it at a different ATM",
-      "Wait 24 hours and try again",
-      "Contact your bank immediately to unblock it",
-      "Ask someone else to try using your card"
-    ],
-    correctAnswer: 2,
-    explanation: "If your card is blocked due to wrong PIN attempts, contact your bank immediately. Don't wait or try other ATMs as this could be due to a compromised ATM."
-  },
-  {
-    id: 9,
-    question: "What information should you NEVER share with anyone claiming to be from your bank?",
-    options: [
-      "Your account balance",
-      "Your PIN, CVV, OTP, or full card number",
-      "Your branch name",
-      "Your registered mobile number"
+      "Great deal - pay immediately",
+      "Too good to be true - likely fake/stolen/scam",
+      "Negotiate to pay ₹20,000",
+      "Ask for half payment first"
     ],
     correctAnswer: 1,
-    explanation: "Never share sensitive information like PIN, CVV, OTP, passwords, or complete card details with anyone. Banks already have this information and will never ask for it."
+    explanation: "Prices far below market value are major red flags. Legitimate sellers don't need full advance payment. This is likely a fake product scam.",
+    timeLimit: 22
   },
+  // Cryptocurrency & Investment (10 points each)
+  {
+    id: 7,
+    category: "Crypto Scams",
+    difficulty: "advanced",
+    points: 10,
+    question: "A 'crypto expert' on Instagram asks you to send Bitcoin to 'double your investment in 24 hours'. What's happening?",
+    scenario: "📸 Instagram DM: 'I can double your Bitcoin! Send me 0.1 BTC, get back 0.2 BTC tomorrow! Limited time offer!'",
+    options: [
+      "Send small amount to test",
+      "Classic doubling scam - never send crypto",
+      "Ask for credentials first",
+      "Send but ask for 50% upfront"
+    ],
+    correctAnswer: 1,
+    explanation: "Cryptocurrency doubling schemes are always scams. Once you send crypto, it's gone forever. No legitimate investment doubles money overnight.",
+    timeLimit: 18
+  },
+  // Emergency Scams (8 points each)
+  {
+    id: 8,
+    category: "Emergency Scams",
+    difficulty: "intermediate",
+    points: 8,
+    question: "You get a call: 'Your son met with accident, needs ₹2 lakhs for surgery immediately. Send money to this account.' Your son's phone is unreachable. What do you do?",
+    scenario: "📞 Panicked voice: 'Hello uncle/aunty, I'm calling from City Hospital. Your son had an accident and needs immediate surgery!'",
+    options: [
+      "Send money immediately - it's emergency",
+      "Try calling other family members/friends to verify",
+      "Rush to the mentioned hospital",
+      "Send partial amount first"
+    ],
+    correctAnswer: 1,
+    explanation: "Emergency scams exploit emotions. Always verify through multiple sources. Hospitals have proper procedures and don't demand immediate money transfers.",
+    timeLimit: 30
+  },
+  // Banking Fraud (7 points each)  
+  {
+    id: 9,
+    category: "Banking Fraud",
+    difficulty: "intermediate",
+    points: 7,
+    question: "SMS: 'Your account will be blocked in 2 hours due to KYC expiry. Click link to update: bit.ly/kyc-update-urgent'. What should you do?",
+    scenario: "📱 SMS from 'SB-SBIINB': 'URGENT: Complete KYC update to avoid account suspension. Click: bit.ly/urgent-kyc'",
+    options: [
+      "Click link and update KYC",
+      "Call bank's official number to verify",
+      "Visit bank branch immediately", 
+      "Forward SMS to friends for advice"
+    ],
+    correctAnswer: 1,
+    explanation: "Banks never send KYC update links via SMS. Always call the official bank number or visit branch to verify such messages. These links lead to fake websites.",
+    timeLimit: 15
+  },
+  // Tech Support Scams (6 points each)
   {
     id: 10,
-    question: "You notice unauthorized transactions in your bank statement. What should be your immediate action?",
+    category: "Tech Support",
+    difficulty: "basic",
+    points: 6,
+    question: "Pop-up on your computer: 'VIRUS DETECTED! Call Microsoft Support: 1800-XXX-XXXX immediately!' What do you do?",
+    scenario: "💻 Loud beeping sound from computer with pop-up: 'Your computer is infected! Call now or lose all data!'",
     options: [
-      "Wait and see if more transactions appear",
-      "Change your PIN at the next ATM visit",
-      "Immediately contact your bank and block your cards",
-      "Check with family members if they used your card"
+      "Call the number immediately",
+      "Close browser and run actual antivirus scan",
+      "Restart computer and call the number",
+      "Click 'Fix Now' button on pop-up"
+    ],
+    correctAnswer: 1,
+    explanation: "These are fake pop-ups designed to scare you. Microsoft never puts support numbers in pop-ups. Close the browser and run your legitimate antivirus software.",
+    timeLimit: 12
+  },
+  // Romance/Dating Scams (8 points each)
+  {
+    id: 11,
+    category: "Romance Scams", 
+    difficulty: "intermediate",
+    points: 8,
+    question: "Online dating match claims to be overseas military personnel, asks for ₹50,000 to pay for flight tickets to meet you. Red flags?",
+    scenario: "💕 Dating app message: 'I'm deployed in Syria. I need help with flight booking fees to come meet you. Can you send ₹50,000?'",
+    options: [
+      "Send money - they love me",
+      "Classic romance scam - military personnel don't need money for flights", 
+      "Send smaller amount first",
+      "Ask for video call proof"
+    ],
+    correctAnswer: 1,
+    explanation: "Romance scammers often pose as military personnel. Real military members don't need civilians to pay for travel. Never send money to online contacts you haven't met.",
+    timeLimit: 20
+  },
+  // Lottery/Prize Scams (5 points each)
+  {
+    id: 12,
+    category: "Lottery Scams",
+    difficulty: "basic", 
+    points: 5,
+    question: "Email: 'Congratulations! You won ₹25 lakhs in Google Lottery! Pay ₹15,000 processing fee to claim prize.' Your response?",
+    scenario: "📧 From: google-lottery@gmail.com 'WINNER ANNOUNCEMENT: Your email won our monthly lottery! Claim now!'",
+    options: [
+      "Pay processing fee to claim prize",
+      "Negotiate lower processing fee",
+      "Delete email - it's a scam",
+      "Ask them to deduct fee from prize"
     ],
     correctAnswer: 2,
-    explanation: "Time is critical in fraud cases. Immediately contact your bank to report unauthorized transactions and block your cards to prevent further misuse."
+    explanation: "You cannot win lotteries you never entered. Legitimate prizes don't require advance fees. Google doesn't run email lotteries.",
+    timeLimit: 10
   }
 ];
 
-const ScamQuizGame = ({ navigation }) => {
-  // State Management
+// Game modes configuration
+const GAME_MODES = {
+  QUICK_QUIZ: {
+    name: "Quick Quiz",
+    description: "5 random questions, no time pressure",
+    icon: "quiz",
+    questionCount: 5,
+    timeLimit: false,
+    pointMultiplier: 1
+  },
+  SCENARIO_CHALLENGE: {
+    name: "Scenario Challenge", 
+    description: "10 realistic scenarios with time limits",
+    icon: "security",
+    questionCount: 10,
+    timeLimit: true,
+    pointMultiplier: 1.2
+  },
+  TIME_ATTACK: {
+    name: "Time Attack",
+    description: "12 questions, race against time!",
+    icon: "flash-on",
+    questionCount: 12,
+    timeLimit: true,
+    pointMultiplier: 1.5,
+    fastAnswerBonus: true
+  }
+};
+
+const EnhancedScamSafetyGame = ({ navigation }) => {
+  // Game state
+  const [gameMode, setGameMode] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [gameCompleted, setGameCompleted] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
+  const [totalTimeBonus, setTotalTimeBonus] = useState(0);
+  const [achievements, setAchievements] = useState([]);
 
-  // Initialize quiz with shuffled questions
+  // Timer effect
   useEffect(() => {
-    shuffleQuestions();
-  }, []);
-
-  /**
-   * Shuffle questions array to randomize quiz order
-   * Uses Fisher-Yates shuffle algorithm
-   */
-  const shuffleQuestions = () => {
-    const shuffled = [...QUIZ_DATA];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    if (timeLeft > 0 && !showExplanation && gameMode && GAME_MODES[gameMode].timeLimit) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0 && !showExplanation && questions.length > 0) {
+      handleTimeUp();
     }
-    setQuestions(shuffled);
+  }, [timeLeft, showExplanation, gameMode]);
+
+  const selectGameMode = (mode) => {
+    setGameMode(mode);
+    initializeGame(mode);
   };
 
-  /**
-   * Handle answer selection
-   * Shows immediate feedback and explanation
-   */
-  const handleAnswerSelect = (answerIndex) => {
-    if (selectedAnswer !== null) return; // Prevent multiple selections
-
-    setSelectedAnswer(answerIndex);
-    setShowExplanation(true);
-
-    const isCorrect = answerIndex === questions[currentQuestion].correctAnswer;
-    if (isCorrect) {
-      setScore(score + 1);
-    }
-
-    // Store user's answer for results
-    setUserAnswers([...userAnswers, {
-      questionId: questions[currentQuestion].id,
-      selectedAnswer: answerIndex,
-      correctAnswer: questions[currentQuestion].correctAnswer,
-      isCorrect
-    }]);
-  };
-
-  /**
-   * Move to next question or complete quiz
-   */
-  const handleNextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-      setShowExplanation(false);
-    } else {
-      setQuizCompleted(true);
-    }
-  };
-
-  /**
-   * Reset quiz to initial state
-   */
-  const resetQuiz = () => {
+  const initializeGame = (mode) => {
+    const config = GAME_MODES[mode];
+    const shuffled = [...QUIZ_DATA].sort(() => Math.random() - 0.5);
+    const selectedQuestions = shuffled.slice(0, config.questionCount);
+    
+    setQuestions(selectedQuestions);
     setCurrentQuestion(0);
     setScore(0);
     setSelectedAnswer(null);
     setShowExplanation(false);
-    setQuizCompleted(false);
+    setGameCompleted(false);
     setUserAnswers([]);
-    shuffleQuestions(); // Shuffle again for replay
+    setStreak(0);
+    setMaxStreak(0);
+    setTotalTimeBonus(0);
+    setAchievements([]);
+    
+    if (config.timeLimit && selectedQuestions.length > 0) {
+      setTimeLeft(selectedQuestions[0].timeLimit);
+    }
   };
 
-  /**
-   * Get performance message based on score percentage
-   */
-  const getPerformanceMessage = () => {
-    const percentage = Math.round((score / questions.length) * 100);
-    if (percentage >= 90) return "Excellent! You're well-prepared against scams! 🏆";
-    if (percentage >= 80) return "Great job! You have good scam awareness! 👍";
-    if (percentage >= 70) return "Good work! Keep learning about scam prevention! 📚";
-    if (percentage >= 60) return "Not bad! There's room for improvement! 💪";
-    return "Keep learning! Scam awareness is crucial for your safety! 🔒";
+  const handleTimeUp = () => {
+    setSelectedAnswer(-1); // Indicate timeout
+    setShowExplanation(true);
+    setStreak(0);
+    
+    setUserAnswers([...userAnswers, {
+      questionId: questions[currentQuestion].id,
+      selectedAnswer: -1,
+      correctAnswer: questions[currentQuestion].correctAnswer,
+      isCorrect: false,
+      timeUsed: questions[currentQuestion].timeLimit,
+      timedOut: true
+    }]);
   };
 
-  // Show loading if questions aren't loaded yet
-  if (questions.length === 0) {
+  const handleAnswerSelect = (answerIndex) => {
+    if (selectedAnswer !== null || gameCompleted) return;
+
+    const currentQ = questions[currentQuestion];
+    const isCorrect = answerIndex === currentQ.correctAnswer;
+    const timeUsed = currentQ.timeLimit ? currentQ.timeLimit - timeLeft : 0;
+    
+    setSelectedAnswer(answerIndex);
+    setShowExplanation(true);
+
+    // Calculate points
+    let points = 0;
+    if (isCorrect) {
+      points = currentQ.points;
+      
+      // Streak bonus (2 points per streak after 2)
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      setMaxStreak(Math.max(maxStreak, newStreak));
+      
+      if (newStreak > 2) {
+        points += (newStreak - 2) * 2;
+      }
+
+      // Time bonus for time attack mode
+      if (gameMode === 'TIME_ATTACK' && GAME_MODES[gameMode].fastAnswerBonus) {
+        const timeBonus = Math.max(0, Math.floor((currentQ.timeLimit - timeUsed) / 3));
+        points += timeBonus;
+        setTotalTimeBonus(totalTimeBonus + timeBonus);
+      }
+
+      // Apply game mode multiplier
+      points = Math.floor(points * GAME_MODES[gameMode].pointMultiplier);
+    } else {
+      setStreak(0);
+    }
+
+    setScore(score + points);
+
+    // Check for achievements
+    checkAchievements(newStreak || 0, isCorrect);
+
+    setUserAnswers([...userAnswers, {
+      questionId: currentQ.id,
+      selectedAnswer: answerIndex,
+      correctAnswer: currentQ.correctAnswer,
+      isCorrect,
+      pointsEarned: points,
+      timeUsed,
+      timedOut: false
+    }]);
+  };
+
+  const checkAchievements = (currentStreak, isCorrect) => {
+    const newAchievements = [...achievements];
+    
+    if (currentStreak === 3 && !achievements.includes('streak_3')) {
+      newAchievements.push('streak_3');
+    }
+    if (currentStreak === 5 && !achievements.includes('streak_5')) {
+      newAchievements.push('streak_5');
+    }
+    if (isCorrect && timeLeft > (questions[currentQuestion].timeLimit * 0.8) && !achievements.includes('speed_demon')) {
+      newAchievements.push('speed_demon');
+    }
+    
+    setAchievements(newAchievements);
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestion < questions.length - 1) {
+      const nextQuestion = currentQuestion + 1;
+      setCurrentQuestion(nextQuestion);
+      setSelectedAnswer(null);
+      setShowExplanation(false);
+      
+      if (gameMode && GAME_MODES[gameMode].timeLimit) {
+        setTimeLeft(questions[nextQuestion].timeLimit);
+      }
+    } else {
+      setGameCompleted(true);
+    }
+  };
+
+  const resetGame = () => {
+    setGameMode(null);
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setShowExplanation(false);
+    setGameCompleted(false);
+    setQuestions([]);
+    setUserAnswers([]);
+    setTimeLeft(0);
+    setStreak(0);
+    setMaxStreak(0);
+    setTotalTimeBonus(0);
+    setAchievements([]);
+  };
+
+  const getPerformanceLevel = () => {
+    const percentage = (score / 100) * 100;
+    if (percentage >= 90) return { level: "Expert", color: "#4F46E5", emoji: "🏆" };
+    if (percentage >= 75) return { level: "Advanced", color: "#059669", emoji: "⭐" };
+    if (percentage >= 60) return { level: "Intermediate", color: "#D97706", emoji: "👍" };
+    if (percentage >= 40) return { level: "Beginner", color: "#DC2626", emoji: "📚" };
+    return { level: "Needs Practice", color: "#7C2D12", emoji: "💪" };
+  };
+
+  const achievementDetails = {
+    'streak_3': { name: "Triple Threat", description: "3 correct answers in a row", icon: "🔥" },
+    'streak_5': { name: "Unstoppable", description: "5 correct answers in a row", icon: "⚡" },
+    'speed_demon': { name: "Speed Demon", description: "Quick correct answer", icon: "💨" }
+  };
+
+  // Game mode selection screen
+  if (!gameMode) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading Quiz...</Text>
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Header */}
+          <View style={styles.welcomeHeader}>
+            <View style={styles.logoContainer}>
+              <Icon name="security" size={60} color="#4F46E5" />
+            </View>
+            <Text style={styles.welcomeTitle}>Scam Safety Challenge</Text>
+            <Text style={styles.welcomeSubtitle}>Test your knowledge and protect yourself from scams!</Text>
+            <View style={styles.goalContainer}>
+              <Icon name="emoji-events" size={20} color="#F59E0B" />
+              <Text style={styles.goalText}>Goal: Score up to 100 points based on your performance!</Text>
+            </View>
+          </View>
+
+          {/* Game Modes */}
+          <View style={styles.gameModesContainer}>
+            {Object.entries(GAME_MODES).map(([key, mode]) => (
+              <TouchableOpacity
+                key={key}
+                style={styles.gameModeCard}
+                onPress={() => selectGameMode(key)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.gameModeIcon}>
+                  <Icon name={mode.icon} size={32} color="#4F46E5" />
+                </View>
+                <Text style={styles.gameModeTitle}>{mode.name}</Text>
+                <Text style={styles.gameModeDescription}>{mode.description}</Text>
+                <View style={styles.gameModeDetails}>
+                  <Text style={styles.detailText}>Questions: {mode.questionCount}</Text>
+                  <Text style={styles.detailText}>Time Limit: {mode.timeLimit ? "Yes" : "No"}</Text>
+                  <Text style={styles.multiplierText}>Points Multiplier: {mode.pointMultiplier}x</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Scoring Information */}
+          <View style={styles.scoringInfo}>
+            <View style={styles.scoringHeader}>
+              <Icon name="emoji-events" size={24} color="#F59E0B" />
+              <Text style={styles.scoringTitle}>How Scoring Works</Text>
+            </View>
+            <View style={styles.scoringGrid}>
+              <View style={[styles.scoringItem, { backgroundColor: '#F0FDF4' }]}>
+                <Text style={[styles.scoringLabel, { color: '#15803D' }]}>Basic Questions</Text>
+                <Text style={[styles.scoringPoints, { color: '#16A34A' }]}>5-6 points each</Text>
+              </View>
+              <View style={[styles.scoringItem, { backgroundColor: '#FFFBEB' }]}>
+                <Text style={[styles.scoringLabel, { color: '#A16207' }]}>Intermediate</Text>
+                <Text style={[styles.scoringPoints, { color: '#D97706' }]}>7-8 points each</Text>
+              </View>
+              <View style={[styles.scoringItem, { backgroundColor: '#FEF2F2' }]}>
+                <Text style={[styles.scoringLabel, { color: '#B91C1C' }]}>Advanced</Text>
+                <Text style={[styles.scoringPoints, { color: '#DC2626' }]}>10 points each</Text>
+              </View>
+              <View style={[styles.scoringItem, { backgroundColor: '#F3E8FF' }]}>
+                <Text style={[styles.scoringLabel, { color: '#7C3AED' }]}>Bonus Points</Text>
+                <Text style={[styles.scoringPoints, { color: '#8B5CF6' }]}>Streaks & Speed</Text>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
-  // Quiz completion screen
-  if (quizCompleted) {
-    const percentage = Math.round((score / questions.length) * 100);
-    
+  // Game completed screen
+  if (gameCompleted) {
+    const performance = getPerformanceLevel();
+    const correctAnswers = userAnswers.filter(a => a.isCorrect).length;
+    const accuracy = Math.round((correctAnswers / questions.length) * 100);
+
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.resultsContainer}>
+        <ScrollView contentContainerStyle={styles.resultsScrollContainer}>
           <View style={styles.resultsCard}>
-            <Icon name="security" size={80} color="#4CAF50" style={styles.resultsIcon} />
-            <Text style={styles.resultsTitle}>Quiz Completed!</Text>
+            {/* Performance Header */}
+            <Text style={styles.resultsEmoji}>{performance.emoji}</Text>
+            <Text style={styles.resultsTitle}>Game Complete!</Text>
+            <Text style={[styles.finalScore, { color: performance.color }]}>{score}/100</Text>
+            <Text style={styles.performanceLevel}>{performance.level}</Text>
             
-            <View style={styles.scoreContainer}>
-              <Text style={styles.finalScore}>{score}/{questions.length}</Text>
-              <Text style={styles.percentage}>{percentage}%</Text>
-            </View>
-            
-            <Text style={styles.performanceText}>
-              {getPerformanceMessage()}
-            </Text>
-
-            <View style={styles.resultsSummary}>
-              <View style={styles.summaryRow}>
-                <Icon name="check-circle" size={20} color="#4CAF50" />
-                <Text style={styles.summaryText}>Correct: {score}</Text>
+            {/* Performance Stats */}
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{correctAnswers}</Text>
+                <Text style={styles.statLabel}>Correct</Text>
               </View>
-              <View style={styles.summaryRow}>
-                <Icon name="cancel" size={20} color="#F44336" />
-                <Text style={styles.summaryText}>Wrong: {questions.length - score}</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{accuracy}%</Text>
+                <Text style={styles.statLabel}>Accuracy</Text>
               </View>
-              <View style={styles.summaryRow}>
-                <Icon name="quiz" size={20} color="#2196F3" />
-                <Text style={styles.summaryText}>Total: {questions.length}</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{maxStreak}</Text>
+                <Text style={styles.statLabel}>Best Streak</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{totalTimeBonus}</Text>
+                <Text style={styles.statLabel}>Time Bonus</Text>
               </View>
             </View>
 
+            {/* Achievements */}
+            {achievements.length > 0 && (
+              <View style={styles.achievementsContainer}>
+                <View style={styles.achievementsHeader}>
+                  <Icon name="military-tech" size={20} color="#F59E0B" />
+                  <Text style={styles.achievementsTitle}>Achievements Unlocked</Text>
+                </View>
+                <View style={styles.achievementsList}>
+                  {achievements.map(achievement => (
+                    <View key={achievement} style={styles.achievementItem}>
+                      <Text style={styles.achievementIcon}>{achievementDetails[achievement].icon}</Text>
+                      <View style={styles.achievementText}>
+                        <Text style={styles.achievementName}>{achievementDetails[achievement].name}</Text>
+                        <Text style={styles.achievementDesc}>{achievementDetails[achievement].description}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Action Buttons */}
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.playAgainButton}
-                onPress={resetQuiz}
+                onPress={() => initializeGame(gameMode)}
+                activeOpacity={0.8}
               >
-                <Icon name="refresh" size={20} color="#fff" />
+                <Icon name="refresh" size={20} color="#FFFFFF" />
                 <Text style={styles.playAgainText}>Play Again</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={styles.homeButton}
-                onPress={() => navigation && navigation.goBack()}
+                style={styles.changeModeButton}
+                onPress={resetGame}
+                activeOpacity={0.8}
               >
-                <Icon name="home" size={20} color="#2196F3" />
-                <Text style={styles.homeText}>Back to Home</Text>
+                <Icon name="home" size={20} color="#4F46E5" />
+                <Text style={styles.changeModeText}>Change Mode</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Loading state
+  if (questions.length === 0) {
+    return (
+      <SafeAreaView style={[styles.container, styles.loadingContainer]}>
+        <Icon name="hourglass-empty" size={40} color="#4F46E5" />
+        <Text style={styles.loadingText}>Loading game...</Text>
       </SafeAreaView>
     );
   }
@@ -318,71 +622,114 @@ const ScamQuizGame = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.gameScrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation && navigation.goBack()}
-          >
-            <Icon name="arrow-back" size={24} color="#333" />
+        <View style={styles.gameHeader}>
+          <TouchableOpacity style={styles.headerButton} onPress={resetGame}>
+            <Icon name="home" size={24} color="#374151" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>ATM & Scam Safety Quiz</Text>
-          <View style={styles.placeholder} />
+          <Text style={styles.headerTitle}>{GAME_MODES[gameMode].name}</Text>
+          <View style={styles.headerStats}>
+            {GAME_MODES[gameMode].timeLimit && (
+              <View style={[styles.timerContainer, timeLeft <= 5 && styles.timerUrgent]}>
+                <Icon name="schedule" size={16} color={timeLeft <= 5 ? "#DC2626" : "#F59E0B"} />
+                <Text style={[styles.timerText, timeLeft <= 5 && styles.timerUrgentText]}>{timeLeft}s</Text>
+              </View>
+            )}
+            <View style={styles.scoreContainer}>
+              <Icon name="stars" size={16} color="#4F46E5" />
+              <Text style={styles.scoreText}>{score}/100</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
+        {/* Progress */}
+        <View style={styles.progressCard}>
+          <View style={styles.progressHeader}>
+            <Text style={styles.progressText}>Question {currentQuestion + 1} of {questions.length}</Text>
+            {streak > 0 && (
+              <View style={styles.streakContainer}>
+                <Text style={styles.streakText}>🔥 {streak} streak</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
-          <Text style={styles.progressText}>
-            Question {currentQuestion + 1} of {questions.length}
-          </Text>
         </View>
 
         {/* Question Card */}
         <View style={styles.questionCard}>
-          <Text style={styles.questionNumber}>
-            Q{currentQuestion + 1}
-          </Text>
-          <Text style={styles.questionText}>
-            {currentQ.question}
-          </Text>
+          {/* Question Header */}
+          <View style={styles.questionHeader}>
+            <View style={styles.questionMeta}>
+              <View style={[
+                styles.difficultyBadge,
+                currentQ.difficulty === 'basic' && styles.difficultyBasic,
+                currentQ.difficulty === 'intermediate' && styles.difficultyIntermediate,
+                currentQ.difficulty === 'advanced' && styles.difficultyAdvanced
+              ]}>
+                <Text style={styles.difficultyText}>{currentQ.difficulty.toUpperCase()} • {currentQ.points} pts</Text>
+              </View>
+              <Text style={styles.categoryText}>{currentQ.category}</Text>
+            </View>
+            {GAME_MODES[gameMode].timeLimit && (
+              <View style={[styles.questionTimer, timeLeft <= 5 && styles.questionTimerUrgent]}>
+                <Icon name="schedule" size={16} color={timeLeft <= 5 ? "#DC2626" : "#4F46E5"} />
+                <Text style={[styles.questionTimerText, timeLeft <= 5 && styles.questionTimerUrgentText]}>
+                  {timeLeft}s
+                </Text>
+              </View>
+            )}
+          </View>
 
-          {/* Answer Options */}
+          {/* Scenario */}
+          <View style={styles.scenarioContainer}>
+            <Text style={styles.scenarioText}>{currentQ.scenario}</Text>
+          </View>
+
+          {/* Question */}
+          <Text style={styles.questionText}>{currentQ.question}</Text>
+
+          {/* Options */}
           <View style={styles.optionsContainer}>
             {currentQ.options.map((option, index) => {
-              let optionStyle = [styles.optionButton];
+              let buttonStyle = [styles.optionButton];
               let textStyle = [styles.optionText];
-
-              if (selectedAnswer !== null) {
-                if (index === currentQ.correctAnswer) {
-                  optionStyle.push(styles.correctOption);
-                  textStyle.push(styles.correctOptionText);
-                } else if (index === selectedAnswer && selectedAnswer !== currentQ.correctAnswer) {
-                  optionStyle.push(styles.wrongOption);
-                  textStyle.push(styles.wrongOptionText);
-                }
+              
+              if (selectedAnswer === null) {
+                buttonStyle.push(styles.optionButtonDefault);
+              } else if (index === currentQ.correctAnswer) {
+                buttonStyle.push(styles.optionButtonCorrect);
+                textStyle.push(styles.optionTextCorrect);
+              } else if (index === selectedAnswer && selectedAnswer !== currentQ.correctAnswer) {
+                buttonStyle.push(styles.optionButtonWrong);
+                textStyle.push(styles.optionTextWrong);
+              } else {
+                buttonStyle.push(styles.optionButtonDisabled);
+                textStyle.push(styles.optionTextDisabled);
               }
 
               return (
                 <TouchableOpacity
                   key={index}
-                  style={optionStyle}
+                  style={buttonStyle}
                   onPress={() => handleAnswerSelect(index)}
                   disabled={selectedAnswer !== null}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.optionLabel}>
-                    {String.fromCharCode(65 + index)}
-                  </Text>
-                  <Text style={textStyle}>{option}</Text>
-                  {selectedAnswer !== null && index === currentQ.correctAnswer && (
-                    <Icon name="check" size={20} color="#fff" />
-                  )}
-                  {selectedAnswer !== null && index === selectedAnswer && selectedAnswer !== currentQ.correctAnswer && (
-                    <Icon name="close" size={20} color="#fff" />
-                  )}
+                  <View style={styles.optionContent}>
+                    <View style={styles.optionLabel}>
+                      <Text style={styles.optionLabelText}>{String.fromCharCode(65 + index)}</Text>
+                    </View>
+                    <Text style={textStyle}>{option}</Text>
+                    {selectedAnswer !== null && index === currentQ.correctAnswer && (
+                      <Icon name="check-circle" size={20} color="#10B981" />
+                    )}
+                    {selectedAnswer === index && selectedAnswer !== currentQ.correctAnswer && (
+                      <Icon name="cancel" size={20} color="#EF4444" />
+                    )}
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -395,13 +742,18 @@ const ScamQuizGame = ({ navigation }) => {
                 <Icon 
                   name={selectedAnswer === currentQ.correctAnswer ? "lightbulb" : "info"} 
                   size={20} 
-                  color={selectedAnswer === currentQ.correctAnswer ? "#4CAF50" : "#FF9800"} 
+                  color={selectedAnswer === currentQ.correctAnswer ? "#10B981" : "#F59E0B"} 
                 />
-                <Text style={styles.explanationTitle}>Explanation</Text>
+                <Text style={styles.explanationTitle}>
+                  {selectedAnswer === currentQ.correctAnswer ? 
+                    `Correct! +${Math.floor(currentQ.points * GAME_MODES[gameMode].pointMultiplier)} points` : 
+                    selectedAnswer === -1 ? 'Time\'s up!' : 'Incorrect'}
+                  {selectedAnswer === currentQ.correctAnswer && streak > 2 && (
+                    <Text style={styles.streakBonus}> 🔥 +{(streak - 2) * 2} streak bonus!</Text>
+                  )}
+                </Text>
               </View>
-              <Text style={styles.explanationText}>
-                {currentQ.explanation}
-              </Text>
+              <Text style={styles.explanationText}>{currentQ.explanation}</Text>
             </View>
           )}
 
@@ -410,23 +762,43 @@ const ScamQuizGame = ({ navigation }) => {
             <TouchableOpacity
               style={styles.nextButton}
               onPress={handleNextQuestion}
+              activeOpacity={0.8}
             >
               <Text style={styles.nextButtonText}>
                 {currentQuestion === questions.length - 1 ? "View Results" : "Next Question"}
               </Text>
               <Icon 
-                name={currentQuestion === questions.length - 1 ? "flag" : "arrow-forward"} 
+                name={currentQuestion === questions.length - 1 ? "emoji-events" : "arrow-forward"} 
                 size={20} 
-                color="#fff" 
+                color="#FFFFFF" 
               />
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Current Score */}
-        <View style={styles.scoreDisplay}>
-          <Icon name="stars" size={20} color="#FFD700" />
-          <Text style={styles.currentScore}>Score: {score}/{currentQuestion + (showExplanation ? 1 : 0)}</Text>
+        {/* Live Stats */}
+        <View style={styles.liveStatsCard}>
+          <View style={styles.liveStatsGrid}>
+            <View style={styles.liveStatItem}>
+              <Text style={styles.liveStatNumber}>{score}</Text>
+              <Text style={styles.liveStatLabel}>Score</Text>
+            </View>
+            <View style={styles.liveStatItem}>
+              <Text style={styles.liveStatNumber}>{userAnswers.filter(a => a.isCorrect).length}</Text>
+              <Text style={styles.liveStatLabel}>Correct</Text>
+            </View>
+            <View style={styles.liveStatItem}>
+              <Text style={styles.liveStatNumber}>{streak}</Text>
+              <Text style={styles.liveStatLabel}>Streak</Text>
+            </View>
+            <View style={styles.liveStatItem}>
+              <Text style={styles.liveStatNumber}>
+                {userAnswers.length > 0 ? 
+                  Math.round((userAnswers.filter(a => a.isCorrect).length / userAnswers.length) * 100) : 0}%
+              </Text>
+              <Text style={styles.liveStatLabel}>Accuracy</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -437,137 +809,589 @@ const ScamQuizGame = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#F8FAFC',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 16,
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 18,
-    color: '#666',
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 12,
   },
-  scrollView: {
+  
+  // Welcome Screen Styles
+  welcomeHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  goalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  goalText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400E',
+    marginLeft: 8,
+  },
+  
+  // Game Mode Cards
+  gameModesContainer: {
+    marginBottom: 24,
+  },
+  gameModeCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  gameModeIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  gameModeTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  gameModeDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  gameModeDetails: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 12,
+  },
+  detailText: {
+    fontSize: 12,
+    color: '#374151',
+    marginBottom: 4,
+  },
+  multiplierText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4F46E5',
+  },
+  
+  // Scoring Info
+  scoringInfo: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  scoringHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  scoringTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginLeft: 8,
+  },
+  scoringGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  scoringItem: {
+    width: '48%',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  scoringLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  scoringPoints: {
+    fontSize: 11,
+  },
+  
+  // Results Screen
+  resultsScrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 16,
+  },
+  resultsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  resultsEmoji: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  resultsTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  finalScore: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  performanceLevel: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 24,
+  },
+  
+  // Performance Stats
+  statsGrid: {
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 24,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#F9FAFB',
+    marginHorizontal: 4,
+    borderRadius: 8,
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  
+  // Achievements
+  achievementsContainer: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  achievementsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  achievementsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginLeft: 8,
+  },
+  achievementsList: {
+    alignItems: 'center',
+  },
+  achievementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    width: '100%',
+  },
+  achievementIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  achievementText: {
     flex: 1,
   },
-  header: {
+  achievementName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  achievementDesc: {
+    fontSize: 10,
+    color: '#A16207',
+  },
+  
+  // Action Buttons
+  actionButtons: {
+    width: '100%',
+  },
+  playAgainButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#10B981',
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  playAgainText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  changeModeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#4F46E5',
+    paddingVertical: 16,
+    borderRadius: 8,
+  },
+  changeModeText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4F46E5',
+    marginLeft: 8,
+  },
+  
+  // Game Screen
+  gameScrollView: {
+    flex: 1,
+  },
+  gameHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  backButton: {
+  headerButton: {
     padding: 8,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1F2937',
   },
-  placeholder: {
-    width: 40,
+  headerStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  progressContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  timerUrgent: {
+    backgroundColor: '#FEE2E2',
+  },
+  timerText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#92400E',
+    marginLeft: 4,
+  },
+  timerUrgentText: {
+    color: '#991B1B',
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  scoreText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#3730A3',
+    marginLeft: 4,
+  },
+  
+  // Progress
+  progressCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  streakContainer: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  streakText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#92400E',
   },
   progressBar: {
-    height: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
-    overflow: 'hidden',
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 4,
+    backgroundColor: '#4F46E5',
+    borderRadius: 3,
   },
-  progressText: {
-    textAlign: 'center',
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
+  
+  // Question Card
   questionCard: {
-    margin: 16,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
     padding: 20,
-    backgroundColor: '#fff',
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  questionNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginBottom: 8,
+  questionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
+  questionMeta: {
+    flex: 1,
+  },
+  difficultyBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  difficultyBasic: {
+    backgroundColor: '#D1FAE5',
+  },
+  difficultyIntermediate: {
+    backgroundColor: '#FEF3C7',
+  },
+  difficultyAdvanced: {
+    backgroundColor: '#FEE2E2',
+  },
+  difficultyText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  categoryText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  questionTimer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  questionTimerUrgent: {
+    backgroundColor: '#FEE2E2',
+  },
+  questionTimerText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#3730A3',
+    marginLeft: 4,
+  },
+  questionTimerUrgentText: {
+    color: '#991B1B',
+  },
+  
+  // Scenario
+  scenarioContainer: {
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4F46E5',
+    marginBottom: 16,
+  },
+  scenarioText: {
+    fontSize: 14,
+    color: '#374151',
+    fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  
+  // Question
   questionText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#1F2937',
     lineHeight: 26,
     marginBottom: 20,
   },
+  
+  // Options
   optionsContainer: {
     marginBottom: 16,
   },
   optionButton: {
+    marginBottom: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  optionButtonDefault: {
+    backgroundColor: '#F9FAFB',
+    borderColor: '#E5E7EB',
+  },
+  optionButtonCorrect: {
+    backgroundColor: '#D1FAE5',
+    borderColor: '#10B981',
+  },
+  optionButtonWrong: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#EF4444',
+  },
+  optionButtonDisabled: {
+    backgroundColor: '#F3F4F6',
+    borderColor: '#D1D5DB',
+  },
+  optionContent: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    marginBottom: 12,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  correctOption: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#45a049',
-  },
-  wrongOption: {
-    backgroundColor: '#F44336',
-    borderColor: '#e53935',
   },
   optionLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
-    minWidth: 20,
+  },
+  optionLabelText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4F46E5',
   },
   optionText: {
-    fontSize: 16,
-    color: '#333',
     flex: 1,
+    fontSize: 16,
     lineHeight: 22,
   },
-  correctOptionText: {
-    color: '#fff',
+  optionTextCorrect: {
+    color: '#065F46',
+    fontWeight: '600',
   },
-  wrongOptionText: {
-    color: '#fff',
+  optionTextWrong: {
+    color: '#991B1B',
+    fontWeight: '600',
   },
+  optionTextDisabled: {
+    color: '#9CA3AF',
+  },
+  
+  // Explanation
   explanationContainer: {
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#F0F9FF',
     padding: 16,
     borderRadius: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
+    borderLeftColor: '#0EA5E9',
     marginBottom: 16,
   },
   explanationHeader: {
@@ -576,154 +1400,68 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   explanationTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#1F2937',
     marginLeft: 8,
+    flex: 1,
+  },
+  streakBonus: {
+    color: '#F59E0B',
   },
   explanationText: {
-    fontSize: 15,
-    color: '#555',
-    lineHeight: 22,
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
   },
+  
+  // Next Button
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2196F3',
-    padding: 16,
+    backgroundColor: '#4F46E5',
+    paddingVertical: 16,
     borderRadius: 8,
-    marginTop: 8,
   },
   nextButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#FFFFFF',
     marginRight: 8,
   },
-  scoreDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  
+  // Live Stats
+  liveStatsCard: {
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
+    marginTop: 16,
     marginBottom: 20,
-    padding: 12,
-    backgroundColor: '#fff',
+    padding: 16,
     borderRadius: 8,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    elevation: 1,
+    elevation: 2,
   },
-  currentScore: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 8,
-  },
-  resultsContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  resultsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  resultsIcon: {
-    marginBottom: 16,
-  },
-  resultsTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  scoreContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  finalScore: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  percentage: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#666',
-    marginTop: 4,
-  },
-  performanceText: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#555',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  resultsSummary: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  summaryRow: {
+  liveStatsGrid: {
     flexDirection: 'row',
+  },
+  liveStatItem: {
+    flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
   },
-  summaryText: {
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 12,
-  },
-  actionButtons: {
-    width: '100%',
-  },
-  playAgainButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4CAF50',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  playAgainText: {
+  liveStatNumber: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
-    marginLeft: 8,
+    color: '#1F2937',
   },
-  homeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#2196F3',
-    padding: 16,
-    borderRadius: 8,
-  },
-  homeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginLeft: 8,
+  liveStatLabel: {
+    fontSize: 10,
+    color: '#6B7280',
+    marginTop: 2,
   },
 });
 
-export default ScamQuizGame;
+export default EnhancedScamSafetyGame;

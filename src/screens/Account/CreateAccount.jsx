@@ -7,6 +7,7 @@ import Vector from "../../assets/Eye-Pass.svg";
 import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
 import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
+import { appAxios } from "../../api/apiconfig";
 
 const CreateAccount = () => {
   const [fullName, setFullName] = useState("");
@@ -28,7 +29,10 @@ const handleSignUp = async () => {
   }
   setLoading(true);
   try {
-    const response = await axios.post('http://10.9.52.8:8000/api/auth/signup', {
+
+
+    const response = await appAxios.post('api/auth/signup', {
+
       fullName,
       email,
       mobile,
