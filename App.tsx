@@ -60,12 +60,14 @@ import MutualFundsTutorial from './src/screens/tutorials/MutualFundsTutorial';
 import FraudTutorial from './src/screens/tutorials/FraudTutorial';
 import TaxTutorial from './src/screens/tutorials/TaxTutorial';
 
+import TabNavigation from './src/screens/bottomComponents/TabNavigation';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
 
 
-   
+
 
   return (
     <LanguageProvider>
@@ -76,7 +78,8 @@ export default function App() {
           <Stack.Screen name="BOnBoarding" component={BOnBoarding} />
           <Stack.Screen name="Welcome" component={Welcome} />
           <Stack.Screen name="CreateAccount" component={CreateAccount} />
-          <Stack.Screen name="Home" component={Home} />
+
+          {/* All other stack-only screens */}
           <Stack.Screen name="Budgeting" component={Budgeting} />
           <Stack.Screen name="AddExpenses" component={AddExpenses} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ title: 'Chat' }} />
@@ -112,7 +115,11 @@ export default function App() {
           <Stack.Screen name="MutualFundsTutorial" component={MutualFundsTutorial} />
           <Stack.Screen name="FraudTutorial" component={FraudTutorial} />
           <Stack.Screen name="TaxTutorial" component={TaxTutorial} />
+
+          {/* ✅ Tabs as main app */}
+          <Stack.Screen name="TabNavigation" component={TabNavigation} />
         </Stack.Navigator>
+
       </NavigationContainer>
     </LanguageProvider>
   );

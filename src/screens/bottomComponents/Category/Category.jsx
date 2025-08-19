@@ -6,6 +6,8 @@ import { useNavigation } from "@react-navigation/native";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import translations from "../../../utils/translations";
 
+import TabNavigation from "../TabNavigation";
+
 // Importing EmergencyHelp component
 import EmergencyHelp from "../../Categories/Emergency/EmergencyHelp";  
 
@@ -108,17 +110,23 @@ const Category = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>
-            {translations.categories[currentLanguage]?.categories || "Categories"}
-          </Text>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Text style={styles.notificationIcon}>🔔</Text>
-          </TouchableOpacity>
-        </View>
+<View style={styles.header}>
+  <TouchableOpacity 
+    style={styles.backButton}  
+    onPress={() => navigation.navigate("TabNaviagtion", { screen: "Home" })} // 👈 fixed
+  >
+    <Text style={styles.backIcon}>←</Text>
+  </TouchableOpacity>
+
+  <Text style={styles.title}>
+    {translations.categories[currentLanguage]?.categories || "Categories"}
+  </Text>
+
+  <TouchableOpacity style={styles.notificationButton}>
+    <Text style={styles.notificationIcon}>🔔</Text>
+  </TouchableOpacity>
+</View>
+
 
         {/* Rewards Section */}
         <View style={styles.rewardsContainer}>

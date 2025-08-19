@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,25 +9,101 @@ import {
   Dimensions,
   Alert,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import translations from '../../../utils/translations';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appAxios } from "../../../api/apiconfig";
 
 const { width, height } = Dimensions.get('window');
 
 const Profile = () => {
   const [notifications, setNotifications] = useState(3);
-  const [user] = useState({
-    name: "Alex Johnson",
-    id: "25030024",
+  const [user, setUser] = useState({
+    name: "",
+    id: "",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
   });
+  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  
   const { currentLanguage } = useLanguage();
+  const navigation = useNavigation();
   const profileText = translations.profile[currentLanguage] || translations.profile.english;
   const commonText = translations.common[currentLanguage] || translations.common.english;
+
+  // Fetch user profile data
+  const fetchUserProfile = async () => {
+    setProfileLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const config = token ? {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        timeout: 10000
+      } : { timeout: 10000 };
+
+      const response = await appAxios.get('/api/auth/me', config);
+      console.log("Profile API Response:", response.data);
+
+      const apiData = response.data;
+      if (!apiData?.success) {
+        throw new Error(apiData?.message || 'Failed to fetch profile');
+      }
+
+      const profile = apiData.data;
+      
+      // Update user state with fetched data
+      setUser(prevUser => ({
+        ...prevUser,
+        name: profile?.fullName || 'Guest User',
+        id: profile?.id || profile?.userId || '00000000', // Try different possible ID fields
+        // Keep existing avatar or use profile avatar if available
+        avatar: profile?.avatar || profile?.profileImage || prevUser.avatar
+      }));
+
+    } catch (err) {
+      console.error("Error fetching profile:", err.message);
+      // Set fallback values on error
+      setUser(prevUser => ({
+        ...prevUser,
+        name: 'Guest User',
+        id: '00000000'
+      }));
+      
+      // Show error alert if needed
+      Alert.alert(
+        'Error',
+        'Unable to fetch profile data. Please check your connection.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setProfileLoading(false);
+      setLoading(false);
+    }
+  };
+
+  // Fetch profile on component mount
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  // ✅ Logout Handler
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('authToken'); // clear stored session/token
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Welcome' }], // 👈 replace with your login screen route name
+      });
+    } catch (e) {
+      console.error('Error clearing token:', e);
+    }
+  };
 
   // Menu items with translations
   const getMenuItems = () => {
@@ -53,7 +129,7 @@ const Profile = () => {
         subtitle: {
           english: 'Password and privacy settings',
           hindi: 'पासवर्ड और गोपनीयता सेटिंग्स',
-          punjabi: 'ਪਾਸਵਰਡ ਅਤੇ ਪਰਾਈਵੇਸੀ ਸੈਟਿੰਗਾਂ'
+          punjabi: 'ਪਾਸਵਰਡ ਅਤੇ ਪਰਾਈਵੇਸ਼ੀ ਸੈਟਿੰਗਾਂ'
         }
       },
       settings: {
@@ -103,22 +179,7 @@ const Profile = () => {
         backgroundColor: '#3B82F6',
         action: () => navigation.navigate('EditProfile')
       },
-      {
-        id: 'security',
-        icon: '🛡️',
-        title: menuTranslations.security.title[currentLanguage] || menuTranslations.security.title.english,
-        subtitle: menuTranslations.security.subtitle[currentLanguage] || menuTranslations.security.subtitle.english,
-        backgroundColor: '#10B981',
-        action: () => navigation.navigate('Security')
-      },
-      {
-        id: 'settings',
-        icon: '⚙️',
-        title: menuTranslations.settings.title[currentLanguage] || menuTranslations.settings.title.english,
-        subtitle: menuTranslations.settings.subtitle[currentLanguage] || menuTranslations.settings.subtitle.english,
-        backgroundColor: '#8B5CF6',
-        action: () => navigation.navigate('Settings')
-      },
+
       {
         id: 'help',
         icon: '❓',
@@ -133,25 +194,28 @@ const Profile = () => {
         title: menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english,
         subtitle: menuTranslations.logout.subtitle[currentLanguage] || menuTranslations.logout.subtitle.english,
         backgroundColor: '#EF4444',
-        action: () => Alert.alert(
-          menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english, 
-          currentLanguage === 'hindi' ? 'क्या आप लॉग आउट करना चाहते हैं?' : 
-          currentLanguage === 'punjabi' ? 'ਕੀ ਤੁਸੀਂ ਲੌਗ ਆਊਟ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?' : 
-          'Are you sure you want to logout?', 
-          [
-            { text: commonText.cancel, style: 'cancel' },
-            { text: menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english, 
-              style: 'destructive', 
-              onPress: () => console.log('Logged out') 
-            }
-          ]
-        )
-      }
+        action: () => 
+          Alert.alert(
+            menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english,
+            currentLanguage === 'hindi'
+              ? 'क्या आप लॉग आउट करना चाहते हैं?'
+              : currentLanguage === 'punjabi'
+              ? 'ਕੀ ਤੁਸੀਂ ਲੌਗ ਆਊਟ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?'
+              : 'Are you sure you want to logout?',
+            [
+              { text: commonText.cancel, style: 'cancel' },
+              {
+                text: menuTranslations.logout.title[currentLanguage] || menuTranslations.logout.title.english,
+                style: 'destructive',
+                onPress: handleLogout, // 👈 actual logout
+              },
+            ]
+          )
+      },
     ];
   };
   
   const menuItems = getMenuItems();
-  const navigation = useNavigation();
 
   const handleNotificationPress = () => {
     setNotifications(0);
@@ -159,8 +223,7 @@ const Profile = () => {
   };
 
   const handleBackPress = () => {
-    navigation.navigate('Home'); // Replace with your actual previous screen name
-    Alert.alert('Back', 'Navigate back to previous screen');
+    navigation.navigate('Home') // Replace with your actual previous screen name
   };
 
   const handleEditAvatar = () => {
@@ -170,6 +233,24 @@ const Profile = () => {
       { text: 'Cancel', style: 'cancel' }
     ]);
   };
+
+  const handleRefresh = () => {
+    fetchUserProfile();
+  };
+
+  // Show loading screen while fetching data
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <StatusBar barStyle="light-content" backgroundColor="#059669" />
+        <ActivityIndicator size="large" color="#059669" />
+        <Text style={styles.loadingText}>
+          {currentLanguage === 'hindi' ? 'लोड हो रहा है...' :
+           currentLanguage === 'punjabi' ? 'ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...' : 'Loading...'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -190,23 +271,34 @@ const Profile = () => {
               onPress={handleBackPress}
               android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 25 }}
             >
-              <Text style={styles.backIcon} onPress={() => navigation.navigate("Home")}>←</Text>
+              <Text style={styles.backIcon}>←</Text>
             </Pressable>
             
             <Text style={styles.headerTitle}>Profile</Text>
             
-            <Pressable 
-              style={styles.notificationButton} 
-              onPress={handleNotificationPress}
-              android_ripple={{ color: 'rgba(0,0,0,0.1)', radius: 20 }}
-            >
-              <Text style={styles.notificationIcon}>🔔</Text>
-              {notifications > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationText}>{notifications}</Text>
-                </View>
-              )}
-            </Pressable>
+            <View style={styles.headerButtonsContainer}>
+              {/* Refresh Button */}
+              <Pressable 
+                style={[styles.headerButton, { marginRight: 10 }]} 
+                onPress={handleRefresh}
+                android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 20 }}
+              >
+                <Text style={styles.refreshIcon}>🔄</Text>
+              </Pressable>
+              
+              <Pressable 
+                style={styles.notificationButton} 
+                onPress={handleNotificationPress}
+                android_ripple={{ color: 'rgba(0,0,0,0.1)', radius: 20 }}
+              >
+                <Text style={styles.notificationIcon}>🔔</Text>
+                {notifications > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationText}>{notifications}</Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
           </View>
         </SafeAreaView>
       </View>
@@ -227,6 +319,12 @@ const Profile = () => {
                   source={{ uri: user.avatar }}
                   resizeMode="cover"
                 />
+                {/* Loading overlay for profile refresh */}
+                {profileLoading && (
+                  <View style={styles.avatarLoadingOverlay}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  </View>
+                )}
               </View>
               <Pressable 
                 style={styles.editAvatarButton} 
@@ -243,7 +341,7 @@ const Profile = () => {
             <View style={styles.nameContainer}>
               <Text style={styles.userName}>{user.name}</Text>
               <Pressable style={styles.editNameButton}>
-                <Text style={styles.editIcon}>✏️</Text>
+                <Text style={styles.editIcon}></Text>
               </Pressable>
             </View>
             <View style={styles.idContainer}>
@@ -252,6 +350,17 @@ const Profile = () => {
                 <Text style={styles.idNumber}>{user.id}</Text>
               </View>
             </View>
+            
+            {/* Profile loading indicator */}
+            {profileLoading && (
+              <View style={styles.profileLoadingContainer}>
+                <ActivityIndicator size="small" color="#059669" />
+                <Text style={styles.profileLoadingText}>
+                  {currentLanguage === 'hindi' ? 'अपडेट हो रहा है...' :
+                   currentLanguage === 'punjabi' ? 'ਅਪਡੇਟ ਹੋ ਰਿਹਾ ਹੈ...' : 'Updating...'}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Menu Items */}
@@ -298,11 +407,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#059669',
+    fontWeight: '600',
+  },
   headerSection: {
     backgroundColor: '#059669',
-    paddingBottom: 10,
+    paddingBottom: 5,
     position: 'relative',
     overflow: 'hidden',
+    paddingTop: -5,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   decorativeCircle: {
     position: 'absolute',
@@ -339,9 +461,17 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 25,
   },
+  headerButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   backIcon: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  refreshIcon: {
+    fontSize: 18,
     color: '#FFFFFF',
   },
   headerTitle: {
@@ -412,12 +542,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
+    position: 'relative',
   },
   avatar: {
     width: 122,
     height: 122,
     borderRadius: 61,
     backgroundColor: '#E5E7EB',
+  },
+  avatarLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 61,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editAvatarButton: {
     position: 'absolute',
@@ -490,6 +632,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F2937',
     fontFamily: 'monospace',
+  },
+  profileLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  profileLoadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#059669',
+    fontWeight: '600',
   },
   menuContainer: {
     paddingHorizontal: 20,

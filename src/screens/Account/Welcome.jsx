@@ -1,4 +1,8 @@
 import * as React from "react";
+
+import { useState } from "react";
+import { StyleSheet, View, Text, Pressable, TextInput, Image, Alert } from "react-native";
+
 import { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -8,14 +12,17 @@ import {
   TextInput,
   Image,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import Baseshape from "../../assets/base-shape.svg";
 import Facebook from "../../assets/Facebook.svg";
 import Google from "../../assets/Google.svg";
 import Vector from "../../assets/Eye-Pass.svg";
-import { Color, Fonts } from "../../constants/GlobleStyle";
+
+import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
 import { useNavigation, CommonActions } from "@react-navigation/native";
-import axios from "axios";
+import axios from 'axios';
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import App from "../../../App";
 import { appAxios } from "../../api/apiconfig";
@@ -26,6 +33,12 @@ const Welcome = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+
+
+  // Login API setup start (rohan)
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
 
   // Added from main branch: check stored token on mount
   useEffect(() => {
@@ -40,10 +53,55 @@ const Welcome = () => {
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please enter email and password");
+
       return;
     }
     setLoading(true);
     try {
+
+      const response = await axios.post('http:/10.9.52.8:8000/api/auth/login', {
+        email,
+        password,
+      });
+      if (response.status === 200) {
+        Alert.alert("Success", "Login successful!");
+        const token = response.data.data.token;
+        console.log('data', response.data);
+        console.log('token', response.data.data.token);
+        await AsyncStorage.setItem('authToken', token);
+        // Navigate to main app screen
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'MainApp' }],
+          })
+        );
+      } else {
+        Alert.alert("Error", "Login failed: " + response.data.message);
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      Alert.alert("Error", "Login error: " + (error.response?.data?.message || error.message));
+    }
+    setLoading(false);
+  };
+  // Login API setup end (Rohan)
+
+  const handleForgotPassword = () => {
+    // Navigate to forgot password screen or handle forgot password logic
+    console.log("Forgot password pressed");
+    // navigation.navigate("ForgotPassword");
+  };
+
+  const handleSignUp = () => {
+    navigation.navigate("CreateAccount");
+  };
+
+  const handleSocialLogin = (provider) => {
+    // Handle social login logic
+    console.log(`${provider} login pressed`);
+  };
+
       const response = await appAxios.post(
         "api/auth/login",
         {
@@ -76,6 +134,7 @@ const Welcome = () => {
     setLoading(false);
   };
 
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBg} />
@@ -90,7 +149,9 @@ const Welcome = () => {
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
+            keyboardType="email-address"
           />
+          
           <Text style={[styles.label, { marginTop: 18 }]}>Password</Text>
           <View style={styles.passwordWrapper}>
             <TextInput
@@ -109,6 +170,7 @@ const Welcome = () => {
               <Vector width={22} height={22} />
             </Pressable>
           </View>
+
           <Pressable
             style={[styles.loginBtn, loading && { opacity: 0.6 }]}
             onPress={handleLogin}
@@ -118,6 +180,15 @@ const Welcome = () => {
               {loading ? "Logging In..." : "Log In"}
             </Text>
           </Pressable>
+
+          
+          <Pressable style={styles.forgotPassword} onPress={handleForgotPassword}>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </Pressable>
+          
+          <Pressable style={styles.signUpBtn} onPress={handleSignUp}>
+            <Text style={styles.signUpBtnText}>Sign Up</Text>
+
           <Pressable style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </Pressable>
@@ -130,13 +201,33 @@ const Welcome = () => {
             >
               Sign Up
             </Text>
+
           </Pressable>
+          
           <Text style={styles.fingerprintText}>
             Use <Text style={styles.fingerprintHighlight}>Fingerprint</Text> To
             Access
           </Text>
+          
           <Text style={styles.orText}>or sign up with</Text>
+          
           <View style={styles.socialRow}>
+
+            <Pressable 
+              style={styles.socialBtn} 
+              onPress={() => handleSocialLogin('Google')}
+            >
+              <Google width={33} height={33} />
+            </Pressable>
+          </View>
+
+          <View style={styles.bottomTextContainer}>
+            <Text style={styles.bottomText}>Don't have an account? </Text>
+            <Pressable onPress={handleSignUp}>
+              <Text style={styles.bottomSignUp}>Sign Up</Text>
+            </Pressable>
+          </View>
+
             <Pressable style={styles.socialBtn}>
               <Google width={33} height={33} />
             </Pressable>
@@ -145,6 +236,7 @@ const Welcome = () => {
             Don’t have an account?{" "}
             <Text style={styles.bottomSignUp}>Sign Up</Text>
           </Text>
+
         </View>
       </View>
     </SafeAreaView>
@@ -289,14 +381,24 @@ const styles = StyleSheet.create({
   socialBtn: {
     marginHorizontal: 12,
   },
+  bottomTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5,
+  },
   bottomText: {
     fontSize: 13,
     fontFamily: Fonts.leagueSpartanLight,
     color: Color.colorDarkslategray200,
+
+
     textAlign: "center",
     marginTop: 8,
+
   },
   bottomSignUp: {
+    fontSize: 13,
     color: Color.colorDodgerblue,
     fontFamily: Fonts.leagueSpartanLight,
   },

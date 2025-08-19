@@ -11,9 +11,42 @@ import {
 } from 'react-native';
 
 export default function FinanceTutorial() {
-<<<<<<< Updated upstream
-  return
-=======
+
+  const [learningContent, setLearningContent] = useState([]);
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(false);
+
+  // Replace with your actual API base URL
+  const API_BASE_URL = 'http://10.172.41.48:8000';
+  
+  useEffect(() => {
+    fetchLearningContent();
+  }, []);
+
+  const fetchLearningContent = async () => {
+    try {
+      setLoading(true);
+      // Using category slug for finance content
+      const response = await fetch('${API_BASE_URL}/api/learning/content/category/finance');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch learning content');
+      }
+      
+      const data = await response.json();
+      setLearningContent(data);
+    } catch (error) {
+      console.error('Error fetching learning content:', error);
+      Alert.alert('Error', 'Failed to load learning content. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+
+
   const [learningContent, setLearningContent] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
@@ -164,13 +197,16 @@ export default function FinanceTutorial() {
     } catch (error) {
       console.error('Error fetching all learning content:', error);
       setLearningContent([]);
+
     }
   };
 
   const fetchContentDetails = async (contentId) => {
     try {
       setContentLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/learning/content/${contentId}`);
+
+      const response = await fetch('${API_BASE_URL}/api/learning/content/${contentId}');
+
       
       if (!response.ok) {
         throw new Error('Failed to fetch content details');
@@ -289,16 +325,16 @@ export default function FinanceTutorial() {
   }
 
   return (
->>>>>>> Stashed changes
+
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.mainTitle}>💵 Finance Basics</Text>
         <Text style={styles.subtitle}>
           Master the fundamentals of personal finance
         </Text>
-<<<<<<< Updated upstream
+
       </View>git 
-=======
+
       </View>
       
       {learningContent.length === 0 ? (
@@ -307,7 +343,11 @@ export default function FinanceTutorial() {
           <Text style={styles.emptyDescription}>
             Finance learning content will appear here once added by administrators.
           </Text>
+
+          <TouchableOpacity style={styles.refreshButton} onPress={fetchLearningContent}>
+
           <TouchableOpacity style={styles.refreshButton} onPress={initializeApp}>
+
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -320,7 +360,8 @@ export default function FinanceTutorial() {
           showsVerticalScrollIndicator={false}
         />
       )}
->>>>>>> Stashed changes
+
+
     </View>
   );
 }
@@ -361,8 +402,62 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   listContainer: {
+
     padding: 20,
   },
+  contentItem: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  contentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  contentTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  arrow: {
+    fontSize: 18,
+    color: '#4A90E2',
+    fontWeight: 'bold',
+  },
+  contentPreview: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  duration: {
+    fontSize: 12,
+    color: '#4A90E2',
+    fontWeight: '500',
+  },
+  detailContainer: {
+    flex: 1,
+    backgroundColor: '#F0F4F8',
+  },
+  backButton: {
+
+    padding: 20,
+    paddingTop: 60,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#4A90E2',
+    fontWeight: '600',
+  },
+
   contentItem: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -414,6 +509,7 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
     fontWeight: '600',
   },
+
   detailCard: {
     backgroundColor: 'white',
     margin: 20,

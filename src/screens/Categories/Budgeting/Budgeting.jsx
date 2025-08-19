@@ -1,318 +1,1006 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
-  Pressable,
-  TextInput,
-  Platform,
-  SafeAreaView,
+  StyleSheet,
   ScrollView,
+  TouchableOpacity,
+  TextInput,
   Modal,
+  FlatList,
   Alert,
+  RefreshControl,
   Dimensions,
-  Animated,
-  Easing,
-} from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useNavigation } from "@react-navigation/native";
+  StatusBar,
+  ActivityIndicator,
+  Switch,
+  Image,
+  Picker,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Import your SVG components (assuming they exist)
-// import Rectangle from "../../../assets/Rectangle.svg";
-// import Notification from "../../../assets/notification.svg";
-// import Calendar from "../../../assets/calendar.svg";
-// import BringBack from "../../../assets/bring-back.svg";
+const { width, height } = Dimensions.get('window');
 
-import { Color, Border, Fonts, FontSize } from "../../../constants/GlobleStyle";
+// Mock API service (replace with your actual API calls)
+const BudgetService = {
+  async getUserBudgets(params) {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return {
+      success: true,
+      data: {
+        budgets: [
+          {
+            _id: '1',
+            title: 'Monthly Expenses',
+            description: 'Track monthly spending and household expenses',
+            amount: 2500,
+            currency: 'USD',
+            category: 'Personal',
+            status: 'active',
+            isPublic: false,
+            tags: ['household', 'monthly'],
+            videos: [
+              { 
+                videoId: { _id: 'v1', title: 'Expense Tracking Tips', description: 'How to track expenses', cloudinaryUrl: 'https://example.com/video1.mp4' },
+                title: 'Expense Tracking Tips',
+                description: 'Learn how to track expenses effectively',
+                addedAt: new Date().toISOString(),
+                isActive: true
+              }
+            ],
+            createdBy: { _id: 'u1', fullName: 'John Doe', email: 'john@example.com' },
+            createdAt: new Date().toISOString(),
+          },
+          {
+            _id: '2',
+            title: 'Vacation Fund',
+            description: 'Saving for summer vacation to Europe',
+            amount: 5000,
+            currency: 'USD',
+            category: 'Travel',
+            status: 'active',
+            isPublic: true,
+            tags: ['vacation', 'europe', 'travel'],
+            videos: [
+              {
+                videoId: { _id: 'v2', title: 'Travel Budget Planning', description: 'Plan your travel budget', cloudinaryUrl: 'https://example.com/video2.mp4' },
+                title: 'Travel Budget Planning',
+                description: 'How to plan your travel budget effectively',
+                addedAt: new Date().toISOString(),
+                isActive: true
+              },
+              {
+                videoId: { _id: 'v3', title: 'Money Saving Tips', description: 'Save money for travel', cloudinaryUrl: 'https://example.com/video3.mp4' },
+                title: 'Money Saving Tips',
+                description: 'Tips to save money for your dream vacation',
+                addedAt: new Date().toISOString(),
+                isActive: true
+              }
+            ],
+            createdBy: { _id: 'u1', fullName: 'John Doe', email: 'john@example.com' },
+            createdAt: new Date().toISOString(),
+          },
+          {
+            _id: '3',
+            title: 'Emergency Fund',
+            description: 'Emergency savings for unexpected expenses',
+            amount: 10000,
+            currency: 'USD',
+            category: 'Savings',
+            status: 'active',
+            isPublic: false,
+            tags: ['emergency', 'savings'],
+            videos: [],
+            createdBy: { _id: 'u1', fullName: 'John Doe', email: 'john@example.com' },
+            createdAt: new Date().toISOString(),
+          }
+        ],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalBudgets: 3,
+          hasNextPage: false,
+          hasPrevPage: false
+        },
+      },
+    };
+  },
 
-const { width: screenWidth } = Dimensions.get('window');
+  async getPublicBudgets(params) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return {
+      success: true,
+      data: {
+        budgets: [
+          {
+            _id: '4',
+            title: 'Fitness Journey Budget',
+            description: 'Budget for gym membership and fitness equipment',
+            amount: 1200,
+            currency: 'USD',
+            category: 'Health',
+            status: 'active',
+            isPublic: true,
+            tags: ['fitness', 'health'],
+            videos: [],
+            createdBy: { _id: 'u2', fullName: 'Jane Smith', email: 'jane@example.com' },
+            createdAt: new Date().toISOString(),
+          },
+          {
+            _id: '2',
+            title: 'Vacation Fund',
+            description: 'Saving for summer vacation to Europe',
+            amount: 5000,
+            currency: 'USD',
+            category: 'Travel',
+            status: 'active',
+            isPublic: true,
+            tags: ['vacation', 'europe', 'travel'],
+            videos: [
+              {
+                videoId: { _id: 'v2', title: 'Travel Budget Planning', cloudinaryUrl: 'https://example.com/video2.mp4' },
+                title: 'Travel Budget Planning',
+              }
+            ],
+            createdBy: { _id: 'u1', fullName: 'John Doe', email: 'john@example.com' },
+            createdAt: new Date().toISOString(),
+          }
+        ],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalBudgets: 2,
+        }
+      }
+    };
+  },
+
+  async createBudget(budgetData) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { 
+      success: true, 
+      data: { 
+        _id: Date.now().toString(), 
+        ...budgetData,
+        createdBy: { _id: 'u1', fullName: 'John Doe', email: 'john@example.com' },
+        videos: [],
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      } 
+    };
+  },
+
+  async updateBudget(id, updateData) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { success: true, data: { _id: id, ...updateData } };
+  },
+
+  async deleteBudget(id) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { success: true };
+  },
+
+  async addVideoToBudget(budgetId, videoData) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { 
+      success: true, 
+      data: {
+        _id: budgetId,
+        videos: [
+          {
+            videoId: { _id: Date.now().toString(), title: videoData.title, cloudinaryUrl: 'https://example.com/video.mp4' },
+            title: videoData.title,
+            description: videoData.description,
+            addedAt: new Date().toISOString(),
+            isActive: true
+          }
+        ]
+      }
+    };
+  },
+
+  async removeVideoFromBudget(budgetId, videoId) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return { success: true, data: { _id: budgetId } };
+  },
+
+  async getBudgetById(id) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return {
+      success: true,
+      data: {
+        _id: id,
+        title: 'Sample Budget',
+        description: 'A sample budget for demonstration',
+        amount: 3000,
+        currency: 'USD',
+        category: 'Personal',
+        status: 'active',
+        isPublic: false,
+        tags: ['sample'],
+        videos: [],
+        createdBy: { _id: 'u1', fullName: 'John Doe', email: 'john@example.com' },
+        createdAt: new Date().toISOString(),
+      }
+    };
+  },
+
+  async getBudgetStats() {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return {
+      success: true,
+      data: {
+        overview: {
+          totalBudgets: 8,
+          totalAmount: 25600,
+          averageAmount: 3200,
+          totalVideos: 15,
+        },
+        categoryBreakdown: [
+          { _id: 'Personal', count: 3, totalAmount: 8500 },
+          { _id: 'Travel', count: 2, totalAmount: 7000 },
+          { _id: 'Business', count: 2, totalAmount: 6500 },
+          { _id: 'Health', count: 1, totalAmount: 3600 },
+        ],
+        statusBreakdown: [
+          { _id: 'active', count: 6, totalAmount: 22100 },
+          { _id: 'completed', count: 2, totalAmount: 3500 },
+        ]
+      },
+    };
+  },
+};
 
 const Budgeting = () => {
-  const navigation = useNavigation();
+  const [budgets, setBudgets] = useState([]);
+  const [publicBudgets, setPublicBudgets] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('budgets');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showBudgetDetailModal, setShowBudgetDetailModal] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    category: '',
+    status: '',
+    isPublic: null,
+  });
 
-  // Budget State
-  const [totalBalance, setTotalBalance] = useState(100000);
-  const [expenses, setExpenses] = useState([]);
-  const [totalExpense, setTotalExpense] = useState(0);
+  // Form states
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    amount: '',
+    currency: 'USD',
+    category: '',
+    isPublic: false,
+    tags: '',
+    startDate: '',
+    endDate: '',
+    metadata: '',
+  });
 
-  // Modal State
-  const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
+  const [videoFormData, setVideoFormData] = useState({
+    videoId: '',
+    title: '',
+    description: '',
+  });
 
-  // Add Expense Form State
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [amount, setAmount] = useState("");
-  const [expenseAmount, setExpenseAmount] = useState("");
-  const [message, setMessage] = useState("");
-  const [expenseTitle, setExpenseTitle] = useState("");
+  const categories = ['Personal', 'Travel', 'Business', 'Education', 'Health', 'Entertainment', 'Savings', 'Investment'];
+  const currencies = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD'];
+  const statuses = ['active', 'completed', 'paused', 'cancelled'];
 
-  // Animation
-  const [progressAnimation] = useState(new Animated.Value(0));
-  const [balanceAnimation] = useState(new Animated.Value(0));
-
-  // Calculate derived values
-  const remainingBalance = totalBalance - totalExpense;
-  const expensePercentage = totalBalance > 0 ? Math.round((totalExpense / totalBalance) * 100) : 0;
-
-  // Update total expense when expenses array changes
   useEffect(() => {
-    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    setTotalExpense(total);
-  }, [expenses]);
+    loadInitialData();
+  }, []);
 
-  // Animate progress bar when expense percentage changes
-  useEffect(() => {
-    Animated.timing(progressAnimation, {
-      toValue: expensePercentage / 100,
-      duration: 1000,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [expensePercentage]);
-
-  // Animate balance changes
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(balanceAnimation, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(balanceAnimation, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [totalExpense]);
-
-  const handleDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === "ios");
-    setDate(currentDate);
+  const loadInitialData = async () => {
+    await Promise.all([
+      loadBudgets(),
+      loadStats(),
+      activeTab === 'discover' && loadPublicBudgets(),
+    ]);
   };
 
-  const formatDate = (date) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
-  };
-
-  const formatCurrency = (amount) => {
-    return `Rs. ${amount.toLocaleString()}`;
-  };
-
-  const resetForm = () => {
-    setAmount("");
-    setExpenseAmount("");
-    setMessage("");
-    setExpenseTitle("");
-    setDate(new Date());
-  };
-
-  const validateForm = () => {
-    if (!expenseTitle.trim()) {
-      Alert.alert("Error", "Please enter expense title");
-      return false;
+  const loadBudgets = async () => {
+    try {
+      setLoading(true);
+      const response = await BudgetService.getUserBudgets({
+        page: currentPage,
+        limit: 10,
+        ...filters,
+      });
+      if (response.success) {
+        setBudgets(response.data.budgets);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load budgets');
+    } finally {
+      setLoading(false);
     }
-    if (!expenseAmount || parseFloat(expenseAmount) <= 0) {
-      Alert.alert("Error", "Please enter a valid expense amount");
-      return false;
-    }
-    if (parseFloat(expenseAmount) > remainingBalance) {
-      Alert.alert("Warning", "Expense amount exceeds remaining balance!");
-      return false;
-    }
-    return true;
   };
 
-  const handleSaveExpense = () => {
-    if (!validateForm()) return;
+  const loadPublicBudgets = async () => {
+    try {
+      const response = await BudgetService.getPublicBudgets({
+        page: 1,
+        limit: 20,
+        category: filters.category,
+      });
+      if (response.success) {
+        setPublicBudgets(response.data.budgets);
+      }
+    } catch (error) {
+      console.error('Failed to load public budgets:', error);
+    }
+  };
 
-    const newExpense = {
-      id: Date.now().toString(),
-      title: expenseTitle.trim(),
-      amount: parseFloat(expenseAmount),
-      date: date,
-      message: message.trim(),
-      timestamp: new Date(),
-    };
+  const loadStats = async () => {
+    try {
+      const response = await BudgetService.getBudgetStats();
+      if (response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  };
 
-    setExpenses(prevExpenses => [newExpense, ...prevExpenses]);
-    resetForm();
-    setShowAddExpenseModal(false);
-    
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadInitialData();
+    setRefreshing(false);
+  }, [activeTab]);
+
+  const handleCreateBudget = async () => {
+    if (!formData.title || !formData.amount || !formData.category) {
+      Alert.alert('Error', 'Please fill in all required fields (Title, Amount, Category)');
+      return;
+    }
+
+    if (parseFloat(formData.amount) <= 0) {
+      Alert.alert('Error', 'Amount must be greater than 0');
+      return;
+    }
+
+    try {
+      const budgetData = {
+        ...formData,
+        amount: parseFloat(formData.amount),
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        metadata: formData.metadata ? JSON.parse(formData.metadata) : {},
+        startDate: formData.startDate || new Date().toISOString(),
+      };
+
+      const response = await BudgetService.createBudget(budgetData);
+      if (response.success) {
+        setBudgets(prev => [response.data, ...prev]);
+        setShowCreateModal(false);
+        resetForm();
+        Alert.alert('Success', 'Budget created successfully');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create budget. Please check your input.');
+    }
+  };
+
+  const handleEditBudget = async () => {
+    if (!selectedBudget) return;
+
+    try {
+      const updateData = {
+        ...formData,
+        amount: parseFloat(formData.amount),
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        metadata: formData.metadata ? JSON.parse(formData.metadata) : {},
+      };
+
+      const response = await BudgetService.updateBudget(selectedBudget._id, updateData);
+      if (response.success) {
+        setBudgets(prev =>
+          prev.map(budget =>
+            budget._id === selectedBudget._id ? { ...budget, ...response.data } : budget
+          )
+        );
+        setShowEditModal(false);
+        setSelectedBudget(null);
+        resetForm();
+        Alert.alert('Success', 'Budget updated successfully');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update budget');
+    }
+  };
+
+  const handleDeleteBudget = (budget) => {
     Alert.alert(
-      "Success", 
-      `Expense "${newExpense.title}" added successfully!`,
-      [{ text: "OK" }]
-    );
-  };
-
-  const handleDeleteExpense = (expenseId) => {
-    Alert.alert(
-      "Delete Expense",
-      "Are you sure you want to delete this expense?",
+      'Delete Budget',
+      `Are you sure you want to delete "${budget.title}"? This action cannot be undone.`,
       [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: () => {
-            setExpenses(prevExpenses => 
-              prevExpenses.filter(expense => expense.id !== expenseId)
-            );
-          }
-        }
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await BudgetService.deleteBudget(budget._id);
+              if (response.success) {
+                setBudgets(prev => prev.filter(b => b._id !== budget._id));
+                Alert.alert('Success', 'Budget deleted successfully');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete budget');
+            }
+          },
+        },
       ]
     );
   };
 
-  const getProgressColor = () => {
-    if (expensePercentage < 50) return Color.colorMediumseagreen;
-    if (expensePercentage < 80) return '#FFA500';
-    return '#FF4444';
+  const handleAddVideo = async () => {
+    if (!videoFormData.videoId || !videoFormData.title) {
+      Alert.alert('Error', 'Please provide video ID and title');
+      return;
+    }
+
+    try {
+      const response = await BudgetService.addVideoToBudget(selectedBudget._id, videoFormData);
+      if (response.success) {
+        setBudgets(prev =>
+          prev.map(budget =>
+            budget._id === selectedBudget._id 
+              ? { ...budget, videos: [...budget.videos, ...response.data.videos] }
+              : budget
+          )
+        );
+        setShowVideoModal(false);
+        setVideoFormData({ videoId: '', title: '', description: '' });
+        Alert.alert('Success', 'Video added to budget successfully');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add video to budget');
+    }
   };
 
-  const getProgressMessage = () => {
-    if (expensePercentage < 30) return "Great! You're managing your budget well.";
-    if (expensePercentage < 60) return "Good spending pace, keep monitoring.";
-    if (expensePercentage < 80) return "Caution: You're approaching your budget limit.";
-    return "Warning: You've exceeded recommended spending!";
+  const handleRemoveVideo = (budgetId, videoId) => {
+    Alert.alert(
+      'Remove Video',
+      'Are you sure you want to remove this video from the budget?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await BudgetService.removeVideoFromBudget(budgetId, videoId);
+              if (response.success) {
+                setBudgets(prev =>
+                  prev.map(budget =>
+                    budget._id === budgetId
+                      ? { ...budget, videos: budget.videos.filter(v => v.videoId._id !== videoId) }
+                      : budget
+                  )
+                );
+                Alert.alert('Success', 'Video removed from budget');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to remove video');
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const renderExpenseItem = (expense, index) => (
-    <Pressable
-      key={expense.id}
-      style={styles.expenseItem}
-      onLongPress={() => handleDeleteExpense(expense.id)}
-    >
-      <View style={styles.expenseItemContent}>
-        <View style={styles.expenseItemLeft}>
-          <Text style={styles.expenseItemTitle}>{expense.title}</Text>
-          <Text style={styles.expenseItemDate}>
-            {expense.date.toLocaleDateString()}
-          </Text>
-          {expense.message && (
-            <Text style={styles.expenseItemMessage} numberOfLines={1}>
-              {expense.message}
-            </Text>
-          )}
-        </View>
-        <View style={styles.expenseItemRight}>
-          <Text style={styles.expenseItemAmount}>
-            -{formatCurrency(expense.amount)}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
+  const openEditModal = (budget) => {
+    setSelectedBudget(budget);
+    setFormData({
+      title: budget.title,
+      description: budget.description || '',
+      amount: budget.amount.toString(),
+      currency: budget.currency,
+      category: budget.category,
+      isPublic: budget.isPublic,
+      tags: budget.tags ? budget.tags.join(', ') : '',
+      startDate: budget.startDate || '',
+      endDate: budget.endDate || '',
+      metadata: budget.metadata ? JSON.stringify(budget.metadata) : '',
+    });
+    setShowEditModal(true);
+  };
+
+  const openBudgetDetail = (budget) => {
+    setSelectedBudget(budget);
+    setShowBudgetDetailModal(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      amount: '',
+      currency: 'USD',
+      category: '',
+      isPublic: false,
+      tags: '',
+      startDate: '',
+      endDate: '',
+      metadata: '',
+    });
+  };
+
+  const applyFilters = () => {
+    loadBudgets();
+  };
+
+  const clearFilters = () => {
+    setFilters({ category: '', status: '', isPublic: null });
+    setSearchQuery('');
+  };
+
+  const filteredBudgets = (activeTab === 'discover' ? publicBudgets : budgets).filter(budget =>
+    budget.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    budget.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (budget.tags && budget.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
-  const renderAddExpenseModal = () => (
-    <Modal
-      visible={showAddExpenseModal}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={() => setShowAddExpenseModal(false)}
+  const formatCurrency = (amount, currency = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const BudgetCard = ({ budget, isPublic = false }) => (
+    <TouchableOpacity 
+      style={styles.budgetCard}
+      onPress={() => openBudgetDetail(budget)}
     >
+      <View style={styles.budgetHeader}>
+        <View style={styles.budgetTitleContainer}>
+          <Text style={styles.budgetTitle}>{budget.title}</Text>
+          {budget.isPublic && (
+            <View style={styles.publicBadge}>
+              <Text style={styles.publicBadgeText}>Public</Text>
+            </View>
+          )}
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(budget.status) }]}>
+            <Text style={styles.statusBadgeText}>{budget.status}</Text>
+          </View>
+        </View>
+        <Text style={styles.budgetAmount}>
+          {formatCurrency(budget.amount, budget.currency)}
+        </Text>
+      </View>
+      
+      {budget.description ? (
+        <Text style={styles.budgetDescription} numberOfLines={2}>
+          {budget.description}
+        </Text>
+      ) : null}
+      
+      <View style={styles.budgetMeta}>
+        <Text style={styles.budgetCategory}>{budget.category}</Text>
+        <Text style={styles.budgetVideos}>
+          {budget.videos?.length || 0} videos
+        </Text>
+        <Text style={styles.budgetDate}>
+          {formatDate(budget.createdAt)}
+        </Text>
+      </View>
+
+      {budget.tags && budget.tags.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsContainer}>
+          {budget.tags.map((tag, index) => (
+            <View key={index} style={styles.tag}>
+              <Text style={styles.tagText}>#{tag}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
+      {isPublic && (
+        <View style={styles.creatorInfo}>
+          <Text style={styles.creatorText}>By {budget.createdBy?.fullName}</Text>
+        </View>
+      )}
+      
+      {!isPublic && (
+        <View style={styles.budgetActions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              setSelectedBudget(budget);
+              setShowVideoModal(true);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Add Video</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              openEditModal(budget);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleDeleteBudget(budget);
+            }}
+          >
+            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return '#28a745';
+      case 'completed': return '#007bff';
+      case 'paused': return '#ffc107';
+      case 'cancelled': return '#dc3545';
+      default: return '#6c757d';
+    }
+  };
+
+  const StatsCard = ({ title, value, subtitle }) => (
+    <View style={styles.statsCard}>
+      <Text style={styles.statsTitle}>{title}</Text>
+      <Text style={styles.statsValue}>{value}</Text>
+      {subtitle && <Text style={styles.statsSubtitle}>{subtitle}</Text>}
+    </View>
+  );
+
+  const FilterModal = ({ visible, onClose }) => (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <SafeAreaView style={styles.modalContainer}>
         <View style={styles.modalHeader}>
-          <Pressable 
-            style={styles.modalCloseButton} 
-            onPress={() => setShowAddExpenseModal(false)}
-          >
-            <Text style={styles.modalCloseText}>Cancel</Text>
-          </Pressable>
-          
-          <Text style={styles.modalTitle}>Add Expense</Text>
-          
-          <Pressable style={styles.modalSaveButton} onPress={handleSaveExpense}>
-            <Text style={styles.modalSaveText}>Save</Text>
-          </Pressable>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.modalCancel}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Filters</Text>
+          <TouchableOpacity onPress={() => { applyFilters(); onClose(); }}>
+            <Text style={styles.modalSave}>Apply</Text>
+          </TouchableOpacity>
         </View>
-
-        <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-          {/* Expense Title Field */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.fieldLabel}>Expense Title *</Text>
-            <View style={styles.inputField}>
-              <TextInput
-                style={styles.textInput}
-                value={expenseTitle}
-                onChangeText={setExpenseTitle}
-                placeholder="e.g., Groceries, Fuel, etc."
-                placeholderTextColor="#666"
-              />
-            </View>
-          </View>
-
-          {/* Date Field */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.fieldLabel}>Date</Text>
-            <Pressable 
-              onPress={() => setShowDatePicker(true)} 
-              style={styles.inputField}
-            >
-              <Text style={styles.inputText}>{formatDate(date)}</Text>
-              <View style={styles.calendarIconContainer}>
-                <Text style={styles.calendarIcon}>📅</Text>
+        
+        <ScrollView style={styles.modalContent}>
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Category</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.categoryContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryChip,
+                    filters.category === '' && styles.categoryChipSelected,
+                  ]}
+                  onPress={() => setFilters(prev => ({ ...prev, category: '' }))}
+                >
+                  <Text style={[
+                    styles.categoryChipText,
+                    filters.category === '' && styles.categoryChipTextSelected,
+                  ]}>All</Text>
+                </TouchableOpacity>
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.categoryChip,
+                      filters.category === category && styles.categoryChipSelected,
+                    ]}
+                    onPress={() => setFilters(prev => ({ ...prev, category }))}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        filters.category === category && styles.categoryChipTextSelected,
+                      ]}
+                    >
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            </Pressable>
+            </ScrollView>
           </View>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-            />
-          )}
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Status</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.categoryContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryChip,
+                    filters.status === '' && styles.categoryChipSelected,
+                  ]}
+                  onPress={() => setFilters(prev => ({ ...prev, status: '' }))}
+                >
+                  <Text style={[
+                    styles.categoryChipText,
+                    filters.status === '' && styles.categoryChipTextSelected,
+                  ]}>All</Text>
+                </TouchableOpacity>
+                {statuses.map((status) => (
+                  <TouchableOpacity
+                    key={status}
+                    style={[
+                      styles.categoryChip,
+                      filters.status === status && styles.categoryChipSelected,
+                    ]}
+                    onPress={() => setFilters(prev => ({ ...prev, status }))}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        filters.status === status && styles.categoryChipTextSelected,
+                      ]}
+                    >
+                      {status}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
 
-          {/* Amount Field */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.fieldLabel}>Budget Amount</Text>
-            <View style={styles.inputField}>
-              <TextInput
-                style={styles.textInput}
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-                placeholder="Rs. 100000"
-                placeholderTextColor="#666"
-              />
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Visibility</Text>
+            <View style={styles.visibilityOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.visibilityOption,
+                  filters.isPublic === null && styles.visibilityOptionSelected,
+                ]}
+                onPress={() => setFilters(prev => ({ ...prev, isPublic: null }))}
+              >
+                <Text style={[
+                  styles.visibilityOptionText,
+                  filters.isPublic === null && styles.visibilityOptionTextSelected,
+                ]}>All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.visibilityOption,
+                  filters.isPublic === true && styles.visibilityOptionSelected,
+                ]}
+                onPress={() => setFilters(prev => ({ ...prev, isPublic: true }))}
+              >
+                <Text style={[
+                  styles.visibilityOptionText,
+                  filters.isPublic === true && styles.visibilityOptionTextSelected,
+                ]}>Public</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.visibilityOption,
+                  filters.isPublic === false && styles.visibilityOptionSelected,
+                ]}
+                onPress={() => setFilters(prev => ({ ...prev, isPublic: false }))}
+              >
+                <Text style={[
+                  styles.visibilityOptionText,
+                  filters.isPublic === false && styles.visibilityOptionTextSelected,
+                ]}>Private</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Expense Amount Field */}
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.fieldLabel}>Expense Amount *</Text>
-            <View style={styles.inputField}>
-              <TextInput
-                style={styles.textInput}
-                keyboardType="numeric"
-                value={expenseAmount}
-                onChangeText={setExpenseAmount}
-                placeholder="Rs. 5000"
-                placeholderTextColor="#666"
-              />
-            </View>
-            <Text style={styles.fieldHint}>
-              Remaining Balance: {formatCurrency(remainingBalance)}
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={styles.clearFiltersButton}
+            onPress={() => {
+              clearFilters();
+              onClose();
+            }}
+          >
+            <Text style={styles.clearFiltersText}>Clear All Filters</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
 
-          {/* Message Field */}
-          <View style={styles.messageFieldWrapper}>
-            <Text style={styles.fieldLabel}>Notes (Optional)</Text>
+  const FormModal = ({ visible, onClose, onSubmit, title }) => (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.modalCancel}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <TouchableOpacity onPress={onSubmit}>
+            <Text style={styles.modalSave}>Save</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <ScrollView style={styles.modalContent}>
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Title *</Text>
             <TextInput
-              style={styles.messageInput}
-              placeholder="Add notes about this expense..."
-              placeholderTextColor="#4ade80"
-              multiline={true}
-              numberOfLines={6}
-              textAlignVertical="top"
-              value={message}
-              onChangeText={setMessage}
+              style={styles.formInput}
+              value={formData.title}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
+              placeholder="Enter budget title"
+            />
+          </View>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Description</Text>
+            <TextInput
+              style={[styles.formInput, styles.textArea]}
+              value={formData.description}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
+              placeholder="Enter description"
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+          
+          <View style={styles.formRow}>
+            <View style={[styles.formGroup, { flex: 2 }]}>
+              <Text style={styles.formLabel}>Amount *</Text>
+              <TextInput
+                style={styles.formInput}
+                value={formData.amount}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, amount: text }))}
+                placeholder="0.00"
+                keyboardType="numeric"
+              />
+            </View>
+            
+            <View style={[styles.formGroup, { flex: 1, marginLeft: 10 }]}>
+              <Text style={styles.formLabel}>Currency</Text>
+              <View style={styles.pickerContainer}>
+                <Text style={styles.pickerText}>{formData.currency}</Text>
+              </View>
+            </View>
+          </View>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Category *</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.categoryContainer}>
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.categoryChip,
+                      formData.category === category && styles.categoryChipSelected,
+                    ]}
+                    onPress={() => setFormData(prev => ({ ...prev, category }))}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        formData.category === category && styles.categoryChipTextSelected,
+                      ]}
+                    >
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+
+          <View style={styles.formRow}>
+            <View style={[styles.formGroup, { flex: 1 }]}>
+              <Text style={styles.formLabel}>Start Date</Text>
+              <TextInput
+                style={styles.formInput}
+                value={formData.startDate}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, startDate: text }))}
+                placeholder="YYYY-MM-DD"
+              />
+            </View>
+            
+            <View style={[styles.formGroup, { flex: 1, marginLeft: 10 }]}>
+              <Text style={styles.formLabel}>End Date</Text>
+              <TextInput
+                style={styles.formInput}
+                value={formData.endDate}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, endDate: text }))}
+                placeholder="YYYY-MM-DD"
+              />
+            </View>
+          </View>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Tags</Text>
+            <TextInput
+              style={styles.formInput}
+              value={formData.tags}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, tags: text }))}
+              placeholder="Enter tags separated by commas"
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Metadata (JSON)</Text>
+            <TextInput
+              style={[styles.formInput, styles.textArea]}
+              value={formData.metadata}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, metadata: text }))}
+              placeholder='{"key": "value"}'
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+          
+          <View style={styles.formGroup}>
+            <View style={styles.switchContainer}>
+              <Text style={styles.formLabel}>Make Public</Text>
+              <Switch
+                value={formData.isPublic}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, isPublic: value }))}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+
+  const VideoModal = ({ visible, onClose }) => (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.modalCancel}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Add Video to Budget</Text>
+          <TouchableOpacity onPress={handleAddVideo}>
+            <Text style={styles.modalSave}>Add</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <ScrollView style={styles.modalContent}>
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Video ID *</Text>
+            <TextInput
+              style={styles.formInput}
+              value={videoFormData.videoId}
+              onChangeText={(text) => setVideoFormData(prev => ({ ...prev, videoId: text }))}
+              placeholder="Enter video ID"
+            />
+          </View>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Title *</Text>
+            <TextInput
+              style={styles.formInput}
+              value={videoFormData.title}
+              onChangeText={(text) => setVideoFormData(prev => ({ ...prev, title: text }))}
+              placeholder="Enter video title"
+            />
+          </View>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Description</Text>
+            <TextInput
+              style={[styles.formInput, styles.textArea]}
+              value={videoFormData.description}
+              onChangeText={(text) => setVideoFormData(prev => ({ ...prev, description: text }))}
+              placeholder="Enter video description"
+              multiline
+              numberOfLines={3}
             />
           </View>
         </ScrollView>
@@ -320,190 +1008,319 @@ const Budgeting = () => {
     </Modal>
   );
 
+  const BudgetDetailModal = ({ visible, onClose }) => (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.modalCancel}>Close</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Budget Details</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        
+        {selectedBudget && (
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.detailSection}>
+              <Text style={styles.detailTitle}>{selectedBudget.title}</Text>
+              <Text style={styles.detailAmount}>
+                {formatCurrency(selectedBudget.amount, selectedBudget.currency)}
+              </Text>
+            </View>
+
+            <View style={styles.detailInfo}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Category:</Text>
+                <Text style={styles.detailValue}>{selectedBudget.category}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Status:</Text>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(selectedBudget.status) }]}>
+                  <Text style={styles.statusBadgeText}>{selectedBudget.status}</Text>
+                </View>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Visibility:</Text>
+                <Text style={styles.detailValue}>{selectedBudget.isPublic ? 'Public' : 'Private'}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Created:</Text>
+                <Text style={styles.detailValue}>{formatDate(selectedBudget.createdAt)}</Text>
+              </View>
+              {selectedBudget.createdBy && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Creator:</Text>
+                  <Text style={styles.detailValue}>{selectedBudget.createdBy.fullName}</Text>
+                </View>
+              )}
+            </View>
+
+            {selectedBudget.description && (
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>Description</Text>
+                <Text style={styles.detailDescription}>{selectedBudget.description}</Text>
+              </View>
+            )}
+
+            {selectedBudget.tags && selectedBudget.tags.length > 0 && (
+              <View style={styles.detailSection}>
+                <Text style={styles.sectionTitle}>Tags</Text>
+                <View style={styles.tagsContainer}>
+                  {selectedBudget.tags.map((tag, index) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>#{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            <View style={styles.detailSection}>
+              <Text style={styles.sectionTitle}>Videos ({selectedBudget.videos?.length || 0})</Text>
+              {selectedBudget.videos && selectedBudget.videos.length > 0 ? (
+                selectedBudget.videos.map((video, index) => (
+                  <View key={index} style={styles.videoItem}>
+                    <View style={styles.videoInfo}>
+                      <Text style={styles.videoTitle}>{video.title}</Text>
+                      {video.description && (
+                        <Text style={styles.videoDescription}>{video.description}</Text>
+                      )}
+                      <Text style={styles.videoDate}>Added: {formatDate(video.addedAt)}</Text>
+                    </View>
+                    {activeTab === 'budgets' && (
+                      <TouchableOpacity
+                        style={styles.removeVideoButton}
+                        onPress={() => handleRemoveVideo(selectedBudget._id, video.videoId._id)}
+                      >
+                        <Text style={styles.removeVideoText}>Remove</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noVideosText}>No videos added to this budget</Text>
+              )}
+            </View>
+          </ScrollView>
+        )}
+      </SafeAreaView>
+    </Modal>
+  );
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
       {/* Header */}
-      <View style={styles.headerSection}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backArrow}>{"<"}</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>Smart Budgeting</Text>
-        <View style={styles.notifBtn}>
-          <Text style={styles.notifIcon}>🔔</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Budget Manager</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setShowFilterModal(true)}
+          >
+            <Text style={styles.filterButtonText}>Filter</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => {
+              resetForm();
+              setShowCreateModal(true);
+            }}
+          >
+            <Text style={styles.addButtonText}>+ Add</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent} 
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Balance Cards */}
-        <Animated.View 
-          style={[
-            styles.balanceRow,
-            {
-              transform: [{
-                scale: balanceAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 1.05],
-                })
-              }]
-            }
-          ]}
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'budgets' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('budgets');
+            loadBudgets();
+          }}
         >
-          <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>Total Balance</Text>
-            <Text style={styles.balanceValue}>{formatCurrency(totalBalance)}</Text>
-          </View>
-          <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>Total Expense</Text>
-            <Text style={styles.expenseValue}>-{formatCurrency(totalExpense)}</Text>
-            <Text style={styles.remainingBalance}>
-              Remaining: {formatCurrency(remainingBalance)}
-            </Text>
-          </View>
-        </Animated.View>
-
-        {/* Progress Bar */}
-        <View style={styles.progressSection}>
-          <Text style={[styles.progressPercent, { color: getProgressColor() }]}>
-            {expensePercentage}%
+          <Text style={[styles.tabText, activeTab === 'budgets' && styles.activeTabText]}>
+            My Budgets
           </Text>
-          <View style={styles.progressBarBg}>
-            <Animated.View 
-              style={[
-                styles.progressBarFill,
-                {
-                  backgroundColor: getProgressColor(),
-                  width: progressAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0%', '100%'],
-                  }),
-                }
-              ]} 
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'discover' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('discover');
+            loadPublicBudgets();
+          }}
+        >
+          <Text style={[styles.tabText, activeTab === 'discover' && styles.activeTabText]}>
+            Discover
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'stats' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('stats');
+            loadStats();
+          }}
+        >
+          <Text style={[styles.tabText, activeTab === 'stats' && styles.activeTabText]}>
+            Statistics
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content */}
+      {(activeTab === 'budgets' || activeTab === 'discover') ? (
+        <>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={`Search ${activeTab === 'discover' ? 'public' : ''} budgets...`}
             />
           </View>
-          <Text style={styles.progressValue}>
-            {formatCurrency(totalExpense)}
-          </Text>
-        </View>
 
-        <View style={styles.progressDescRow}>
-          <Text style={styles.progressDesc}>{getProgressMessage()}</Text>
-        </View>
-
-        {/* Recent Expenses */}
-        <View style={styles.expenseSection}>
-          <View style={styles.expenseSectionHeader}>
-            <Text style={styles.expenseSectionTitle}>
-              Recent Expenses ({expenses.length})
-            </Text>
-            {expenses.length > 0 && (
-              <Pressable 
-                style={styles.clearAllButton}
-                onPress={() => {
-                  Alert.alert(
-                    "Clear All Expenses",
-                    "Are you sure you want to clear all expenses?",
-                    [
-                      { text: "Cancel", style: "cancel" },
-                      { 
-                        text: "Clear All", 
-                        style: "destructive",
-                        onPress: () => setExpenses([])
-                      }
-                    ]
-                  );
-                }}
-              >
-                <Text style={styles.clearAllText}>Clear All</Text>
-              </Pressable>
-            )}
-          </View>
-
-          <View style={styles.expenseList}>
-            {expenses.length > 0 ? (
-              expenses.slice(0, 5).map((expense, index) => renderExpenseItem(expense, index))
-            ) : (
-              <View style={styles.noExpensesContainer}>
-                <Text style={styles.noExpensesText}>No expenses added yet</Text>
-                <Text style={styles.noExpensesSubtext}>
-                  Tap "Add Expense" to start tracking your spending
-                </Text>
-              </View>
-            )}
-            
-            {expenses.length > 5 && (
-              <Pressable style={styles.expenseItemRow}>
-                <Text style={styles.expenseItemText}>
-                  View All ({expenses.length} expenses)
-                </Text>
-                <Text style={styles.moreArrow}>{'>'}</Text>
-              </Pressable>
-            )}
-          </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsContainer}>
-          <Pressable 
-            style={styles.actionBtn}
-            onPress={() => setShowAddExpenseModal(true)}
-          >
-            <Text style={styles.actionBtnText}>+ Add Expense</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={[styles.actionBtn, styles.secondaryBtn]}
-            onPress={() => {
-              Alert.alert(
-                "Add Income",
-                "Enter additional income amount:",
-                [
-                  { text: "Cancel", style: "cancel" },
-                  { 
-                    text: "Add",
-                    onPress: () => {
-                      // You can implement income addition here
-                      Alert.alert("Feature", "Income addition feature can be implemented here");
+          {/* Budget List */}
+          <FlatList
+            data={filteredBudgets}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => <BudgetCard budget={item} isPublic={activeTab === 'discover'} />}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={
+              loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#007AFF" />
+                </View>
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    {activeTab === 'discover' ? 'No public budgets found' : 'No budgets found'}
+                  </Text>
+                  <Text style={styles.emptySubtext}>
+                    {activeTab === 'discover' 
+                      ? 'Try adjusting your search or filters' 
+                      : 'Create your first budget to get started'
                     }
-                  }
-                ]
-              );
-            }}
-          >
-            <Text style={[styles.actionBtnText, styles.secondaryBtnText]}>
-              💰 Add Income
-            </Text>
-          </Pressable>
-        </View>
+                  </Text>
+                </View>
+              )
+            }
+          />
+        </>
+      ) : (
+        <ScrollView
+          style={styles.statsContainer}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {stats && (
+            <>
+              {/* Overview Stats */}
+              <Text style={styles.sectionTitle}>Overview</Text>
+              <View style={styles.statsGrid}>
+                <StatsCard
+                  title="Total Budgets"
+                  value={stats.overview.totalBudgets}
+                />
+                <StatsCard
+                  title="Total Amount"
+                  value={formatCurrency(stats.overview.totalAmount)}
+                />
+                <StatsCard
+                  title="Average Budget"
+                  value={formatCurrency(stats.overview.averageAmount)}
+                />
+                <StatsCard
+                  title="Total Videos"
+                  value={stats.overview.totalVideos}
+                />
+              </View>
 
-        {/* Budget Summary */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Budget Summary</Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Daily Average Expense:</Text>
-            <Text style={styles.summaryValue}>
-              {expenses.length > 0 
-                ? formatCurrency(Math.round(totalExpense / Math.max(expenses.length, 1)))
-                : formatCurrency(0)
-              }
-            </Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Days Until Budget Exhausted:</Text>
-            <Text style={styles.summaryValue}>
-              {remainingBalance > 0 && expenses.length > 0
-                ? `${Math.round(remainingBalance / (totalExpense / expenses.length))} days`
-                : '∞'
-              }
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+              {/* Category Breakdown */}
+              <Text style={styles.sectionTitle}>By Category</Text>
+              {stats.categoryBreakdown.map((category) => (
+                <View key={category._id} style={styles.categoryStats}>
+                  <View style={styles.categoryStatsHeader}>
+                    <Text style={styles.categoryStatsTitle}>{category._id}</Text>
+                    <Text style={styles.categoryStatsAmount}>
+                      {formatCurrency(category.totalAmount)}
+                    </Text>
+                  </View>
+                  <Text style={styles.categoryStatsCount}>
+                    {category.count} budget{category.count !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+              ))}
 
-      {/* Add Expense Modal */}
-      {renderAddExpenseModal()}
+              {/* Status Breakdown */}
+              <Text style={styles.sectionTitle}>By Status</Text>
+              {stats.statusBreakdown.map((status) => (
+                <View key={status._id} style={styles.categoryStats}>
+                  <View style={styles.categoryStatsHeader}>
+                    <View style={styles.statusWithBadge}>
+                      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(status._id) }]}>
+                        <Text style={styles.statusBadgeText}>{status._id}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.categoryStatsAmount}>
+                      {formatCurrency(status.totalAmount)}
+                    </Text>
+                  </View>
+                  <Text style={styles.categoryStatsCount}>
+                    {status.count} budget{status.count !== 1 ? 's' : ''}
+                  </Text>
+                </View>
+              ))}
+            </>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Modals */}
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+      />
+      
+      <FormModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateBudget}
+        title="Create Budget"
+      />
+      
+      <FormModal
+        visible={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedBudget(null);
+        }}
+        onSubmit={handleEditBudget}
+        title="Edit Budget"
+      />
+
+      <VideoModal
+        visible={showVideoModal}
+        onClose={() => {
+          setShowVideoModal(false);
+          setVideoFormData({ videoId: '', title: '', description: '' });
+        }}
+      />
+
+      <BudgetDetailModal
+        visible={showBudgetDetailModal}
+        onClose={() => {
+          setShowBudgetDetailModal(false);
+          setSelectedBudget(null);
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -511,441 +1328,540 @@ const Budgeting = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.colorMediumseagreen,
+    backgroundColor: '#f8f9fa',
   },
-  headerSection: {
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 18,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    backgroundColor: Color.colorMediumseagreen,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 22,
-    color: Color.colorWhite,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
   },
   headerTitle: {
-    fontFamily: Fonts.poppinsSemiBold,
-    fontSize: 20,
-    color: Color.colorDarkslategray100,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#212529',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterButton: {
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  filterButtonText: {
+    color: '#495057',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#007AFF',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: '#007AFF',
     fontWeight: '600',
   },
-  notifBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Color.colorHoneydew200,
-    alignItems: 'center',
-    justifyContent: 'center',
+  searchContainer: {
+    padding: 16,
+    backgroundColor: '#fff',
   },
-  notifIcon: {
-    fontSize: 18,
+  searchInput: {
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
   },
-  scrollContent: {
-    padding: 18,
-    paddingTop: 0,
-    backgroundColor: Color.colorHoneydew200,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    marginTop: -20,
-    minHeight: 700,
+  listContainer: {
+    padding: 16,
   },
-  balanceRow: {
+  budgetCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  budgetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 18,
-    marginTop: 40,
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
-  balanceCard: {
+  budgetTitleContainer: {
     flex: 1,
-    backgroundColor: Color.colorWhite,
-    borderRadius: 18,
-    padding: 18,
-    marginHorizontal: 5,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-  },
-  balanceLabel: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 13,
-    color: Color.colorGray,
-    marginBottom: 6,
-  },
-  balanceValue: {
-    fontFamily: Fonts.poppinsBold,
-    fontSize: 20,
-    color: Color.colorDarkslategray100,
-    fontWeight: '700',
-  },
-  expenseValue: {
-    fontFamily: Fonts.poppinsBold,
-    fontSize: 20,
-    color: Color.colorRoyalblue,
-    fontWeight: '700',
-  },
-  remainingBalance: {
-    fontFamily: Fonts.poppinsRegular,
-    fontSize: 11,
-    color: Color.colorGray,
-    marginTop: 4,
-  },
-  progressSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 8,
+    flexWrap: 'wrap',
   },
-  progressPercent: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 13,
-    backgroundColor: Color.colorWhite,
-    borderRadius: 8,
+  budgetTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#212529',
+    marginRight: 8,
+  },
+  publicBadge: {
+    backgroundColor: '#28a745',
     paddingHorizontal: 8,
     paddingVertical: 2,
+    borderRadius: 4,
     marginRight: 8,
-    fontWeight: '600',
   },
-  progressBarBg: {
-    flex: 1,
-    height: 14,
-    backgroundColor: Color.colorWhite,
-    borderRadius: 8,
-    marginHorizontal: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 8,
-  },
-  progressValue: {
-    fontFamily: Fonts.poppinsMediumItalic,
-    fontSize: 13,
-    color: Color.colorGray,
+  publicBadgeText: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: '500',
-    marginLeft: 8,
-    fontStyle: 'italic',
   },
-  progressDescRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 18,
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  progressDesc: {
-    fontFamily: Fonts.poppinsRegular,
-    fontSize: 15,
-    color: Color.colorGray,
-    marginLeft: 2,
-    textAlign: 'center',
-    flex: 1,
+  statusBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
   },
-  expenseSection: {
-    marginBottom: 18,
+  budgetAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#007AFF',
   },
-  expenseSectionHeader: {
+  budgetDescription: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  budgetMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  expenseSectionTitle: {
-    fontFamily: Fonts.poppinsSemiBold,
-    fontSize: 16,
-    color: Color.colorDarkslategray100,
-    fontWeight: '600',
+  budgetCategory: {
+    fontSize: 14,
+    color: '#495057',
+    fontWeight: '500',
   },
-  clearAllButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  budgetVideos: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
+  budgetDate: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  tagsContainer: {
+    marginBottom: 12,
+  },
+  tag: {
+    backgroundColor: '#e9ecef',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: '#FFE5E5',
+    marginRight: 8,
   },
-  clearAllText: {
-    fontFamily: Fonts.poppinsMedium,
+  tagText: {
     fontSize: 12,
-    color: '#FF4444',
+    color: '#495057',
     fontWeight: '500',
   },
-  expenseList: {
-    marginBottom: 18,
+  creatorInfo: {
+    marginBottom: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
   },
-  expenseItem: {
-    backgroundColor: Color.colorWhite,
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-  },
-  expenseItemContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  expenseItemLeft: {
-    flex: 1,
-  },
-  expenseItemTitle: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 15,
-    color: Color.colorDarkslategray100,
-    fontWeight: '500',
-  },
-  expenseItemDate: {
-    fontFamily: Fonts.poppinsRegular,
+  creatorText: {
     fontSize: 12,
-    color: Color.colorGray,
-    marginTop: 2,
-  },
-  expenseItemMessage: {
-    fontFamily: Fonts.poppinsRegular,
-    fontSize: 12,
-    color: Color.colorGray,
-    marginTop: 2,
+    color: '#6c757d',
     fontStyle: 'italic',
   },
-  expenseItemRight: {
-    alignItems: 'flex-end',
-  },
-  expenseItemAmount: {
-    fontFamily: Fonts.poppinsSemiBold,
-    fontSize: 14,
-    color: Color.colorRoyalblue,
-    fontWeight: '600',
-  },
-  expenseItemRow: {
-    backgroundColor: Color.colorHoneydew200,
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginBottom: 10,
+  budgetActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  expenseItemText: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 15,
-    color: Color.colorDarkslategray100,
-    fontWeight: '500',
-  },
-  moreArrow: {
-    fontSize: 18,
-    color: Color.colorGray,
-    marginLeft: 8,
-  },
-  noExpensesContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  noExpensesText: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 16,
-    color: Color.colorGray,
-    fontWeight: '500',
-  },
-  noExpensesSubtext: {
-    fontFamily: Fonts.poppinsRegular,
-    fontSize: 14,
-    color: Color.colorGray,
-    textAlign: 'center',
+    justifyContent: 'flex-end',
     marginTop: 8,
   },
-  actionButtonsContainer: {
-    marginBottom: 20,
+  actionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginLeft: 8,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
   },
-  actionBtn: {
-    backgroundColor: Color.colorMediumseagreen,
-    borderRadius: 18,
-    paddingVertical: 14,
+  deleteButton: {
+    backgroundColor: '#fff5f5',
+    borderColor: '#f5c6cb',
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#495057',
+  },
+  deleteButtonText: {
+    color: '#dc3545',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 100,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#495057',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#6c757d',
+    textAlign: 'center',
+  },
+  statsContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#212529',
+    marginBottom: 16,
+    marginTop: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  statsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    width: (width - 48) / 2,
     marginBottom: 12,
-    marginHorizontal: 40,
-    elevation: 2,
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
+    elevation: 3,
   },
-  secondaryBtn: {
-    backgroundColor: Color.colorWhite,
-    borderWidth: 2,
-    borderColor: Color.colorMediumseagreen,
+  statsTitle: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 8,
   },
-  actionBtnText: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 15,
-    color: Color.colorWhite,
-    fontWeight: '600',
+  statsValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#212529',
   },
-  secondaryBtnText: {
-    color: Color.colorMediumseagreen,
+  statsSubtitle: {
+    fontSize: 12,
+    color: '#6c757d',
+    marginTop: 4,
   },
-  summaryCard: {
-    backgroundColor: Color.colorWhite,
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-  },
-  summaryTitle: {
-    fontFamily: Fonts.poppinsSemiBold,
-    fontSize: 16,
-    color: Color.colorDarkslategray100,
-    fontWeight: '600',
+  categoryStats: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  summaryRow: {
+  categoryStatsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  summaryLabel: {
-    fontFamily: Fonts.poppinsMedium,
-    fontSize: 14,
-    color: Color.colorGray,
-    flex: 1,
-  },
-  summaryValue: {
-    fontFamily: Fonts.poppinsSemiBold,
-    fontSize: 14,
-    color: Color.colorDarkslategray100,
+  categoryStatsTitle: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#212529',
   },
-
-  // Modal Styles
+  statusWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoryStatsAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  categoryStatsCount: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
   modalContainer: {
     flex: 1,
-    backgroundColor: Color.colorHoneydew200,
+    backgroundColor: '#fff',
   },
   modalHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: Color.colorMediumseagreen,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
   },
-  modalCloseButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  modalCloseText: {
-    fontFamily: Fonts.poppinsMedium,
+  modalCancel: {
     fontSize: 16,
-    color: Color.colorWhite,
-    fontWeight: '500',
+    color: '#dc3545',
   },
   modalTitle: {
-    fontFamily: Fonts.poppinsSemiBold,
     fontSize: 18,
-    color: Color.colorDarkslategray100,
     fontWeight: '600',
+    color: '#212529',
   },
-  modalSaveButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: Color.colorWhite,
-    borderRadius: 12,
-  },
-  modalSaveText: {
-    fontFamily: Fonts.poppinsMedium,
+  modalSave: {
     fontSize: 16,
-    color: Color.colorMediumseagreen,
+    color: '#007AFF',
     fontWeight: '600',
   },
   modalContent: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 20,
   },
-  fieldWrapper: {
+  formGroup: {
     marginBottom: 20,
   },
-  fieldLabel: {
+  formRow: {
+    flexDirection: 'row',
+  },
+  formLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    fontFamily: Fonts.poppinsMedium,
-    color: Color.colorDarkslategray,
+    fontWeight: '600',
+    color: '#212529',
     marginBottom: 8,
   },
-  fieldHint: {
-    fontSize: 12,
-    fontFamily: Fonts.poppinsRegular,
-    color: Color.colorGray,
-    marginTop: 4,
-  },
-  inputField: {
-    backgroundColor: Color.colorHoneydew,
-    borderRadius: 20,
+  formInput: {
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    fontSize: 16,
+    backgroundColor: '#fff',
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#f8f9fa',
+  },
+  pickerText: {
+    fontSize: 16,
+    color: '#495057',
+  },
+  categoryContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  categoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  categoryChipSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: '#495057',
+  },
+  categoryChipTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  switchContainer: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 50,
+    alignItems: 'center',
   },
-  inputText: {
-    fontSize: 15,
-    fontFamily: Fonts.poppinsMedium,
-    color: Color.colorDarkslategray,
-    flex: 1,
+  visibilityOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  textInput: {
-    fontSize: 15,
-    fontFamily: Fonts.poppinsMedium,
-    color: Color.colorDarkslategray,
-    flex: 1,
-    padding: 0,
+  visibilityOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
   },
-  calendarIconContainer: {
-    width: 28,
-    height: 28,
-    backgroundColor: Color.colorMediumseagreen,
+  visibilityOptionSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  visibilityOptionText: {
+    fontSize: 14,
+    color: '#495057',
+  },
+  visibilityOptionTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  clearFiltersButton: {
+    backgroundColor: '#dc3545',
+    paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 20,
   },
-  calendarIcon: {
+  clearFiltersText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  detailSection: {
+    marginBottom: 24,
+  },
+  detailTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginBottom: 8,
+  },
+  detailAmount: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    marginBottom: 16,
+  },
+  detailInfo: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontSize: 16,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#212529',
+    fontWeight: '600',
+  },
+  detailDescription: {
+    fontSize: 16,
+    color: '#495057',
+    lineHeight: 22,
+  },
+  videoItem: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  videoInfo: {
+    flex: 1,
+  },
+  videoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+    marginBottom: 4,
+  },
+  videoDescription: {
     fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 4,
   },
-  messageFieldWrapper: {
-    marginBottom: 20,
+  videoDate: {
+    fontSize: 12,
+    color: '#6c757d',
   },
-  messageInput: {
-    backgroundColor: Color.colorHoneydew,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 15,
-    fontFamily: Fonts.poppinsMedium,
-    color: Color.colorDarkslategray,
-    textAlignVertical: 'top',
-    minHeight: 100,
+  removeVideoButton: {
+    backgroundColor: '#dc3545',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  removeVideoText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 

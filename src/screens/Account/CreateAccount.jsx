@@ -29,7 +29,10 @@ const handleSignUp = async () => {
   }
   setLoading(true);
   try {
+
+
     const response = await appAxios.post('api/auth/signup', {
+
       fullName,
       email,
       mobile,

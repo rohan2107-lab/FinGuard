@@ -620,6 +620,9 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     position: 'relative',
     overflow: 'hidden',
+    paddingTop: -5,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   decorativeCircle: {
     position: 'absolute',
