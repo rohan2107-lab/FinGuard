@@ -87,7 +87,7 @@ const FraudDetectionApp = ({ navigation }) => {
     ]).start();
 
     try {
-      const response = await fetch('http://10.246.66.93:9000/predict', {
+      const response = await fetch('http://10.172.41.93:9000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: inputText })
