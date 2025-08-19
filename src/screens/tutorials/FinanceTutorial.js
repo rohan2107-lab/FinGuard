@@ -13,9 +13,46 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 
+
 const { width, height } = Dimensions.get('window');
 
-export default function FinanceBasicsModule() {
+export default function FinanceTutorial() {
+
+  const [learningContent, setLearningContent] = useState([]);
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(false);
+
+  // Replace with your actual API base URL
+  const API_BASE_URL = 'http://10.172.41.48:8000';
+  
+  useEffect(() => {
+    fetchLearningContent();
+  }, []);
+
+  const fetchLearningContent = async () => {
+    try {
+      setLoading(true);
+      // Using category slug for finance content
+      const response = await fetch('${API_BASE_URL}/api/learning/content/category/finance');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch learning content');
+      }
+      
+      const data = await response.json();
+      setLearningContent(data);
+    } catch (error) {
+      console.error('Error fetching learning content:', error);
+      Alert.alert('Error', 'Failed to load learning content. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+
+
   const [learningContent, setLearningContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -152,6 +189,7 @@ A budget is your roadmap to financial success. It helps you control your spendin
         title: content.videoTitle || content.title,
         description: content.videoDescription || content.description
       });
+
       setVideoLoading(true);
       setVideoModalVisible(true);
     } else {
@@ -176,6 +214,55 @@ A budget is your roadmap to financial success. It helps you control your spendin
       case 'intermediate': return '#FF9800';
       case 'advanced': return '#F44336';
       default: return '#2196F3';
+
+      
+      console.log('All content response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('All content error response:', errorText);
+        throw new Error(`Failed to fetch all learning content: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched all content data:', data);
+      
+      // Filter for finance-related content if no specific category
+      const financeContent = Array.isArray(data) ? data.filter(item => 
+        item.title?.toLowerCase().includes('finance') ||
+        item.description?.toLowerCase().includes('finance') ||
+        item.category?.toLowerCase().includes('finance') ||
+        item.tags?.some(tag => tag.toLowerCase().includes('finance'))
+      ) : [];
+      
+      setLearningContent(financeContent);
+      
+    } catch (error) {
+      console.error('Error fetching all learning content:', error);
+      setLearningContent([]);
+
+    }
+  };
+
+  const fetchContentDetails = async (contentId) => {
+    try {
+      setContentLoading(true);
+
+      const response = await fetch('${API_BASE_URL}/api/learning/content/${contentId}');
+
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch content details');
+      }
+      
+      const data = await response.json();
+      setSelectedContent(data);
+    } catch (error) {
+      console.error('Error fetching content details:', error);
+      Alert.alert('Error', 'Failed to load content details. Please try again.');
+    } finally {
+      setContentLoading(false);
+
     }
   };
 
@@ -417,12 +504,14 @@ A budget is your roadmap to financial success. It helps you control your spendin
   }
 
   return (
+
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.mainTitle}>📚 Learn Finance Basics</Text>
         <Text style={styles.subtitle}>
           Tap title for tutorial • Tap video icon to watch
         </Text>
+
         {learningContent.length > 0 && (
           <Text style={styles.contentCount}>
             {learningContent.length} topic{learningContent.length !== 1 ? 's' : ''} available
@@ -432,6 +521,11 @@ A budget is your roadmap to financial success. It helps you control your spendin
         <TouchableOpacity style={styles.headerRefreshButton} onPress={fetchFinanceBasicsContent}>
           <Text style={styles.headerRefreshButtonText}>🔄 Refresh</Text>
         </TouchableOpacity>
+
+
+      </View>git 
+
+
       </View>
 
       {learningContent.length === 0 ? (
@@ -440,7 +534,15 @@ A budget is your roadmap to financial success. It helps you control your spendin
           <Text style={styles.emptyDescription}>
             Learning content will appear here once available.
           </Text>
+
           <TouchableOpacity style={styles.refreshButton} onPress={fetchFinanceBasicsContent}>
+
+
+          <TouchableOpacity style={styles.refreshButton} onPress={fetchLearningContent}>
+
+          <TouchableOpacity style={styles.refreshButton} onPress={initializeApp}>
+
+
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -454,7 +556,11 @@ A budget is your roadmap to financial success. It helps you control your spendin
         />
       )}
 
+
       {renderVideoModal()}
+
+
+
     </View>
   );
 }
@@ -521,6 +627,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
+
     padding: 20,
   },
   contentItem: {
@@ -605,11 +712,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
+
   tutorialHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
+
+  backButton: {
+
+    padding: 20,
+
     paddingTop: 60,
     paddingBottom: 20,
   },
@@ -621,6 +734,7 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
     fontWeight: '600',
   },
+
   headerVideoButton: {
     backgroundColor: '#e74c3c',
     width: 50,
@@ -639,6 +753,62 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   tutorialCard: {
+
+
+  contentItem: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  contentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  contentTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  arrow: {
+    fontSize: 18,
+    color: '#4A90E2',
+    fontWeight: 'bold',
+  },
+  contentPreview: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  duration: {
+    fontSize: 12,
+    color: '#4A90E2',
+    fontWeight: '500',
+  },
+  detailContainer: {
+    flex: 1,
+    backgroundColor: '#F0F4F8',
+  },
+  backButton: {
+    padding: 20,
+    paddingTop: 60,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#4A90E2',
+    fontWeight: '600',
+  },
+
+  detailCard: {
+
     backgroundColor: 'white',
     margin: 20,
     marginTop: 0,

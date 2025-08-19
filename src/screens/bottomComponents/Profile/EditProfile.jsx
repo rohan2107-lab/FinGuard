@@ -14,6 +14,8 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, CommonActions } from "@react-navigation/native";
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,6 +30,8 @@ const EditProfile = () => {
     website: 'www.alexjohnson.dev',
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
   });
+
+  const navigation = useNavigation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [activeField, setActiveField] = useState(null);
@@ -68,7 +72,7 @@ const EditProfile = () => {
         ]
       );
     } else {
-      Alert.alert('Back', 'Navigate back to profile screen');
+      navigation.goBack(); // Navigate back if not editing
     }
   };
 
@@ -279,6 +283,9 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     position: 'relative',
     overflow: 'hidden',
+    paddingTop: -5,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   decorativeCircle: {
     position: 'absolute',
