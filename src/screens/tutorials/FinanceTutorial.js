@@ -13,54 +13,19 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 
-
 const { width, height } = Dimensions.get('window');
 
 export default function FinanceTutorial() {
-
-  const [learningContent, setLearningContent] = useState([]);
-  const [selectedContent, setSelectedContent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [contentLoading, setContentLoading] = useState(false);
-
-  // Replace with your actual API base URL
-  const API_BASE_URL = 'http://10.172.41.48:8000';
-  
-  useEffect(() => {
-    fetchLearningContent();
-  }, []);
-
-  const fetchLearningContent = async () => {
-    try {
-      setLoading(true);
-      // Using category slug for finance content
-      const response = await fetch('${API_BASE_URL}/api/learning/content/category/finance');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch learning content');
-      }
-      
-      const data = await response.json();
-      setLearningContent(data);
-    } catch (error) {
-      console.error('Error fetching learning content:', error);
-      Alert.alert('Error', 'Failed to load learning content. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-
-
-
+  // State management
   const [learningContent, setLearningContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'tutorial', 'video'
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'tutorial'
   const [videoLoading, setVideoLoading] = useState(true);
 
+  // API configuration
   const API_BASE_URL = 'http://10.172.41.93:8000';
 
   useEffect(() => {
@@ -93,81 +58,187 @@ export default function FinanceTutorial() {
         setLearningContent(data);
       } else {
         console.warn('Unexpected data structure:', data);
-        const testData = [
-          {
-            _id: 'test1',
-            title: 'Understanding Compound Interest',
-            description: "Learn how compound interest works and why it's important for wealth building",
-            content: "Tax planning is a crucial aspect of financial management...",
-            detailedContent: "This comprehensive guide covers all aspects of tax planning including...",
-            videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-            videoTitle: 'Compound Interest Explained',
-            videoDescription: 'A comprehensive guide to compound interest',
-            difficulty: 'beginner',
-            estimatedTime: 45,
-            tags: ['compound-interest', 'saving', 'investing', 'beginners'],
-            prerequisites: ['Basic math', 'Understanding of simple interest'],
-            learningObjectives: ['Calculate compound interest', 'Understand time value of money'],
-            isPublished: true,
-          },
-          {
-            _id: 'test2',
-            title: 'Building Your First Budget',
-            description: "Step-by-step guide to creating and maintaining a personal budget that works.",
-            content: "A budget is your roadmap to financial success.",
-            detailedContent: `# Building Your First Budget
-A budget is your roadmap to financial success. It helps you control your spending, save money, and reach your financial goals.
-...
-`,
-            videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-            videoTitle: 'How to Create Your First Budget - Step by Step',
-            videoDescription: 'Learn how to build a realistic budget that you can actually stick to.',
-            difficulty: 'beginner',
-            estimatedTime: 25,
-            tags: ['budgeting', 'money management', 'savings'],
-          }
-        ];
-        setLearningContent(testData);
+        // Fallback to test data
+        setLearningContent(getTestData());
       }
     } catch (error) {
       console.error('Error fetching learning content:', error);
       Alert.alert(
         'Connection Error',
-        `Unable to connect to server. Showing test data instead.`
+        'Unable to connect to server. Showing test data instead.'
       );
-      const testData = [
-        {
-          _id: 'error-test1',
-          title: 'Introduction to Personal Finance',
-          description: 'Learn the fundamentals of managing your personal finances effectively.',
-          content: 'This is the short introduction to personal finance.',
-          detailedContent: 'This is the full, detailed guide to personal finance, including sections on budgeting, saving, and investing.',
-          videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-          videoTitle: 'Personal Finance Basics',
-          videoDescription: 'A comprehensive introduction to personal finance.',
-          isPublished: true,
-          difficulty: 'beginner',
-          estimatedTime: 30
-        },
-        {
-          _id: 'error-test2',
-          title: 'Investment Fundamentals',
-          description: 'Understanding different types of investments and how to get started.',
-          content: 'Here are the basics of investing.',
-          detailedContent: 'This tutorial covers the different types of investments, including stocks, bonds, and mutual funds, and explains key principles like diversification.',
-          videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-          videoTitle: 'Investment Basics for Beginners',
-          videoDescription: 'Learn the fundamentals of investing.',
-          isPublished: true,
-          difficulty: 'intermediate',
-          estimatedTime: 45
-        }
-      ];
-      setLearningContent(testData);
+      // Use test data as fallback
+      setLearningContent(getTestData());
     } finally {
       setLoading(false);
     }
   };
+
+  const getTestData = () => [
+    {
+      _id: 'test1',
+      title: 'Understanding Compound Interest',
+      description: "Learn how compound interest works and why it's important for wealth building",
+      content: "Tax planning is a crucial aspect of financial management...",
+      detailedContent: `# Understanding Compound Interest
+
+Compound interest is one of the most powerful concepts in finance. It's the interest you earn on both your original money and on the interest you keep accumulating.
+
+## How It Works
+
+When you invest money, you earn interest on your principal amount. With compound interest, that interest is added to your principal, and then you earn interest on the new, larger amount.
+
+## The Formula
+
+The compound interest formula is:
+A = P(1 + r/n)^(nt)
+
+Where:
+- A = final amount
+- P = principal amount
+- r = annual interest rate
+- n = number of times interest compounds per year
+- t = time in years
+
+## Key Benefits
+
+- Your money grows faster over time
+- The longer you invest, the more dramatic the effect
+- Small amounts can grow into large sums with patience
+
+## Getting Started
+
+1. Start investing early, even with small amounts
+2. Choose investments that compound regularly
+3. Reinvest your earnings rather than spending them
+4. Be patient and let time work in your favor`,
+      videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+      videoTitle: 'Compound Interest Explained',
+      videoDescription: 'A comprehensive guide to understanding compound interest and how it can help build wealth over time.',
+      difficulty: 'beginner',
+      estimatedTime: 45,
+      tags: ['compound-interest', 'saving', 'investing', 'beginners'],
+      isPublished: true,
+    },
+    {
+      _id: 'test2',
+      title: 'Building Your First Budget',
+      description: "Step-by-step guide to creating and maintaining a personal budget that works.",
+      content: "A budget is your roadmap to financial success.",
+      detailedContent: `# Building Your First Budget
+
+A budget is your roadmap to financial success. It helps you control your spending, save money, and reach your financial goals.
+
+## Why Budgeting Matters
+
+- Gives you control over your money
+- Helps you save for important goals
+- Reduces financial stress
+- Prevents overspending
+
+## The 50/30/20 Rule
+
+A simple budgeting framework:
+- 50% for needs (rent, groceries, utilities)
+- 30% for wants (entertainment, dining out)
+- 20% for savings and debt repayment
+
+## Steps to Create Your Budget
+
+1. Calculate your monthly income
+2. List all your expenses
+3. Categorize expenses as needs vs wants
+4. Set realistic spending limits
+5. Track your progress weekly
+6. Adjust as needed
+
+## Common Budgeting Mistakes
+
+- Being too restrictive
+- Not tracking small expenses
+- Forgetting irregular expenses
+- Not reviewing regularly
+
+## Tips for Success
+
+- Use budgeting apps or spreadsheets
+- Review your budget weekly
+- Be honest about your spending
+- Allow some flexibility for unexpected expenses`,
+      videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+      videoTitle: 'How to Create Your First Budget - Step by Step',
+      videoDescription: 'Learn how to build a realistic budget that you can actually stick to.',
+      difficulty: 'beginner',
+      estimatedTime: 25,
+      tags: ['budgeting', 'money management', 'savings'],
+      isPublished: true,
+    },
+    {
+      _id: 'test3',
+      title: 'Investment Fundamentals',
+      description: 'Understanding different types of investments and how to get started.',
+      content: 'Here are the basics of investing.',
+      detailedContent: `# Investment Fundamentals
+
+Investing is one of the most effective ways to build wealth over the long term. This guide covers the essential concepts every beginner should understand.
+
+## Types of Investments
+
+### Stocks
+- Represent ownership in companies
+- Potential for high returns
+- Higher risk and volatility
+
+### Bonds
+- Loans to companies or governments
+- Lower risk than stocks
+- Steady income through interest payments
+
+### Mutual Funds
+- Professionally managed portfolios
+- Instant diversification
+- Good for beginners
+
+### Exchange-Traded Funds (ETFs)
+- Trade like stocks
+- Low fees
+- Broad market exposure
+
+## Key Investment Principles
+
+### Diversification
+Don't put all your eggs in one basket. Spread your investments across:
+- Different asset classes
+- Different industries
+- Different geographic regions
+
+### Dollar-Cost Averaging
+- Invest a fixed amount regularly
+- Reduces impact of market volatility
+- Removes emotion from investing
+
+### Time in the Market
+- Start investing as early as possible
+- Stay invested for the long term
+- Don't try to time the market
+
+## Getting Started
+
+1. Set clear financial goals
+2. Determine your risk tolerance
+3. Choose an investment account
+4. Start with broad index funds
+5. Increase investments over time
+6. Review and rebalance annually`,
+      videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+      videoTitle: 'Investment Basics for Beginners',
+      videoDescription: 'Learn the fundamentals of investing and how to get started building wealth.',
+      difficulty: 'intermediate',
+      estimatedTime: 45,
+      tags: ['investing', 'stocks', 'bonds', 'portfolio'],
+      isPublished: true,
+    }
+  ];
 
   const handleTitlePress = (content) => {
     const contentToDisplay = content.detailedContent || content.content;
@@ -189,7 +260,6 @@ A budget is your roadmap to financial success. It helps you control your spendin
         title: content.videoTitle || content.title,
         description: content.videoDescription || content.description
       });
-
       setVideoLoading(true);
       setVideoModalVisible(true);
     } else {
@@ -214,55 +284,6 @@ A budget is your roadmap to financial success. It helps you control your spendin
       case 'intermediate': return '#FF9800';
       case 'advanced': return '#F44336';
       default: return '#2196F3';
-
-      
-      console.log('All content response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log('All content error response:', errorText);
-        throw new Error(`Failed to fetch all learning content: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Fetched all content data:', data);
-      
-      // Filter for finance-related content if no specific category
-      const financeContent = Array.isArray(data) ? data.filter(item => 
-        item.title?.toLowerCase().includes('finance') ||
-        item.description?.toLowerCase().includes('finance') ||
-        item.category?.toLowerCase().includes('finance') ||
-        item.tags?.some(tag => tag.toLowerCase().includes('finance'))
-      ) : [];
-      
-      setLearningContent(financeContent);
-      
-    } catch (error) {
-      console.error('Error fetching all learning content:', error);
-      setLearningContent([]);
-
-    }
-  };
-
-  const fetchContentDetails = async (contentId) => {
-    try {
-      setContentLoading(true);
-
-      const response = await fetch('${API_BASE_URL}/api/learning/content/${contentId}');
-
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch content details');
-      }
-      
-      const data = await response.json();
-      setSelectedContent(data);
-    } catch (error) {
-      console.error('Error fetching content details:', error);
-      Alert.alert('Error', 'Failed to load content details. Please try again.');
-    } finally {
-      setContentLoading(false);
-
     }
   };
 
@@ -328,6 +349,7 @@ A budget is your roadmap to financial success. It helps you control your spendin
         </View>
       );
     }
+
     return (
       <ScrollView style={styles.tutorialContainer}>
         <View style={styles.tutorialHeader}>
@@ -381,19 +403,11 @@ A budget is your roadmap to financial success. It helps you control your spendin
                     {paragraph.replace('### ', '')}
                   </Text>
                 );
-              } else if (paragraph.startsWith('- *') || paragraph.startsWith(' **')) {
-                const cleanText = paragraph.replace(/^[-]\s/, '').replace(/\\/g, '');
-                return (
-                  <View key={index} style={styles.bulletPoint}>
-                    <Text style={styles.bulletSymbol}>•</Text>
-                    <Text style={styles.bulletText}>{cleanText}</Text>
-                  </View>
-                );
               } else if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
                 return (
                   <View key={index} style={styles.bulletPoint}>
                     <Text style={styles.bulletSymbol}>•</Text>
-                    <Text style={styles.bulletText}>{paragraph.replace(/^[-]\s/, '')}</Text>
+                    <Text style={styles.bulletText}>{paragraph.replace(/^[-*]\s/, '')}</Text>
                   </View>
                 );
               } else if (paragraph.match(/^\d+\./)) {
@@ -504,7 +518,6 @@ A budget is your roadmap to financial success. It helps you control your spendin
   }
 
   return (
-
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.mainTitle}>📚 Learn Finance Basics</Text>
@@ -521,11 +534,6 @@ A budget is your roadmap to financial success. It helps you control your spendin
         <TouchableOpacity style={styles.headerRefreshButton} onPress={fetchFinanceBasicsContent}>
           <Text style={styles.headerRefreshButtonText}>🔄 Refresh</Text>
         </TouchableOpacity>
-
-
-      </View>git 
-
-
       </View>
 
       {learningContent.length === 0 ? (
@@ -534,15 +542,7 @@ A budget is your roadmap to financial success. It helps you control your spendin
           <Text style={styles.emptyDescription}>
             Learning content will appear here once available.
           </Text>
-
           <TouchableOpacity style={styles.refreshButton} onPress={fetchFinanceBasicsContent}>
-
-
-          <TouchableOpacity style={styles.refreshButton} onPress={fetchLearningContent}>
-
-          <TouchableOpacity style={styles.refreshButton} onPress={initializeApp}>
-
-
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -556,11 +556,7 @@ A budget is your roadmap to financial success. It helps you control your spendin
         />
       )}
 
-
       {renderVideoModal()}
-
-
-
     </View>
   );
 }
@@ -627,7 +623,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
-
     padding: 20,
   },
   contentItem: {
@@ -712,17 +707,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
-
   tutorialHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-
-  backButton: {
-
-    padding: 20,
-
     paddingTop: 60,
     paddingBottom: 20,
   },
@@ -734,7 +723,6 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
     fontWeight: '600',
   },
-
   headerVideoButton: {
     backgroundColor: '#e74c3c',
     width: 50,
@@ -753,62 +741,6 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   tutorialCard: {
-
-
-  contentItem: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  contentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  contentTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-  arrow: {
-    fontSize: 18,
-    color: '#4A90E2',
-    fontWeight: 'bold',
-  },
-  contentPreview: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  duration: {
-    fontSize: 12,
-    color: '#4A90E2',
-    fontWeight: '500',
-  },
-  detailContainer: {
-    flex: 1,
-    backgroundColor: '#F0F4F8',
-  },
-  backButton: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#4A90E2',
-    fontWeight: '600',
-  },
-
-  detailCard: {
-
     backgroundColor: 'white',
     margin: 20,
     marginTop: 0,
@@ -916,6 +848,12 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2c3e50',
+    marginBottom: 12,
   },
   tagsContainer: {
     flexDirection: 'row',

@@ -61,12 +61,13 @@ import FraudTutorial from './src/screens/tutorials/FraudTutorial';
 import TaxTutorial from './src/screens/tutorials/TaxTutorial';
 
 import TabNavigation from './src/screens/bottomComponents/TabNavigation';
+import { useNotification } from './src/notification/useNotification';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
 
-
+useNotification();
 
 
   return (

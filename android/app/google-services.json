@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1033245213971",
+    "project_id": "fingaurd-5449a",
+    "storage_bucket": "fingaurd-5449a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033245213971:android:d69f33e999d38197cd86e6",
+        "android_client_info": {
+          "package_name": "com.fingaurd"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjo5s0pmZhKXgvU31AEnTDqm6gXEdWe0A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

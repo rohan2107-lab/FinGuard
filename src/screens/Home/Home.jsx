@@ -26,7 +26,7 @@ import translations from '../../utils/translations';
 import { appAxios } from '../../api/apiconfig';
 
 
-import { appAxios } from "../../api/apiconfig";
+// import { appAxios } from "../../api/apiconfig";
 
 const { width } = Dimensions.get('window');
 

@@ -1,12 +1,14 @@
-import * as React from "react";
-import { useState } from "react";
-import { StyleSheet, View, Text, Pressable, TextInput } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, View, Text, Pressable, TextInput, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+
+// Import your SVG components
 import Baseshape from "../../assets/base-shape.svg";
 import Vector from "../../assets/Eye-Pass.svg";
+
+// Import your constants
 import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
-import { useNavigation } from "@react-navigation/native";
-import axios from 'axios';
 import { appAxios } from "../../api/apiconfig";
 
 const CreateAccount = () => {
@@ -18,90 +20,139 @@ const CreateAccount = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  // api setup start...(Rohan)
-const [loading, setLoading] = useState(false);
 
-const handleSignUp = async () => {
-  if (password !== confirmPassword) {
-    alert("Passwords do not match");
-    return;
-  }
-  setLoading(true);
-  try {
-
-
-    const response = await appAxios.post('api/auth/signup', {
-
-      fullName,
-      email,
-      mobile,
-      dob,
-      password,
-    });
-    if (response.status === 201 || response.status === 200) {
-      alert('Account created successfully!');
-      navigation.navigate('MainApp');
-    } else {
-      alert('Signup failed: ' + response.data.message);
+  // Form validation
+  const validateForm = () => {
+    if (!fullName.trim()) {
+      Alert.alert("Error", "Please enter your full name");
+      return false;
     }
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    alert('Error signing up: ' + (error.response?.data?.message || error.message));
-  }
-  setLoading(false);
-};
+    if (!email.trim()) {
+      Alert.alert("Error", "Please enter your email");
+      return false;
+    }
+    if (!mobile.trim()) {
+      Alert.alert("Error", "Please enter your mobile number");
+      return false;
+    }
+    if (!dob.trim()) {
+      Alert.alert("Error", "Please enter your date of birth");
+      return false;
+    }
+    if (!password.trim()) {
+      Alert.alert("Error", "Please enter a password");
+      return false;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return false;
+    }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters long");
+      return false;
+    }
+    return true;
+  };
 
-// api setup end....(Rohan)
+  // Sign up API handler
+  const handleSignUp = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await appAxios.post("api/auth/signup", {
+        fullName,
+        email,
+        mobile,
+        dob,
+        password,
+      });
+
+      if (response.status === 201 || response.status === 200) {
+        Alert.alert(
+          "Success", 
+          "Account created successfully!",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.navigate("Welcome")
+            }
+          ]
+        );
+      } else {
+        Alert.alert("Error", "Signup failed: " + response.data.message);
+      }
+    } catch (error) {
+      console.log("Signup error:", error.response?.data || error.message);
+      Alert.alert(
+        "Error",
+        "Error signing up: " + (error.response?.data?.message || error.message)
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = () => {
+    navigation.navigate("Welcome");
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Removed topBg to eliminate green space above the form */}
+      <View style={styles.topBg} />
       <View style={styles.container}>
         <Text style={styles.title}>Create Account</Text>
         <View style={styles.form}>
           <Text style={styles.label}>Full Name</Text>
           <TextInput
             style={styles.input}
-            placeholder="example@example.com"
-            placeholderTextColor={Color.colorDarkslategray100 + '80'}
+            placeholder="Enter your full name"
+            placeholderTextColor={Color.colorDarkslategray100 + "80"}
             value={fullName}
             onChangeText={setFullName}
             autoCapitalize="words"
           />
+
           <Text style={[styles.label, { marginTop: 12 }]}>Email</Text>
           <TextInput
             style={styles.input}
             placeholder="example@example.com"
-            placeholderTextColor={Color.colorDarkslategray100 + '80'}
+            placeholderTextColor={Color.colorDarkslategray100 + "80"}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
           />
+
           <Text style={[styles.label, { marginTop: 12 }]}>Mobile Number</Text>
           <TextInput
             style={styles.input}
             placeholder="+ 123 456 789"
-            placeholderTextColor={Color.colorDarkslategray100 + '80'}
+            placeholderTextColor={Color.colorDarkslategray100 + "80"}
             value={mobile}
             onChangeText={setMobile}
             keyboardType="phone-pad"
           />
+
           <Text style={[styles.label, { marginTop: 12 }]}>Date Of Birth</Text>
           <TextInput
             style={styles.input}
-            placeholder="DD / MM / YYY"
-            placeholderTextColor={Color.colorDarkslategray100 + '80'}
+            placeholder="DD / MM / YYYY"
+            placeholderTextColor={Color.colorDarkslategray100 + "80"}
             value={dob}
             onChangeText={setDob}
           />
+
           <Text style={[styles.label, { marginTop: 12 }]}>Password</Text>
           <View style={styles.passwordWrapper}>
             <TextInput
               style={[styles.input, { flex: 1, marginBottom: 0 }]}
               placeholder="Password"
-              placeholderTextColor={Color.colorDarkslategray100 + '80'}
+              placeholderTextColor={Color.colorDarkslategray100 + "80"}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!passwordVisible}
@@ -114,12 +165,13 @@ const handleSignUp = async () => {
               <Vector width={22} height={22} />
             </Pressable>
           </View>
+
           <Text style={[styles.label, { marginTop: 12 }]}>Confirm Password</Text>
           <View style={styles.passwordWrapper}>
             <TextInput
               style={[styles.input, { flex: 1, marginBottom: 0 }]}
               placeholder="Confirm Password"
-              placeholderTextColor={Color.colorDarkslategray100 + '80'}
+              placeholderTextColor={Color.colorDarkslategray100 + "80"}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!confirmPasswordVisible}
@@ -132,20 +184,30 @@ const handleSignUp = async () => {
               <Vector width={22} height={22} />
             </Pressable>
           </View>
+
           <Text style={styles.termsText}>
             By continuing, you agree to
             <Text style={styles.termsHighlight}> Terms of Use </Text>
             and
             <Text style={styles.termsHighlight}> Privacy Policy.</Text>
           </Text>
-          <Pressable style={styles.signUpBtn} onPress={handleSignUp} disabled={loading}>
-  <Text style={styles.signUpBtnText}>{loading ? 'Signing Up...' : 'Sign Up'}</Text>
-</Pressable>
 
-          <Text style={styles.bottomText}>
-            Already have an account?{' '}
-            <Text style={styles.bottomLogin} onPress={() => navigation.navigate('Welcome')}>Log In</Text>
-          </Text>
+          <Pressable 
+            style={[styles.signUpBtn, loading && { opacity: 0.6 }]} 
+            onPress={handleSignUp} 
+            disabled={loading}
+          >
+            <Text style={styles.signUpBtnText}>
+              {loading ? "Signing Up..." : "Sign Up"}
+            </Text>
+          </Pressable>
+
+          <View style={styles.bottomTextContainer}>
+            <Text style={styles.bottomText}>Already have an account? </Text>
+            <Pressable onPress={handleLogin}>
+              <Text style={styles.bottomLogin}>Log In</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -158,11 +220,11 @@ const styles = StyleSheet.create({
     backgroundColor: Color.colorMediumseagreen,
   },
   topBg: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 180,
+    height: 120,
     backgroundColor: Color.colorMediumseagreen,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
@@ -170,98 +232,102 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    marginTop: 0,
+    marginTop: 60,
     backgroundColor: Color.colorHoneydew,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    alignItems: 'center',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    alignItems: "center",
     zIndex: 2,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: "600",
     fontFamily: Fonts.poppinsSemiBold,
     color: Color.colorDarkslategray200,
-    marginBottom: 12,
-    textAlign: 'center',
+    marginBottom: 20,
+    textAlign: "center",
   },
   form: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   label: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     fontSize: 15,
     fontFamily: Fonts.poppinsMedium,
     color: Color.colorDarkslategray200,
-    marginBottom: 4,
-    marginLeft: 4,
-    marginTop: 4,
+    marginBottom: 6,
+    marginLeft: 8,
   },
   input: {
-    width: '100%',
-    height: 40,
-    backgroundColor: '#E6F5F0',
+    width: "100%",
+    height: 44,
+    backgroundColor: "#E6F5F0",
     borderRadius: 18,
-    paddingHorizontal: 12,
-    fontSize: 15,
+    paddingHorizontal: 16,
+    fontSize: 16,
     fontFamily: Fonts.poppinsRegular,
     color: Color.colorDarkslategray200,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   passwordWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: '#E6F5F0',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#E6F5F0",
     borderRadius: 18,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   eyeIcon: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   termsText: {
-    marginTop: 6,
-    fontSize: 12,
+    marginTop: 12,
+    fontSize: 13,
     fontFamily: Fonts.leagueSpartanLight,
     color: Color.colorDimgray,
-    textAlign: 'center',
-    marginBottom: 6,
+    textAlign: "center",
+    marginBottom: 16,
+    lineHeight: 18,
   },
   termsHighlight: {
     color: Color.colorDarkslategray200,
     fontFamily: Fonts.leagueSpartanSemiBold,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   signUpBtn: {
-    width: '100%',
-    height: 40,
+    width: "100%",
+    height: 44,
     backgroundColor: Color.colorMediumseagreen,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-    marginBottom: 4,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
   },
   signUpBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
     fontFamily: Fonts.poppinsSemiBold,
   },
+  bottomTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   bottomText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: Fonts.leagueSpartanLight,
     color: Color.colorDarkslategray200,
-    textAlign: 'center',
-    marginTop: 4,
   },
   bottomLogin: {
+    fontSize: 14,
     color: Color.colorDodgerblue,
     fontFamily: Fonts.leagueSpartanLight,
+    fontWeight: "600",
   },
 });
 
