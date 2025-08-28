@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,27 +14,28 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, CommonActions } from "@react-navigation/native";
-
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import { launchImageLibrary } from 'react-native-image-picker'; // Import image picker
 
 const { width, height } = Dimensions.get('window');
 
-const EditProfile = () => {
-  const [userInfo, setUserInfo] = useState({
-    firstName: 'Alex',
-    lastName: 'Johnson',
-    email: 'alex.johnson@example.com',
-    phone: '+1 (555) 123-4567',
-    bio: 'Software Developer passionate about creating amazing mobile experiences.',
-    location: 'San Francisco, CA',
-    website: 'www.alexjohnson.dev',
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-  });
+const initialUserInfo = {
+  firstName: 'Alex',
+  lastName: 'Johnson',
+  email: 'alex.johnson@example.com',
+  phone: '+1 (555) 123-4567',
+  bio: 'Software Developer passionate about creating amazing mobile experiences.',
+  location: 'San Francisco, CA',
+  website: 'www.alexjohnson.dev',
+  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+};
 
+const EditProfile = () => {
+  const [userInfo, setUserInfo] = useState(initialUserInfo);
+  const [activeField, setActiveField] = useState(null);
   const navigation = useNavigation();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [activeField, setActiveField] = useState(null);
+  const isEditing = JSON.stringify(userInfo) !== JSON.stringify(initialUserInfo);
 
   const handleSave = () => {
     Alert.alert(
@@ -42,14 +43,16 @@ const EditProfile = () => {
       'Are you sure you want to save these changes?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Save', 
+        {
+          text: 'Save',
           onPress: () => {
-            setIsEditing(false);
-            setActiveField(null);
+            // Here you would typically call an API to save the data
+            // For now, we'll just reset the initial state to the new state
+            Object.assign(initialUserInfo, userInfo);
             Alert.alert('Success', 'Profile updated successfully!');
-          }
-        }
+            navigation.dispatch(CommonActions.goBack());
+          },
+        },
       ]
     );
   };
@@ -61,14 +64,15 @@ const EditProfile = () => {
         'Are you sure you want to discard your changes?',
         [
           { text: 'Keep Editing', style: 'cancel' },
-          { 
-            text: 'Discard', 
+          {
+            text: 'Discard',
             style: 'destructive',
             onPress: () => {
-              setIsEditing(false);
+              setUserInfo(initialUserInfo); // Reset state to original values
               setActiveField(null);
-            }
-          }
+              navigation.dispatch(CommonActions.goBack());
+            },
+          },
         ]
       );
     } else {
@@ -78,20 +82,44 @@ const EditProfile = () => {
 
   const handleEditAvatar = () => {
     Alert.alert('Change Photo', 'Select a new profile photo', [
-      { text: 'Camera', onPress: () => console.log('Open camera') },
-      { text: 'Gallery', onPress: () => console.log('Open gallery') },
-      { text: 'Remove Photo', style: 'destructive', onPress: () => console.log('Remove photo') },
-      { text: 'Cancel', style: 'cancel' }
+      { text: 'Gallery', onPress: () => selectImageFromGallery() },
+      { text: 'Remove Photo', style: 'destructive', onPress: () => removePhoto() },
+      { text: 'Cancel', style: 'cancel' },
     ]);
+  };
+
+  const selectImageFromGallery = () => {
+    const options = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxHeight: 200,
+      maxWidth: 200,
+    };
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('Image Picker Error: ', response.errorCode);
+      } else if (response.assets && response.assets.length > 0) {
+        const source = { uri: response.assets[0].uri };
+        setUserInfo({ ...userInfo, avatar: source.uri });
+      }
+    });
+  };
+
+  const removePhoto = () => {
+    setUserInfo({ ...userInfo, avatar: null }); // Or set to a default image URL
   };
 
   const InputField = ({ label, value, onChangeText, placeholder, multiline = false, keyboardType = 'default' }) => (
     <View style={styles.inputContainer}>
       <Text style={styles.inputLabel}>{label}</Text>
-      <View style={[
-        styles.inputWrapper,
-        activeField === label && styles.inputWrapperActive
-      ]}>
+      <View
+        style={[
+          styles.inputWrapper,
+          activeField === label && styles.inputWrapperActive,
+        ]}
+      >
         <TextInput
           style={[styles.textInput, multiline && styles.textInputMultiline]}
           value={value}
@@ -101,10 +129,7 @@ const EditProfile = () => {
           multiline={multiline}
           numberOfLines={multiline ? 3 : 1}
           keyboardType={keyboardType}
-          onFocus={() => {
-            setActiveField(label);
-            setIsEditing(true);
-          }}
+          onFocus={() => setActiveField(label)}
           onBlur={() => setActiveField(null)}
         />
       </View>
@@ -112,35 +137,36 @@ const EditProfile = () => {
   );
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <StatusBar barStyle="light-content" backgroundColor="#059669" />
-      
+
       {/* Header Section */}
       <View style={styles.headerSection}>
         {/* Background Decorative Circles */}
         <View style={[styles.decorativeCircle, styles.circle1]} />
         <View style={[styles.decorativeCircle, styles.circle2]} />
         <View style={[styles.decorativeCircle, styles.circle3]} />
-        
+
         {/* Header Navigation */}
-        <SafeAreaView>
+        <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
-            <Pressable 
-              style={styles.headerButton} 
+            <Pressable
+              style={styles.headerButton}
               onPress={handleCancel}
               android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 25 }}
             >
               <Text style={styles.backIcon}>←</Text>
             </Pressable>
-            
+
             <Text style={styles.headerTitle}>Edit Profile</Text>
-            
-            <Pressable 
-              style={[styles.saveButton, isEditing && styles.saveButtonActive]} 
-              onPress={handleSave}
+
+            <Pressable
+              style={[styles.saveButton, isEditing && styles.saveButtonActive]}
+              onPress={isEditing ? handleSave : null}
+              disabled={!isEditing}
               android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 25 }}
             >
               <Text style={[styles.saveText, isEditing && styles.saveTextActive]}>Save</Text>
@@ -150,7 +176,7 @@ const EditProfile = () => {
       </View>
 
       {/* Main Content */}
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -163,12 +189,12 @@ const EditProfile = () => {
               <View style={styles.avatarBorder}>
                 <Image
                   style={styles.avatar}
-                  source={{ uri: userInfo.avatar }}
+                  source={require('../../../assets/rohang.jpg')}
                   resizeMode="cover"
                 />
               </View>
-              <Pressable 
-                style={styles.editAvatarButton} 
+              <Pressable
+                style={styles.editAvatarButton}
                 onPress={handleEditAvatar}
                 android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 15 }}
               >
@@ -183,25 +209,25 @@ const EditProfile = () => {
             {/* Personal Information Section */}
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Personal Information</Text>
-              
+
               <InputField
                 label="First Name"
                 value={userInfo.firstName}
-                onChangeText={(text) => setUserInfo({...userInfo, firstName: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, firstName: text })}
                 placeholder="Enter your first name"
               />
 
               <InputField
                 label="Last Name"
                 value={userInfo.lastName}
-                onChangeText={(text) => setUserInfo({...userInfo, lastName: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, lastName: text })}
                 placeholder="Enter your last name"
               />
 
               <InputField
                 label="Bio"
                 value={userInfo.bio}
-                onChangeText={(text) => setUserInfo({...userInfo, bio: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, bio: text })}
                 placeholder="Tell us about yourself"
                 multiline={true}
               />
@@ -210,11 +236,11 @@ const EditProfile = () => {
             {/* Contact Information Section */}
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Contact Information</Text>
-              
+
               <InputField
                 label="Email"
                 value={userInfo.email}
-                onChangeText={(text) => setUserInfo({...userInfo, email: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, email: text })}
                 placeholder="Enter your email"
                 keyboardType="email-address"
               />
@@ -222,7 +248,7 @@ const EditProfile = () => {
               <InputField
                 label="Phone"
                 value={userInfo.phone}
-                onChangeText={(text) => setUserInfo({...userInfo, phone: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, phone: text })}
                 placeholder="Enter your phone number"
                 keyboardType="phone-pad"
               />
@@ -230,14 +256,14 @@ const EditProfile = () => {
               <InputField
                 label="Location"
                 value={userInfo.location}
-                onChangeText={(text) => setUserInfo({...userInfo, location: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, location: text })}
                 placeholder="Enter your location"
               />
 
               <InputField
                 label="Website"
                 value={userInfo.website}
-                onChangeText={(text) => setUserInfo({...userInfo, website: text})}
+                onChangeText={(text) => setUserInfo({ ...userInfo, website: text })}
                 placeholder="Enter your website URL"
                 keyboardType="url"
               />
@@ -245,17 +271,18 @@ const EditProfile = () => {
 
             {/* Action Buttons */}
             <View style={styles.actionButtonsContainer}>
-              <Pressable 
+              <Pressable
                 style={styles.resetButton}
-                onPress={() => Alert.alert('Reset', 'Reset all fields to original values?')}
+                onPress={() => setUserInfo(initialUserInfo)}
                 android_ripple={{ color: 'rgba(239, 68, 68, 0.1)', radius: 100 }}
               >
                 <Text style={styles.resetButtonText}>Reset Changes</Text>
               </Pressable>
 
-              <Pressable 
+              <Pressable
                 style={[styles.saveMainButton, isEditing && styles.saveMainButtonActive]}
-                onPress={handleSave}
+                onPress={isEditing ? handleSave : null}
+                disabled={!isEditing}
                 android_ripple={{ color: 'rgba(255,255,255,0.2)', radius: 100 }}
               >
                 <Text style={styles.saveMainButtonText}>
@@ -286,6 +313,9 @@ const styles = StyleSheet.create({
     paddingTop: -5,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+  },
+  safeArea: {
+    flex: 1,
   },
   decorativeCircle: {
     position: 'absolute',

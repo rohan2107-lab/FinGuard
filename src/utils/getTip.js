@@ -1,5 +1,6 @@
+
 // Ensure your API key is stored securely, e.g., in a .env file, and is not exposed client-side.
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "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";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEEPSEEK_MODEL = "tngtech/deepseek-r1t2-chimera:free";
 

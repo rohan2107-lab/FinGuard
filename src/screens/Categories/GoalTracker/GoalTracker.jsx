@@ -216,7 +216,7 @@ const ModernGoalTracker = ({ navigation }) => {
 
       console.log("Sending request data:", requestData);
 
-      const res = await fetch("http://10.246.66.93:7000/predict_and_recommend", {
+      const res = await fetch("http://10.172.41.93:7000/predict_and_recommend", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

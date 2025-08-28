@@ -271,7 +271,7 @@ const Profile = () => {
               onPress={handleBackPress}
               android_ripple={{ color: 'rgba(255,255,255,0.3)', radius: 25 }}
             >
-              <Text style={styles.backIcon}>←</Text>
+              {/* <Text style={styles.backIcon}>←</Text> */}
             </Pressable>
             
             <Text style={styles.headerTitle}>Profile</Text>
@@ -286,7 +286,7 @@ const Profile = () => {
                 <Text style={styles.refreshIcon}>🔄</Text>
               </Pressable>
               
-              <Pressable 
+              {/* <Pressable 
                 style={styles.notificationButton} 
                 onPress={handleNotificationPress}
                 android_ripple={{ color: 'rgba(0,0,0,0.1)', radius: 20 }}
@@ -297,7 +297,7 @@ const Profile = () => {
                     <Text style={styles.notificationText}>{notifications}</Text>
                   </View>
                 )}
-              </Pressable>
+              </Pressable> */}
             </View>
           </View>
         </SafeAreaView>
@@ -316,7 +316,7 @@ const Profile = () => {
               <View style={styles.avatarBorder}>
                 <Image
                   style={styles.avatar}
-                  source={{ uri: user.avatar }}
+                  source={require('../../../assets/rohang.jpg')}
                   resizeMode="cover"
                 />
                 {/* Loading overlay for profile refresh */}

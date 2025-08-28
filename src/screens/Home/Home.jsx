@@ -24,15 +24,13 @@ import CardSwitcher from '../../components/CardSwitcher';
 import { useLanguage } from '../../contexts/LanguageContext';
 import translations from '../../utils/translations';
 import { appAxios } from '../../api/apiconfig';
+import LottieView from "lottie-react-native";
 
-
-import { appAxios } from "../../api/apiconfig";
 
 const { width } = Dimensions.get('window');
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const [userdata,setUserdata] = useState([]);  
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -41,23 +39,20 @@ const Home = () => {
   const navigation = useNavigation();
   const [showTipModal, setShowTipModal] = useState(false);
   const [fullName, setFullname] = useState('');
-  const [username, setUsername] = useState(''); // Added missing state
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false); // Added missing state
-  
+
   // Get language context
   const { currentLanguage } = useLanguage();
-  
+
   // Get translations for current language
   const homeTranslations = translations.home[currentLanguage] || translations.home.english;
   const commonTranslations = translations.common[currentLanguage] || translations.common.english;
 
-  const handleTabPress = (tabId) => {
-    setActiveTab(tabId);
-  };
+  const blinkingAnim = useRef(new Animated.Value(0)).current;
+  const expandAnim = useRef(new Animated.Value(0)).current;
 
+  // --- API Call and Data Fetching ---
   const fetchUserProfile = async () => {
-    setProfileLoading(true);
     try {
       const token = await AsyncStorage.getItem('authToken');
       const config = token ? {
@@ -71,76 +66,24 @@ const Home = () => {
       console.log("Profile API Response:", response.data);
 
       const apiData = response.data;
-      if (!apiData?.success) {
-        throw new Error(apiData?.message || 'Failed to fetch profile');
-      }
-
-      const profile = apiData.data;
-      if (profile?.fullName) {
-        setUsername(profile.fullName);
-        setFullname(profile.fullName); // Set both states for consistency
+      if (apiData?.success && apiData?.data?.fullName) {
+        setFullname(apiData.data.fullName);
       } else {
-        throw new Error('Full name missing in profile data');
+        throw new Error(apiData?.message || 'Failed to fetch profile or full name missing.');
       }
-
     } catch (err) {
       console.error("Error fetching profile:", err.message);
-      setUsername('Guest'); // fallback
-      setFullname('Guest'); // Set both states for consistency
+      setFullname('Guest'); // Fallback to 'Guest' on error
     } finally {
-      setProfileLoading(false);
-      setLoading(false); // Set main loading to false after profile fetch
+      setLoading(false); // Always set loading to false after the fetch attempt
     }
   };
-
-  const blinkingAnim = useRef(new Animated.Value(0)).current;
-  const expandAnim = useRef(new Animated.Value(0)).current;
-
-  const getTimeGreeting = () => {
-    const hour = new Date().getHours();
-    if (currentLanguage === 'hindi') {
-      if (hour < 12) return ('शुभ प्रभात 🌄');
-      if (hour < 17) return ('शुभ दोपहर ☀️');
-      return ('शुभ संध्या 🌙');
-    } else if (currentLanguage === 'punjabi') {
-      if (hour < 12) return ('ਸ਼ੁਭ ਸਵੇਰ 🌄');
-      if (hour < 17) return ('ਸ਼ੁਭ ਦੁਪਹਿਰ ☀️');
-      return ('ਸ਼ੁਭ ਸ਼ਾਮ 🌙');
-    } else {
-      if (hour < 12) return ('Good Morning 🌄');
-      if (hour < 17) return ('Good Afternoon ☀️');
-      return ('Good Evening 🌙');
-    }
-  };
-
 
   useEffect(() => {
-
     fetchUserProfile();
-
-    const fetchUser = async () => {
-      try {
-        
-
-        const res = await appAxios.get('api/auth/me')
-        const data = res.data;
-        setUserdata(data)
-
-        if (res.ok) {
-          setFullname(data.fullName);
-        } else {
-          console.log(data.message);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      setLoading(false);
-    };
-
-    fetchUser();
-
   }, []);
 
+  // --- Animations ---
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -168,200 +111,29 @@ const Home = () => {
       easing: Easing.bezier(0.4, 0.0, 0.2, 1),
     }).start();
   }, [showAllFeatures, expandAnim]);
+  
+  // --- Helper Functions ---
+  const handleTabPress = (tabId) => {
+    setActiveTab(tabId);
+  };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#000" style={{ flex: 1, justifyContent: 'center' }} />
-      </SafeAreaView>
-    );
-  }
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (currentLanguage === 'hindi') {
+      if (hour < 12) return ('शुभ प्रभात 🌄');
+      if (hour < 17) return ('शुभ दोपहर ☀️');
+      return ('शुभ संध्या 🌙');
+    } else if (currentLanguage === 'punjabi') {
+      if (hour < 12) return ('ਸ਼ੁਭ ਸਵੇਰ 🌄');
+      if (hour < 17) return ('ਸ਼ੁਭ ਦੁਪਹਿਰ ☀️');
+      return ('ਸ਼ੁਭ ਸ਼ਾਮ 🌙');
+    } else {
+      if (hour < 12) return ('Good Morning 🌄');
+      if (hour < 17) return ('Good Afternoon ☀️');
+      return ('Good Evening 🌙');
+    }
+  };
 
-  // Enhanced features list with comprehensive search terms
-  const allFeatures = [
-    {
-      id: 1,
-      title: currentLanguage === 'hindi' ? 'बजटिंग' : 
-             currentLanguage === 'punjabi' ? 'ਬਜਟਿੰਗ' : 'Budgeting',
-      searchTerms: ['budget', 'budgeting', 'expense', 'money management', 'spending', 'track expenses', 'financial planning', 'manage money', 'cost control'],
-      icon: '💰',
-      color: '#4A90E2',
-      gradient: ['#4A90E2', '#357ABD'],
-      description: currentLanguage === 'hindi' ? 'अपना बजट प्रबंधित करें और खर्चों को ट्रैक करें' :
-                   currentLanguage === 'punjabi' ? 'ਆਪਣਾ ਬਜਟ ਪ੍ਰਬੰਧਿਤ ਕਰੋ ਅਤੇ ਖਰਚਿਆਂ ਨੂੰ ਟਰੈਕ ਕਰੋ' : 'Manage your budget and track expenses',
-      route: 'Budgeting',
-      category: 'Financial Management'
-    },
-    {
-      id: 2,
-      title: currentLanguage === 'hindi' ? 'धोखाधड़ी सिमुलेशन' :
-             currentLanguage === 'punjabi' ? 'ਧੋਖਾਧੜੀ ਸਿਮੁਲੇਸ਼ਨ' : 'Fraud Simulation',
-      searchTerms: ['fraud', 'security', 'simulation', 'scam', 'protection', 'safety', 'cyber security', 'phishing', 'identity theft', 'online safety'],
-      icon: '🔐',
-      color: '#FF6B6B',
-      gradient: ['#FF6B6B', '#EE5A52'],
-      description: currentLanguage === 'hindi' ? 'धोखाधड़ी सुरक्षा और सुरक्षा के बारे में जानें' :
-                   currentLanguage === 'punjabi' ? 'ਧੋਖਾਧੜੀ ਸੁਰੱਖਿਆ ਅਤੇ ਸੁਰੱਖਿਆ ਬਾਰੇ ਜਾਣੋ' : 'Learn about fraud protection and security',
-      route: 'FraudSimulation',
-      category: 'Security'
-    },
-    {
-      id: 3,
-      title: currentLanguage === 'hindi' ? 'लक्ष्य ट्रैकर' :
-             currentLanguage === 'punjabi' ? 'ਟੀਚਾ ਟਰੈਕਰ' : 'Goal Tracker',
-      searchTerms: ['goal', 'tracker', 'target', 'achievement', 'progress', 'planning', 'objectives', 'milestones', 'personal goals'],
-      icon: '⏰',
-      color: '#4ECDC4',
-      gradient: ['#4ECDC4', '#44A08D'],
-      description: currentLanguage === 'hindi' ? 'अपने वित्तीय और व्यक्तिगत लक्ष्यों को ट्रैक करें' :
-                   currentLanguage === 'punjabi' ? 'ਆਪਣੇ ਵਿੱਤੀ ਅਤੇ ਨਿੱਜੀ ਟੀਚਿਆਂ ਨੂੰ ਟਰੈਕ ਕਰੋ' : 'Track your financial and personal goals',
-      route: 'GoalTracker',
-      category: 'Planning'
-    },
-    {
-      id: 4,
-      title: currentLanguage === 'hindi' ? 'खेल' :
-             currentLanguage === 'punjabi' ? 'ਖੇਡਾਂ' : 'Games',
-      searchTerms: ['games', 'play', 'fun', 'entertainment', 'learning games', 'educational games', 'quiz', 'interactive'],
-      icon: '🎮',
-      color: '#7B68EE',
-      gradient: ['#7B68EE', '#6A5ACD'],
-      description: currentLanguage === 'hindi' ? 'शैक्षिक वित्तीय खेल और गतिविधियां' :
-                   currentLanguage === 'punjabi' ? 'ਵਿਦਿਅਕ ਵਿੱਤੀ ਖੇਡਾਂ ਅਤੇ ਗਤੀਵਿਧੀਆਂ' : 'Educational financial games and activities',
-      route: 'GamesSplash',
-      category: 'Entertainment'
-    },
-    {
-      id: 5,
-      title: currentLanguage === 'hindi' ? 'वित्तीय कैलकुलेटर' :
-             currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਕੈਲਕੁਲੇਟਰ' : 'Financial   Tools',//yaha change
-      searchTerms: ['calculator', 'calculation', 'finance', 'math', 'compute', 'calculate', 'interest', 'loan', 'mortgage', 'investment calculator'],
-      icon: '🧮',
-      color: '#45B7D1',
-      gradient: ['#45B7D1', '#3A9BC1'],
-      description: currentLanguage === 'hindi' ? 'वित्तीय गणना उपकरण और कैलकुलेटर' :
-                   currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਗਣਨਾ ਟੂਲ ਅਤੇ ਕੈਲਕੁਲੇਟਰ' : 'Financial calculation tools and calculators',
-      route: 'FinancialCalculator',
-      category: 'Tools'
-    },
-    {
-      id: 6,
-      title: currentLanguage === 'hindi' ? 'उपहार' :
-             currentLanguage === 'punjabi' ? 'ਤੋਹਫ਼ੇ' : 'Gifts',
-      searchTerms: ['gifts', 'rewards', 'present', 'bonus', 'earn', 'redeem', 'points', 'cashback', 'incentives'],
-      icon: '🎁',
-      color: '#F39C12',
-      gradient: ['#F39C12', '#E67E22'],
-      description: currentLanguage === 'hindi' ? 'अपनी गतिविधियों से उपहार और पुरस्कार प्राप्त करें' :
-                   currentLanguage === 'punjabi' ? 'ਆਪਣੀਆਂ ਗਤੀਵਿਧੀਆਂ ਤੋਂ ਤੋਹਫ਼ੇ ਅਤੇ ਇਨਾਮ ਪ੍ਰਾਪਤ ਕਰੋ' : 'Redeem gifts and rewards from your activities',
-      route: 'Gifts',
-      category: 'Rewards'
-    },
-    {
-      id: 7,
-      title: currentLanguage === 'hindi' ? 'निवेश की मूल बातें' :
-             currentLanguage === 'punjabi' ? 'ਨਿਵੇਸ਼ ਦੀਆਂ ਬੁਨਿਆਦੀ ਗੱਲਾਂ' : 'Investment Basics',
-      searchTerms: ['investment', 'invest', 'stocks', 'basics', 'learning', 'finance', 'portfolio', 'trading', 'mutual funds', 'shares'],
-      icon: '📈',
-      color: '#27AE60',
-      gradient: ['#27AE60', '#229954'],
-      description: currentLanguage === 'hindi' ? 'निवेश के मूल सिद्धांतों और रणनीतियों को सीखें' :
-                   currentLanguage === 'punjabi' ? 'ਨਿਵੇਸ਼ ਦੇ ਬੁਨਿਆਦੀ ਸਿਧਾਂਤਾਂ ਅਤੇ ਰਣਨੀਤੀਆਂ ਨੂੰ ਸਿੱਖੋ' : 'Learn investment fundamentals and strategies',
-      route: 'InvestmentBasics',
-      category: 'Learning'
-    },
-    {
-      id: 8,
-      title: currentLanguage === 'hindi' ? 'आपातकालीन सहायता' :
-             currentLanguage === 'punjabi' ? 'ਐਮਰਜੈਂਸੀ ਮਦਦ' : 'Emergency Help',
-      searchTerms: ['emergency', 'help', 'support', 'assistance', 'urgent', 'crisis', 'financial emergency', 'quick help'],
-      icon: '🚨',
-      color: '#E74C3C',
-      gradient: ['#E74C3C', '#C0392B'],
-      description: currentLanguage === 'hindi' ? 'आपातकालीन वित्तीय सहायता और समर्थन प्राप्त करें' :
-                   currentLanguage === 'punjabi' ? 'ਐਮਰਜੈਂਸੀ ਵਿੱਤੀ ਮਦਦ ਅਤੇ ਸਹਾਇਤਾ ਪ੍ਰਾਪਤ ਕਰੋ' : 'Get emergency financial help and support',
-      route: 'EmergencyHelp',
-      category: 'Support'
-    },
-  ];
-
-  // Learning card data with enhanced search terms
-  const learningCards = [
-    { 
-      id: '1', 
-      title: currentLanguage === 'hindi' ? 'वित्त की मूल बातें' : 
-             currentLanguage === 'punjabi' ? 'ਵਿੱਤ ਦੀਆਂ ਬੁਨਿਆਦੀ ਗੱਲਾਂ' : 'Finance Basics', 
-      icon: '💵', 
-      color: '#4A90E2', 
-      route: 'FinanceTutorial',
-      searchTerms: ['finance', 'basics', 'money', 'financial literacy', 'tutorial', 'learning'],
-      description: currentLanguage === 'hindi' ? 'मौलिक वित्तीय अवधारणाओं को सीखें' :
-                   currentLanguage === 'punjabi' ? 'ਬੁਨਿਆਦੀ ਵਿੱਤੀ ਧਾਰਨਾਵਾਂ ਸਿੱਖੋ' : 'Learn fundamental financial concepts'
-    },
-    { 
-      id: '2', 
-      title: currentLanguage === 'hindi' ? 'एसआईपी लर्निंग' :
-             currentLanguage === 'punjabi' ? 'ਐਸਆਈਪੀ ਸਿੱਖਣਾ' : 'SIP Learning', 
-      icon: '📊', 
-      color: '#27AE60', 
-      route: 'SIPTutorial',
-      searchTerms: ['sip', 'systematic investment plan', 'recurring investment', 'monthly investment'],
-      description: currentLanguage === 'hindi' ? 'सिस्टमैटिक इन्वेस्टमेंट प्लान को समझें' :
-                   currentLanguage === 'punjabi' ? 'ਸਿਸਟਮੈਟਿਕ ਇਨਵੈਸਟਮੈਂਟ ਪਲਾਨ ਨੂੰ ਸਮਝੋ' : 'Understand Systematic Investment Plans'
-    },
-    { 
-      id: '3', 
-      title: currentLanguage === 'hindi' ? 'म्यूचुअल फंड' :
-             currentLanguage === 'punjabi' ? 'ਮਿਊਚੁਅਲ ਫੰਡ' : 'Mutual Funds', 
-      icon: '📈', 
-      color: '#F39C12', 
-      route: 'MutualFundsTutorial',
-      searchTerms: ['mutual funds', 'investment', 'portfolio', 'fund management'],
-      description: currentLanguage === 'hindi' ? 'म्यूचुअल फंड निवेश के बारे में जानें' :
-                   currentLanguage === 'punjabi' ? 'ਮਿਊਚੁਅਲ ਫੰਡ ਨਿਵੇਸ਼ਾਂ ਬਾਰੇ ਜਾਣੋ' : 'Learn about mutual fund investments'
-    },
-    { 
-      id: '4', 
-      title: currentLanguage === 'hindi' ? 'धोखाधड़ी जागरूकता' :
-             currentLanguage === 'punjabi' ? 'ਧੋਖਾਧੜੀ ਜਾਗਰੂਕਤਾ' : 'Fraud Awareness', 
-      icon: '🕵️‍♂️', 
-      color: '#E74C3C', 
-      route: 'FraudTutorial',
-      searchTerms: ['fraud', 'awareness', 'scam', 'security', 'protection'],
-      description: currentLanguage === 'hindi' ? 'वित्तीय धोखाधड़ी से सुरक्षित रहें' :
-                   currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਧੋਖਾਧੜੀ ਤੋਂ ਸੁਰੱਖਿਅਤ ਰਹੋ' : 'Stay protected from financial frauds'
-    },
-    { 
-      id: '5', 
-      title: currentLanguage === 'hindi' ? 'कर नियोजन' :
-             currentLanguage === 'punjabi' ? 'ਟੈਕਸ ਯੋਜਨਾਬੰਦੀ' : 'Tax Planning', 
-      icon: '🧾', 
-      color: '#9B59B6', 
-      route: 'TaxTutorial',
-      searchTerms: ['tax', 'planning', 'income tax', 'tax saving', 'deductions'],
-      description: currentLanguage === 'hindi' ? 'अपने करों की कुशलतापूर्वक योजना बनाएं' :
-                   currentLanguage === 'punjabi' ? 'ਆਪਣੇ ਟੈਕਸਾਂ ਦੀ ਕੁਸ਼ਲਤਾ ਨਾਲ ਯੋਜਨਾ ਬਣਾਓ' : 'Plan your taxes efficiently'
-    },
-  ];
-
-  // Combine all searchable content
-  const allSearchableContent = [
-    ...allFeatures.map(feature => ({
-      ...feature,
-      type: 'feature'
-    })),
-    ...learningCards.map(card => ({
-      ...card,
-      type: 'learning',
-      searchTerms: card.searchTerms || [],
-      category: 'Learning'
-    }))
-  ];
-
-  const mainFeatures = allFeatures.filter(feature => [1, 4].includes(feature.id));
-  const additionalFeatures = allFeatures.filter(feature => ![1, 4].includes(feature.id));
-
-  // Enhanced search functionality
   const handleSearch = (query) => {
     setSearchQuery(query);
     
@@ -377,19 +149,20 @@ const Home = () => {
     
     const lowercaseQuery = query.toLowerCase();
     
-    // Search through all content with fuzzy matching
+    const allSearchableContent = [
+      ...allFeatures.map(feature => ({ ...feature, type: 'feature' })),
+      ...learningCards.map(card => ({ ...card, type: 'learning', searchTerms: card.searchTerms || [], category: 'Learning' }))
+    ];
+
     const results = allSearchableContent.filter(item => {
       const titleMatch = item.title.toLowerCase().includes(lowercaseQuery);
       const descriptionMatch = item.description && item.description.toLowerCase().includes(lowercaseQuery);
       const categoryMatch = item.category && item.category.toLowerCase().includes(lowercaseQuery);
-      
-      // Search through search terms
       const searchTermsMatch = item.searchTerms && item.searchTerms.some(term => 
         term.toLowerCase().includes(lowercaseQuery) || 
         lowercaseQuery.includes(term.toLowerCase())
       );
       
-      // Fuzzy search - check if query words are contained in title or search terms
       const queryWords = lowercaseQuery.split(' ').filter(word => word.length > 2);
       const fuzzyMatch = queryWords.some(word => 
         item.title.toLowerCase().includes(word) ||
@@ -399,16 +172,13 @@ const Home = () => {
       return titleMatch || descriptionMatch || categoryMatch || searchTermsMatch || fuzzyMatch;
     });
     
-    // Sort results by relevance
     const sortedResults = results.sort((a, b) => {
       const aTitle = a.title.toLowerCase();
       const bTitle = b.title.toLowerCase();
       
-      // Exact title match gets highest priority
       if (aTitle.includes(lowercaseQuery) && !bTitle.includes(lowercaseQuery)) return -1;
       if (!aTitle.includes(lowercaseQuery) && bTitle.includes(lowercaseQuery)) return 1;
       
-      // Then sort by title length (shorter titles are more relevant)
       return aTitle.length - bTitle.length;
     });
     
@@ -416,7 +186,6 @@ const Home = () => {
   };
 
   const handleFeaturePress = (feature) => {
-    // Clear search when navigating
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
@@ -434,25 +203,51 @@ const Home = () => {
     setShowSearchResults(false);
   };
 
-  const renderFeatureCard = (feature, index = 0) => (
+  // --- Data Declarations ---
+  const allFeatures = [
+    { id: 1, title: currentLanguage === 'hindi' ? 'बजटिंग' : currentLanguage === 'punjabi' ? 'ਬਜਟਿੰਗ' : 'Budgeting', searchTerms: ['budget', 'budgeting', 'expense', 'money management', 'spending', 'track expenses', 'financial planning', 'manage money', 'cost control'], icon: '💰', color: '#4A90E2', gradient: ['#4A90E2', '#357ABD'], description: currentLanguage === 'hindi' ? 'अपना बजट प्रबंधित करें और खर्चों को ट्रैक करें' : currentLanguage === 'punjabi' ? 'ਆਪਣਾ ਬਜਟ ਪ੍ਰਬੰਧਿਤ ਕਰੋ ਅਤੇ ਖਰਚਿਆਂ ਨੂੰ ਟਰੈਕ ਕਰੋ' : 'Manage your budget and track expenses', route: 'Budgeting', category: 'Financial Management' },
+    { id: 2, title: currentLanguage === 'hindi' ? 'धोखाधड़ी सिमुलेशन' : currentLanguage === 'punjabi' ? 'ਧੋਖਾਧੜੀ ਸਿਮੁਲੇਸ਼ਨ' : 'Fraud Simulation', searchTerms: ['fraud', 'security', 'simulation', 'scam', 'protection', 'safety', 'cyber security', 'phishing', 'identity theft', 'online safety'], icon: '🔐', color: '#FF6B6B', gradient: ['#FF6B6B', '#EE5A52'], description: currentLanguage === 'hindi' ? 'धोखाधड़ी सुरक्षा और सुरक्षा के बारे में जानें' : currentLanguage === 'punjabi' ? 'ਧੋਖਾਧੜੀ ਸੁਰੱਖਿਆ ਅਤੇ ਸੁਰੱਖਿਆ ਬਾਰੇ ਜਾਣੋ' : 'Learn about fraud protection and security', route: 'FraudSimulation', category: 'Security' },
+    { id: 3, title: currentLanguage === 'hindi' ? 'लक्ष्य ट्रैकर' : currentLanguage === 'punjabi' ? 'ਟੀਚਾ ਟਰੈਕਰ' : 'Goal Tracker', searchTerms: ['goal', 'tracker', 'target', 'achievement', 'progress', 'planning', 'objectives', 'milestones', 'personal goals'], icon: '⏰', color: '#4ECDC4', gradient: ['#4ECDC4', '#44A08D'], description: currentLanguage === 'hindi' ? 'अपने वित्तीय और व्यक्तिगत लक्ष्यों को ट्रैक करें' : currentLanguage === 'punjabi' ? 'ਆਪਣੇ ਵਿੱਤੀ ਅਤੇ ਨਿੱਜੀ ਟੀਚਿਆਂ ਨੂੰ ਟਰੈਕ ਕਰੋ' : 'Track your financial and personal goals', route: 'GoalTracker', category: 'Planning' },
+    { id: 4, title: currentLanguage === 'hindi' ? 'खेल' : currentLanguage === 'punjabi' ? 'ਖੇਡਾਂ' : 'Games', searchTerms: ['games', 'play', 'fun', 'entertainment', 'learning games', 'educational games', 'quiz', 'interactive'], icon: '🎮', color: '#7B68EE', gradient: ['#7B68EE', '#6A5ACD'], description: currentLanguage === 'hindi' ? 'शैक्षिक वित्तीय खेल और गतिविधियां' : currentLanguage === 'punjabi' ? 'ਵਿਦਿਅਕ ਵਿੱਤੀ ਖੇਡਾਂ ਅਤੇ ਗਤੀਵਿਧੀਆਂ' : 'Educational financial games and activities', route: 'GamesSplash', category: 'Entertainment' },
+    { id: 5, title: currentLanguage === 'hindi' ? 'वित्तीय कैलकुलेटर' : currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਕੈਲਕੁਲੇਟਰ' : 'Financial Tools', searchTerms: ['calculator', 'calculation', 'finance', 'math', 'compute', 'calculate', 'interest', 'loan', 'mortgage', 'investment calculator'], icon: '🧮', color: '#45B7D1', gradient: ['#45B7D1', '#3A9BC1'], description: currentLanguage === 'hindi' ? 'वित्तीय गणना उपकरण और कैलकुलेटर' : currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਗਣਨਾ ਟੂਲ ਅਤੇ ਕੈਲਕੁਲੇਟਰ' : 'Financial calculation tools and calculators', route: 'FinancialCalculator', category: 'Tools' },
+    { id: 6, title: currentLanguage === 'hindi' ? 'उपहार' : currentLanguage === 'punjabi' ? 'ਤੋਹਫ਼ੇ' : 'Gifts', searchTerms: ['gifts', 'rewards', 'present', 'bonus', 'earn', 'redeem', 'points', 'cashback', 'incentives'], icon: '🎁', color: '#F39C12', gradient: ['#F39C12', '#E67E22'], description: currentLanguage === 'hindi' ? 'अपनी गतिविधियों से उपहार और पुरस्कार प्राप्त करें' : currentLanguage === 'punjabi' ? 'ਆਪਣੀਆਂ ਗਤੀਵਿਧੀਆਂ ਤੋਂ ਤੋਹਫ਼ੇ ਅਤੇ ਇਨਾਮ ਪ੍ਰਾਪਤ ਕਰੋ' : 'Redeem gifts and rewards from your activities', route: 'Gifts', category: 'Rewards' },
+    { id: 7, title: currentLanguage === 'hindi' ? 'निवेश की मूल बातें' : currentLanguage === 'punjabi' ? 'ਨਿਵੇਸ਼ ਦੀਆਂ ਬੁਨਿਆਦੀ ਗੱਲਾਂ' : 'Investment Basics', searchTerms: ['investment', 'invest', 'stocks', 'basics', 'learning', 'finance', 'portfolio', 'trading', 'mutual funds', 'shares'], icon: '📈', color: '#27AE60', gradient: ['#27AE60', '#229954'], description: currentLanguage === 'hindi' ? 'निवेश के मूल सिद्धांतों और रणनीतियों को सीखें' : currentLanguage === 'punjabi' ? 'ਨਿਵੇਸ਼ ਦੇ ਬੁਨਿਆਦੀ ਸਿਧਾਂਤਾਂ ਅਤੇ ਰਣਨੀਤੀਆਂ ਨੂੰ ਸਿੱਖੋ' : 'Learn investment fundamentals and strategies', route: 'InvestmentBasics', category: 'Learning' },
+    { id: 8, title: currentLanguage === 'hindi' ? 'आपातकालीन सहायता' : currentLanguage === 'punjabi' ? 'ਐਮਰਜੈਂਸੀ ਮਦਦ' : 'Emergency Help', searchTerms: ['emergency', 'help', 'support', 'assistance', 'urgent', 'crisis', 'financial emergency', 'quick help'], icon: '🚨', color: '#E74C3C', gradient: ['#E74C3C', '#C0392B'], description: currentLanguage === 'hindi' ? 'आपातकालीन वित्तीय सहायता और समर्थन प्राप्त करें' : currentLanguage === 'punjabi' ? 'ਐਮਰਜੈਂਸੀ ਵਿੱਤੀ ਮਦਦ ਅਤੇ ਸਹਾਇਤਾ ਪ੍ਰਾਪਤ ਕਰੋ' : 'Get emergency financial help and support', route: 'EmergencyHelp', category: 'Support' },
+    // New Articles module
+    { id: 9, title: currentLanguage === 'hindi' ? 'लेख' : currentLanguage === 'punjabi' ? 'ਲੇਖ' : 'Articles', searchTerms: ['articles', 'read', 'blog', 'content', 'learning', 'financial articles', 'education', 'insights', 'knowledge'], icon: '📰', color: '#9B59B6', gradient: ['#9B59B6', '#8E44AD'], description: currentLanguage === 'hindi' ? 'वित्तीय लेख और शिक्षाप्रद सामग्री पढ़ें' : currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਲੇਖ ਅਤੇ ਵਿਦਿਅਕ ਸਮਗਰੀ ਪੜ੍ਹੋ' : 'Read financial articles and educational content', route: 'Articles', category: 'Education' },
+    // New News module
+    { id: 10, title: currentLanguage === 'hindi' ? 'समाचार' : currentLanguage === 'punjabi' ? 'ਖ਼ਬਰਾਂ' : 'News', searchTerms: ['news', 'updates', 'latest', 'current', 'financial news', 'market news', 'breaking news', 'headlines'], icon: '📺', color: '#E67E22', gradient: ['#E67E22', '#D35400'], description: currentLanguage === 'hindi' ? 'नवीनतम वित्तीय समाचार और अपडेट देखें' : currentLanguage === 'punjabi' ? 'ਨਵੀਨਤਮ ਵਿੱਤੀ ਖ਼ਬਰਾਂ ਅਤੇ ਅਪਡੇਟ ਵੇਖੋ' : 'Get latest financial news and updates', route: 'News', category: 'News & Updates' },
+    // --- NEW MODULE ADDED HERE ---
+    { id: 11, title: currentLanguage === 'hindi' ? 'निकटतम शाखा' : currentLanguage === 'punjabi' ? 'ਨੇੜਲੀ ਬ੍ਰਾਂਚ' : 'Nearby Branch', searchTerms: ['branch', 'bank', 'location', 'nearby', 'atm', 'office', 'service center', 'find branch'], icon: '📍', color: '#3498DB', gradient: ['#3498DB', '#2980B9'], description: currentLanguage === 'hindi' ? 'हमारे निकटतम शाखा का पता लगाएं' : currentLanguage === 'punjabi' ? 'ਸਾਡੇ ਨੇੜਲੀਆਂ ਬ੍ਰਾਂਚਾਂ ਨੂੰ ਲੱਭੋ' : 'Locate our nearest branch', route: 'BranchLocator', category: 'Support' },
+  ];
+
+  const learningCards = [
+    { id: '1', title: currentLanguage === 'hindi' ? 'वित्त की मूल बातें' : currentLanguage === 'punjabi' ? 'ਵਿੱਤ ਦੀਆਂ ਬੁਨਿਆਦੀ ਗੱਲਾਂ' : 'Finance Basics', icon: '💵', color: '#4A90E2', route: 'FinanceTutorial', searchTerms: ['finance', 'basics', 'money', 'financial literacy', 'tutorial', 'learning'], description: currentLanguage === 'hindi' ? 'मौलिक वित्तीय अवधारणाओं को सीखें' : currentLanguage === 'punjabi' ? 'ਬੁਨਿਆਦੀ ਵਿੱਤੀ ਧਾਰਨਾਵਾਂ ਸਿੱਖੋ' : 'Learn fundamental financial concepts' },
+    { id: '2', title: currentLanguage === 'hindi' ? 'एसआईपी लर्निंग' : currentLanguage === 'punjabi' ? 'ਐਸਆਈਪੀ ਸਿੱਖਣਾ' : 'SIP Learning', icon: '📊', color: '#27AE60', route: 'SIPTutorial', searchTerms: ['sip', 'systematic investment plan', 'recurring investment', 'monthly investment'], description: currentLanguage === 'hindi' ? 'सिस्टमैटिक इन्वेस्टमेंट प्लान को समझें' : currentLanguage === 'punjabi' ? 'ਸਿਸਟਮੈਟਿਕ ਇਨਵੈਸਟਮੈਂਟ ਪਲਾਨ ਨੂੰ ਸਮਝੋ' : 'Understand Systematic Investment Plans' },
+    { id: '3', title: currentLanguage === 'hindi' ? 'म्यूचुअल फंड' : currentLanguage === 'punjabi' ? 'ਮਿਊਚੁਅਲ ਫੰਡ' : 'Mutual Funds', icon: '📈', color: '#F39C12', route: 'MutualFundsTutorial', searchTerms: ['mutual funds', 'investment', 'portfolio', 'fund management'], description: currentLanguage === 'hindi' ? 'म्यूचुअल फंड निवेश के बारे में जानें' : currentLanguage === 'punjabi' ? 'ਮਿਊਚੁਅਲ ਫੰਡ ਨਿਵੇਸ਼ਾਂ ਬਾਰੇ ਜਾਣੋ' : 'Learn about mutual fund investments' },
+    { id: '4', title: currentLanguage === 'hindi' ? 'धोखाधड़ी जागरूकता' : currentLanguage === 'punjabi' ? 'ਧੋਖਾਧੜੀ ਜਾਗਰੂਕਤਾ' : 'Fraud Awareness', icon: '🕵️‍♂️', color: '#E74C3C', route: 'FraudTutorial', searchTerms: ['fraud', 'awareness', 'scam', 'security', 'protection'], description: currentLanguage === 'hindi' ? 'वित्तीय धोखाधड़ी से सुरक्षित रहें' : currentLanguage === 'punjabi' ? 'ਵਿੱਤੀ ਧੋਖਾਧੜੀ ਤੋਂ ਸੁਰੱਖਿਅਤ ਰਹੋ' : 'Stay protected from financial frauds' },
+    { id: '5', title: currentLanguage === 'hindi' ? 'कर नियोजन' : currentLanguage === 'punjabi' ? 'ਟੈਕਸ ਯੋਜਨਾਬੰਦੀ' : 'Tax Planning', icon: '🧾', color: '#9B59B6', route: 'TaxTutorial', searchTerms: ['tax', 'planning', 'income tax', 'tax saving', 'deductions'], description: currentLanguage === 'hindi' ? 'अपने करों की कुशलतापूर्वक योजना बनाएं' : currentLanguage === 'punjabi' ? 'ਆਪਣੇ ਟੈਕਸਾਂ ਦੀ ਕੁਸ਼ਲਤਾ ਨਾਲ ਯੋਜਨਾ ਬਣਾਓ' : 'Plan your taxes efficiently' },
+  ];
+
+  // Updated quick access features - now includes 6 items (Budgeting, Games, Articles, News, Financial Tools, and View More)
+  const mainFeatures = allFeatures.filter(feature => [1, 4, 9, 10, 5].includes(feature.id)); // 5 features + view more button = 6 items total
+  const additionalFeatures = allFeatures.filter(feature => ![1, 4, 9, 10, 5].includes(feature.id)); // Remaining features go to "View More" section
+
+  // --- Render Functions ---
+  const renderFeatureCard = (feature) => (
     <Pressable
       key={feature.id}
-      style={[styles.featureCard, { 
-        transform: [{ scale: 1 }] 
-      }]}
+      style={[styles.featureCard, { transform: [{ scale: 1 }] }]}
       onPress={() => handleFeaturePress(feature)}
       android_ripple={{ color: 'rgba(255, 255, 255, 0.3)', borderless: true }}
     >
-      <Animated.View 
+      <Animated.View
         style={[
-          styles.featureIconContainer, 
-          { 
+          styles.featureIconContainer,
+          {
             backgroundColor: feature.color,
             shadowColor: feature.color,
-            shadowOffset: {
-              width: 0,
-              height: 4,
-            },
+            shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.3,
             shadowRadius: 8,
             elevation: 8,
@@ -493,35 +288,28 @@ const Home = () => {
       android_ripple={{ color: 'rgba(255, 255, 255, 0.3)', borderless: true }}
     >
       <Animated.View style={[
-        styles.featureIconContainer, 
-        { 
+        styles.featureIconContainer,
+        {
           backgroundColor: showAllFeatures ? '#E67E22' : '#3498DB',
           shadowColor: showAllFeatures ? '#E67E22' : '#3498DB',
-          shadowOffset: {
-            width: 0,
-            height: 4,
-          },
+          shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
           elevation: 8,
-          transform: [{ 
+          transform: [{
             rotate: expandAnim.interpolate({
               inputRange: [0, 1],
               outputRange: ['0deg', '180deg']
-            }) 
+            })
           }]
         }
       ]}>
-        <Text style={styles.featureIcon}>
-          {showAllFeatures ? '↓' : '↓'}
-        </Text>
+        <Text style={styles.featureIcon}>↓</Text>
       </Animated.View>
       <Text style={styles.featureTitle}>
-        {showAllFeatures ? 
-          (currentLanguage === 'hindi' ? 'कम देखें' :
-           currentLanguage === 'punjabi' ? 'ਘੱਟ ਵੇਖੋ' : 'View Less') : 
-          (currentLanguage === 'hindi' ? 'और देखें' :
-           currentLanguage === 'punjabi' ? 'ਹੋਰ ਵੇਖੋ' : 'View More')}
+        {showAllFeatures ?
+          (currentLanguage === 'hindi' ? 'कम देखें' : currentLanguage === 'punjabi' ? 'ਘੱਟ ਵੇਖੋ' : 'View Less') :
+          (currentLanguage === 'hindi' ? 'और देखें' : currentLanguage === 'punjabi' ? 'ਹੋਰ ਵੇਖੋ' : 'View More')}
       </Text>
     </Pressable>
   );
@@ -534,13 +322,20 @@ const Home = () => {
     >
       <View style={styles.viewLessContent}>
         <Text style={styles.viewLessText}>
-          {currentLanguage === 'hindi' ? 'कम देखें' :
-           currentLanguage === 'punjabi' ? 'ਘੱਟ ਵੇਖੋ' : 'View Less'}
+          {currentLanguage === 'hindi' ? 'कम देखें' : currentLanguage === 'punjabi' ? 'ਘੱਟ ਵੇਖੋ' : 'View Less'}
         </Text>
         <Text style={styles.viewLessIcon}>↑</Text>
       </View>
     </Pressable>
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#000" style={{ flex: 1, justifyContent: 'center' }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -550,13 +345,17 @@ const Home = () => {
         <View style={styles.header}>
           <View style={styles.greetingContainer}>
             <Text style={styles.greeting}>
-              Hi,{fullName ? fullName : 'username'}
+              Hi, {fullName ? fullName : 'Guest'}
             </Text>
             <Text style={styles.subGreeting}>{getTimeGreeting()}</Text>
           </View>
-          <Pressable style={styles.notificationButton}>
-            <Text style={styles.notificationIcon}>🔔</Text>
-          </Pressable>
+          
+          <LottieView
+  source={require("../../assets/Hello.json")}
+  autoPlay
+  loop
+  style={{ width: 80, height: 80 }}
+/>
         </View>
 
         {/* Enhanced Stats Section */}
@@ -580,9 +379,7 @@ const Home = () => {
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder={currentLanguage === 'hindi' ? "सुविधाएँ, ट्यूटोरियल, खेल खोजें..." :
-                         currentLanguage === 'punjabi' ? "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ, ਟਿਊਟੋਰਿਅਲ, ਖੇਡਾਂ ਖੋਜੋ..." :
-                         "Search features, tutorials, games..."}
+              placeholder={currentLanguage === 'hindi' ? "सुविधाएँ, ट्यूटोरियल, खेल खोजें..." : currentLanguage === 'punjabi' ? "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ, ਟਿਊਟੋਰੀਅਲ, ਖੇਡਾਂ ਖੋਜੋ..." : "Search features, tutorials, games..."}
               placeholderTextColor={Color.colorGray}
               value={searchQuery}
               onChangeText={handleSearch}
@@ -605,11 +402,7 @@ const Home = () => {
             {searchResults.length > 0 ? (
               <>
                 <Text style={styles.searchResultsHeader}>
-                  {currentLanguage === 'hindi' ? 
-                    `"${searchQuery}" के लिए ${searchResults.length} परिणाम मिले` :
-                   currentLanguage === 'punjabi' ? 
-                    `"${searchQuery}" ਲਈ ${searchResults.length} ਨਤੀਜੇ ਮਿਲੇ` :
-                    `Found ${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} for "${searchQuery}"`}
+                  {currentLanguage === 'hindi' ? `"${searchQuery}" के लिए ${searchResults.length} परिणाम मिले` : currentLanguage === 'punjabi' ? `"${searchQuery}" ਲਈ ${searchResults.length} ਨਤੀਜੇ ਮਿਲੇ` : `Found ${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} for "${searchQuery}"`}
                 </Text>
                 <FlatList
                   data={searchResults}
@@ -623,18 +416,10 @@ const Home = () => {
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsIcon}>🔍</Text>
                 <Text style={styles.noResultsText}>
-                  {currentLanguage === 'hindi' ? 
-                    `"${searchQuery}" के लिए कोई परिणाम नहीं मिला` :
-                   currentLanguage === 'punjabi' ? 
-                    `"${searchQuery}" ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ` :
-                    `No results found for "${searchQuery}"`}
+                  {currentLanguage === 'hindi' ? `"${searchQuery}" के लिए कोई परिणाम नहीं मिला` : currentLanguage === 'punjabi' ? `"${searchQuery}" ਲਈ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ` : `No results found for "${searchQuery}"`}
                 </Text>
                 <Text style={styles.noResultsSubtext}>
-                  {currentLanguage === 'hindi' ? 
-                    'इसके लिए खोज करें: "बजट", "खेल", "कैलकुलेटर", "निवेश", "धोखाधड़ी", "लक्ष्य", "सीखना"' :
-                   currentLanguage === 'punjabi' ? 
-                    'ਇਸ ਲਈ ਖੋਜ ਕਰੋ: "ਬਜਟ", "ਖੇਡਾਂ", "ਕੈਲਕੁਲੇਟਰ", "ਨਿਵੇਸ਼", "ਧੋਖਾਧੜੀ", "ਟੀਚੇ", "ਸਿੱਖਣਾ"' :
-                    'Try searching for: "budget", "games", "calculator", "investment", "fraud", "goals", "learning"'}
+                  {currentLanguage === 'hindi' ? 'इसके लिए खोज करें: "बजट", "खेल", "कैलकुलेटर", "निवेश", "धोखाधड़ी", "लक्ष्य", "सीखना"' : currentLanguage === 'punjabi' ? 'ਇਸ ਲਈ ਖੋਜ ਕਰੋ: "ਬਜਟ", "ਖੇਡਾਂ", "ਕੈਲਕੁਲੇਟਰ", "ਨਿਵੇਸ਼", "ਧੋਖਾਧੜੀ", "ਟੀਚੇ", "ਸਿੱਖਣਾ"' : 'Try searching for: "budget", "games", "calculator", "investment", "fraud", "goals", "learning"'}
                 </Text>
               </View>
             )}
@@ -644,20 +429,19 @@ const Home = () => {
 
       {/* Scrollable Main Content Area - Hidden when searching */}
       {!showSearchResults && (
-        <ScrollView 
+        <ScrollView
           style={styles.mainContent}
           showsVerticalScrollIndicator={false}
           bounces={true}
           contentContainerStyle={{ paddingBottom: 100 }}
         >
-          {/* Main Features Section */}
+          {/* Main Features Section - Now shows 6 items (5 features + view more button) */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>
-              {currentLanguage === 'hindi' ? 'त्वरित पहुंच' :
-               currentLanguage === 'punjabi' ? 'ਤੁਰੰਤ ਪਹੁੰਚ' : 'Quick Access'}
+              {currentLanguage === 'hindi' ? 'त्वरित पहुंच' : currentLanguage === 'punjabi' ? 'ਤੁਰੰਤ ਪਹੁੰਚ' : 'Quick Access'}
             </Text>
             <View style={styles.featuresGrid}>
-              {mainFeatures.map((feature, index) => renderFeatureCard(feature, index))}
+              {mainFeatures.map((feature) => renderFeatureCard(feature))}
               {renderViewMoreButton()}
             </View>
           </View>
@@ -676,18 +460,15 @@ const Home = () => {
             ]}
           >
             {showAllFeatures && (
-              <>
-                <View style={styles.sectionContainer}>
-                  <Text style={styles.sectionTitle}>
-                    {currentLanguage === 'hindi' ? 'सभी सुविधाएँ' :
-                     currentLanguage === 'punjabi' ? 'ਸਾਰੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ' : 'All Features'}
-                  </Text>
-                  <View style={styles.additionalFeaturesGrid}>
-                    {additionalFeatures.map((feature, index) => renderFeatureCard(feature, index))}
-                  </View>
-                  {renderViewLessButton()}
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>
+                  {currentLanguage === 'hindi' ? 'सभी सुविधाएँ' : currentLanguage === 'punjabi' ? 'ਸਾਰੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ' : 'All Features'}
+                </Text>
+                <View style={styles.additionalFeaturesGrid}>
+                  {additionalFeatures.map((feature) => renderFeatureCard(feature))}
                 </View>
-              </>
+                {renderViewLessButton()}
+              </View>
             )}
           </Animated.View>
 
@@ -695,15 +476,12 @@ const Home = () => {
           <View style={styles.tipsSection}>
             <Pressable style={styles.tipsMiniCard} onPress={() => setShowTipModal(true)}>
               <Text style={styles.tipsMiniText}>
-                {currentLanguage === 'hindi' ? 'आज के टिप्स' :
-                 currentLanguage === 'punjabi' ? 'ਅੱਜ ਦੇ ਸੁਝਾਅ' : 'Tips of the Day'}
+                {currentLanguage === 'hindi' ? 'आज के टिप्स' : currentLanguage === 'punjabi' ? 'ਅੱਜ ਦੇ ਸੁਝਾਅ' : 'Tips of the Day'}
               </Text>
               <Animated.Text
                 style={[
                   styles.blinkingIcon,
-                  {
-                    opacity: blinkingAnim,
-                  },
+                  { opacity: blinkingAnim },
                 ]}
               >
                 💡
@@ -716,8 +494,7 @@ const Home = () => {
           {/* Learning Tutorials */}
           <View style={{ marginTop: 10 }}>
             <Text style={styles.sectionTitle}>
-              {currentLanguage === 'hindi' ? '  सीखें और बढ़ें' :
-               currentLanguage === 'punjabi' ? '  ਸਿੱਖੋ ਅਤੇ ਵਧੋ' : '   Learn & Grow'}
+              {currentLanguage === 'hindi' ? '  सीखें और बढ़ें' : currentLanguage === 'punjabi' ? '  ਸਿੱਖੋ ਅਤੇ ਵਧੋ' : '  Learn & Grow'}
             </Text>
             <FlatList
               data={learningCards}
@@ -791,10 +568,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
@@ -809,10 +583,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 6,
@@ -851,10 +622,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 6,
@@ -911,10 +679,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -1000,6 +765,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    flexWrap: 'wrap',
   },
   additionalFeaturesContainer: {
     overflow: 'hidden',
@@ -1049,10 +815,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     shadowColor: '#E67E22',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,

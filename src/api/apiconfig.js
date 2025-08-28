@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const appAxios = axios.create({
 
-  baseURL: "http://10.172.41.93:8000",
+  baseURL: "http://10.77.224.93:8000",
 
 });
 

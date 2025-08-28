@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Baseshape from "../../assets/base-shape.svg";
 import Vector from "../../assets/Eye-Pass.svg";
 import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
-import { useNavigation } from "@react-navigation/native";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import axios from 'axios';
 import { appAxios } from "../../api/apiconfig";
 
@@ -41,7 +41,14 @@ const handleSignUp = async () => {
     });
     if (response.status === 201 || response.status === 200) {
       alert('Account created successfully!');
-      navigation.navigate('MainApp');
+      navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Welcome' }],
+                })
+              );
+              
+      // navigation.navigate('MainApp');
     } else {
       alert('Signup failed: ' + response.data.message);
     }

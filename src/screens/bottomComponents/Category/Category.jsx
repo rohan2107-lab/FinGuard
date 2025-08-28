@@ -81,7 +81,7 @@ const Category = () => {
       navigation.navigate("EmergencyHelp");
       break;
     case "Games":
-      navigation.navigate("Games");
+      navigation.navigate("GamesHome");
       break;
     case "Goal Tracker":
       navigation.navigate("GoalTracker");
@@ -111,20 +111,20 @@ const Category = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
 <View style={styles.header}>
-  <TouchableOpacity 
+  {/* <TouchableOpacity 
     style={styles.backButton}  
     onPress={() => navigation.navigate("TabNaviagtion", { screen: "Home" })} // 👈 fixed
   >
     <Text style={styles.backIcon}>←</Text>
-  </TouchableOpacity>
+  </TouchableOpacity> */}
 
   <Text style={styles.title}>
     {translations.categories[currentLanguage]?.categories || "Categories"}
   </Text>
 
-  <TouchableOpacity style={styles.notificationButton}>
+  {/* <TouchableOpacity style={styles.notificationButton}>
     <Text style={styles.notificationIcon}>🔔</Text>
-  </TouchableOpacity>
+  </TouchableOpacity> */}
 </View>
 
 
@@ -175,10 +175,10 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
-    paddingTop: 5,
+    paddingTop: 10,
   },
   backButton: {
     width: 40,
@@ -199,6 +199,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Color.colorDarkslategray200 || '#2F4F4F',
     textTransform: 'capitalize',
+    alignContent:'center',
+    justifyContent:'center',
+
   },
   notificationButton: {
     width: 30,

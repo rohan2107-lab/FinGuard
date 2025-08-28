@@ -10,7 +10,10 @@ import {
   Alert,
   Modal,
   Dimensions,
+  SafeAreaView,
 } from 'react-native';
+import Video from 'react-native-video';
+import RenderHtml from 'react-native-render-html';
 
 const { width, height } = Dimensions.get('window');
 
@@ -20,13 +23,15 @@ export default function FraudAwarenessModule() {
   const [loading, setLoading] = useState(true);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'tutorial', 'video'
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'tutorial'
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [language, setLanguage] = useState('en'); // Default to English
 
   const API_BASE_URL = 'http://10.172.41.93:8000';
 
   useEffect(() => {
     fetchFraudAwarenessContent();
-  }, []);
+  }, [language]); // Re-fetch content when language changes
 
   const fetchFraudAwarenessContent = async () => {
     try {
@@ -54,35 +59,7 @@ export default function FraudAwarenessModule() {
         setLearningContent(data);
       } else {
         console.warn('Unexpected data structure:', data);
-        const testData = [
-          {
-            _id: 'fa-test1',
-            title: 'Phishing Scams: What to Look For',
-            description: "Learn how to identify and avoid common phishing attacks.",
-            content: "Phishing is a type of online fraud where criminals impersonate legitimate organizations to steal your personal information.",
-            detailedContent: "# Phishing Scams: What to Look For\n\nPhishing is a deceptive practice used by cybercriminals to trick you into revealing sensitive information like passwords, bank details, and credit card numbers.\n\n## Common Red Flags\n\n- **Urgent or Threatening Language**: Scammers often use threats or a sense of urgency to make you act without thinking.\n- **Spelling and Grammar Mistakes**: Legitimate companies rarely send emails with errors.\n- **Suspicious Links**: Hover over links to check the URL. If it doesn't match the company's official website, don't click it.\n- **Requests for Personal Information**: Be cautious of any email or message that asks for your password, social security number, or other private data.\n\n## How to Protect Yourself\n\n1. **Verify the Sender**: Always check the sender's email address. It should match the official domain.\n2. **Avoid Clicking Links**: Instead of clicking a link, manually type the website's address into your browser.\n3. **Use Multi-Factor Authentication (MFA)**: This adds an extra layer of security to your accounts.\n4. **Report Phishing Attempts**: Forward suspicious emails to your email provider or the company being impersonated.",
-            videoUrl: 'https://example.com/phishing-scams.mp4',
-            videoTitle: 'How to Spot a Phishing Email',
-            videoDescription: 'A detailed video guide on protecting yourself from phishing scams.',
-            difficulty: 'beginner',
-            estimatedTime: 10,
-            tags: ['phishing', 'scam', 'security', 'cybersecurity'],
-          },
-          {
-            _id: 'fa-test2',
-            title: 'Online Shopping Fraud',
-            description: "Protect yourself from fraudulent e-commerce websites and sellers.",
-            content: "Online shopping fraud involves deceptive practices used by criminals to steal money or information during online purchases.",
-            detailedContent: "# Online Shopping Fraud\n\nFraudulent online sellers and websites are a major risk. Here's how to shop safely online:\n\n## Signs of a Fake Website\n\n- **No SSL Certificate**: Look for a padlock icon or 'https://' in the URL. If it's missing, the site is not secure.\n- **Unbelievable Deals**: If a deal seems too good to be true, it probably is.\n- **Poor Design and Content**: Websites with low-quality images, bad grammar, and no contact information are often fake.\n\n## Safe Shopping Practices\n\n1. **Use Trusted Retailers**: Stick to well-known e-commerce platforms.\n2. **Check Reviews**: Look for customer reviews of the website or seller before making a purchase.\n3. **Use Secure Payment Methods**: Use credit cards or secure payment gateways like PayPal, which offer buyer protection.",
-            videoUrl: 'https://example.com/online-shopping-fraud.mp4',
-            videoTitle: 'Stay Safe While Shopping Online',
-            videoDescription: 'Tips and tricks to avoid getting scammed on e-commerce sites.',
-            difficulty: 'intermediate',
-            estimatedTime: 15,
-            tags: ['online-shopping', 'fraud', 'e-commerce', 'safety'],
-          },
-        ];
-        setLearningContent(testData);
+        setLearningContent(getTestData());
       }
     } catch (error) {
       console.error('Error fetching Fraud Awareness content:', error);
@@ -90,42 +67,168 @@ export default function FraudAwarenessModule() {
         'Connection Error',
         `Unable to connect to the server. Showing test data instead.`
       );
-      const testData = [
-        {
-            _id: 'fa-test1',
-            title: 'Phishing Scams: What to Look For',
-            description: "Learn how to identify and avoid common phishing attacks.",
-            content: "Phishing is a type of online fraud where criminals impersonate legitimate organizations to steal your personal information.",
-            detailedContent: "# Phishing Scams: What to Look For\n\nPhishing is a deceptive practice used by cybercriminals to trick you into revealing sensitive information like passwords, bank details, and credit card numbers.\n\n## Common Red Flags\n\n- **Urgent or Threatening Language**: Scammers often use threats or a sense of urgency to make you act without thinking.\n- **Spelling and Grammar Mistakes**: Legitimate companies rarely send emails with errors.\n- **Suspicious Links**: Hover over links to check the URL. If it doesn't match the company's official website, don't click it.\n- **Requests for Personal Information**: Be cautious of any email or message that asks for your password, social security number, or other private data.\n\n## How to Protect Yourself\n\n1. **Verify the Sender**: Always check the sender's email address. It should match the official domain.\n2. **Avoid Clicking Links**: Instead of clicking a link, manually type the website's address into your browser.\n3. **Use Multi-Factor Authentication (MFA)**: This adds an extra layer of security to your accounts.\n4. **Report Phishing Attempts**: Forward suspicious emails to your email provider or the company being impersonated.",
-            videoUrl: 'https://example.com/phishing-scams.mp4',
-            videoTitle: 'How to Spot a Phishing Email',
-            videoDescription: 'A detailed video guide on protecting yourself from phishing scams.',
-            difficulty: 'beginner',
-            estimatedTime: 10,
-            tags: ['phishing', 'scam', 'security', 'cybersecurity'],
-        },
-        {
-            _id: 'fa-test2',
-            title: 'Online Shopping Fraud',
-            description: "Protect yourself from fraudulent e-commerce websites and sellers.",
-            content: "Online shopping fraud involves deceptive practices used by criminals to steal money or information during online purchases.",
-            detailedContent: "# Online Shopping Fraud\n\nFraudulent online sellers and websites are a major risk. Here's how to shop safely online:\n\n## Signs of a Fake Website\n\n- **No SSL Certificate**: Look for a padlock icon or 'https://' in the URL. If it's missing, the site is not secure.\n- **Unbelievable Deals**: If a deal seems too good to be true, it probably is.\n- **Poor Design and Content**: Websites with low-quality images, bad grammar, and no contact information are often fake.\n\n## Safe Shopping Practices\n\n1. **Use Trusted Retailers**: Stick to well-known e-commerce platforms.\n2. **Check Reviews**: Look for customer reviews of the website or seller before making a purchase.\n3. **Use Secure Payment Methods**: Use credit cards or secure payment gateways like PayPal, which offer buyer protection.",
-            videoUrl: 'https://example.com/online-shopping-fraud.mp4',
-            videoTitle: 'Stay Safe While Shopping Online',
-            videoDescription: 'Tips and tricks to avoid getting scammed on e-commerce sites.',
-            difficulty: 'intermediate',
-            estimatedTime: 15,
-            tags: ['online-shopping', 'fraud', 'e-commerce', 'safety'],
-        },
-      ];
-      setLearningContent(testData);
+      setLearningContent(getTestData());
     } finally {
       setLoading(false);
     }
   };
 
+  const getTestData = () => {
+    return [
+      {
+        _id: 'fa-test1',
+        title: {
+          en: "Phishing Scams: What to Look For",
+          hi: "फिशिंग स्कैम: क्या देखें",
+          pa: "ਫਿਸ਼ਿੰਗ ਘੁਟਾਲੇ: ਕੀ ਵੇਖਣਾ ਹੈ"
+        },
+        description: {
+          en: "Learn how to identify and avoid common phishing attacks.",
+          hi: "फिशिंग हमलों को कैसे पहचानें और उनसे कैसे बचें, यह जानें।",
+          pa: "ਜਾਣੋ ਕਿ ਆਮ ਫਿਸ਼ਿੰਗ ਹਮਲਿਆਂ ਦੀ ਪਛਾਣ ਕਿਵੇਂ ਕਰਨੀ ਹੈ ਅਤੇ ਉਹਨਾਂ ਤੋਂ ਕਿਵੇਂ ਬਚਣਾ ਹੈ।"
+        },
+        content: {
+          en: "Phishing is a type of online fraud where criminals impersonate legitimate organizations to steal your personal information.",
+          hi: "फिशिंग एक प्रकार का ऑनलाइन धोखाधड़ी है जहां अपराधी आपकी व्यक्तिगत जानकारी चुराने के लिए वैध संगठनों का प्रतिरूपण करते हैं।",
+          pa: "ਫਿਸ਼ਿੰਗ ਇੱਕ ਕਿਸਮ ਦੀ ਔਨਲਾਈਨ ਧੋਖਾਧੜੀ ਹੈ ਜਿੱਥੇ ਅਪਰਾਧੀ ਤੁਹਾਡੀ ਨਿੱਜੀ ਜਾਣਕਾਰੀ ਚੋਰੀ ਕਰਨ ਲਈ ਜਾਇਜ਼ ਸੰਸਥਾਵਾਂ ਦਾ ਭੇਸ ਧਾਰਦੇ ਹਨ।"
+        },
+        detailedContent: {
+          en: `
+          <h1>Phishing Scams: What to Look For</h1>
+          <p>Phishing is a deceptive practice used by cybercriminals to trick you into revealing sensitive information like passwords, bank details, and credit card numbers.</p>
+          <h2>Common Red Flags</h2>
+          <ul>
+            <li><b>Urgent or Threatening Language</b>: Scammers often use threats or a sense of urgency to make you act without thinking.</li>
+            <li><b>Spelling and Grammar Mistakes</b>: Legitimate companies rarely send emails with errors.</li>
+            <li><b>Suspicious Links</b>: Hover over links to check the URL. If it doesn't match the company's official website, don't click it.</li>
+            <li><b>Requests for Personal Information</b>: Be cautious of any email or message that asks for your password, social security number, or other private data.</li>
+          </ul>
+          <h2>How to Protect Yourself</h2>
+          <ol>
+            <li><b>Verify the Sender</b>: Always check the sender's email address. It should match the official domain.</li>
+            <li><b>Avoid Clicking Links</b>: Instead of clicking a link, manually type the website's address into your browser.</li>
+            <li><b>Use Multi-Factor Authentication (MFA)</b>: This adds an extra layer of security to your accounts.</li>
+            <li><b>Report Phishing Attempts</b>: Forward suspicious emails to your email provider or the company being impersonated.</li>
+          </ol>`,
+          hi: `
+          <h1>फिशिंग स्कैम: क्या देखें</h1>
+          <p>फिशिंग एक भ्रामक अभ्यास है जिसका उपयोग साइबर अपराधी आपको पासवर्ड, बैंक विवरण और क्रेडिट कार्ड नंबर जैसी संवेदनशील जानकारी प्रकट करने के लिए करते हैं।</p>
+          <h2>सामान्य खतरे के संकेत</h2>
+          <ul>
+            <li><b>अत्यावश्यक या धमकी भरी भाषा</b>: स्कैमर अक्सर आपको बिना सोचे-समझे काम करने के लिए धमकियों या अत्यावश्यकता की भावना का उपयोग करते हैं।</li>
+            <li><b>वर्तनी और व्याकरण की गलतियाँ</b>: वैध कंपनियां शायद ही कभी गलतियों वाले ईमेल भेजती हैं।</li>
+            <li><b>संदिग्ध लिंक</b>: यूआरएल की जांच करने के लिए लिंक पर होवर करें। यदि यह कंपनी की आधिकारिक वेबसाइट से मेल नहीं खाता है, तो उस पर क्लिक न करें।</li>
+            <li><b>व्यक्तिगत जानकारी के लिए अनुरोध</b>: किसी भी ईमेल या संदेश से सावधान रहें जो आपके पासवर्ड, सामाजिक सुरक्षा नंबर, या अन्य निजी डेटा के लिए पूछता है।</li>
+          </ul>
+          <h2>खुद को कैसे बचाएं</h2>
+          <ol>
+            <li><b>प्रेषक को सत्यापित करें</b>: हमेशा प्रेषक का ईमेल पता जांचें। यह आधिकारिक डोमेन से मेल खाना चाहिए।</li>
+            <li><b>लिंक पर क्लिक करने से बचें</b>: लिंक पर क्लिक करने के बजाय, मैन्युअल रूप से वेबसाइट का पता अपने ब्राउज़र में टाइप करें।</li>
+            <li><b>मल्टी-फैक्टर ऑथेंटिकेशन (एमएफए) का उपयोग करें</b>: यह आपके खातों में सुरक्षा की एक अतिरिक्त परत जोड़ता है।</li>
+            <li><b>फिशिंग प्रयासों की रिपोर्ट करें</b>: संदिग्ध ईमेल को अपने ईमेल प्रदाता या प्रतिरूपित की जा रही कंपनी को अग्रेषित करें।</li>
+          </ol>`,
+          pa: `
+          <h1>ਫਿਸ਼ਿੰਗ ਘੁਟਾਲੇ: ਕੀ ਵੇਖਣਾ ਹੈ</h1>
+          <p>ਫਿਸ਼ਿੰਗ ਇੱਕ ਧੋਖੇਬਾਜ਼ ਅਭਿਆਸ ਹੈ ਜਿਸਦੀ ਵਰਤੋਂ ਸਾਈਬਰ ਅਪਰਾਧੀ ਤੁਹਾਨੂੰ ਪਾਸਵਰਡ, ਬੈਂਕ ਵੇਰਵੇ, ਅਤੇ ਕ੍ਰੈਡਿਟ ਕਾਰਡ ਨੰਬਰ ਵਰਗੀ ਸੰਵੇਦਨਸ਼ੀਲ ਜਾਣਕਾਰੀ ਦਾ ਖੁਲਾਸਾ ਕਰਨ ਲਈ ਕਰਦੇ ਹਨ।</p>
+          <h2>ਆਮ ਲਾਲ ਝੰਡੇ</h2>
+          <ul>
+            <li><b>ਅਤਿ ਜ਼ਰੂਰੀ ਜਾਂ ਧਮਕੀ ਭਰੀ ਭਾਸ਼ਾ</b>: ਘੁਟਾਲੇਬਾਜ਼ ਅਕਸਰ ਤੁਹਾਨੂੰ ਬਿਨਾਂ ਸੋਚੇ-ਸਮਝੇ ਕੰਮ ਕਰਨ ਲਈ ਧਮਕੀਆਂ ਜਾਂ ਅਤਿ ਜ਼ਰੂਰੀ ਦੀ ਭਾਵਨਾ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹਨ।</li>
+            <li><b>ਸਪੈਲਿੰਗ ਅਤੇ ਵਿਆਕਰਨ ਦੀਆਂ ਗਲਤੀਆਂ</b>: ਜਾਇਜ਼ ਕੰਪਨੀਆਂ ਸ਼ਾਇਦ ਹੀ ਗਲਤੀਆਂ ਵਾਲੇ ਈਮੇਲ ਭੇਜਦੀਆਂ ਹਨ।</li>
+            <li><b>ਸ਼ੱਕੀ ਲਿੰਕ</b>: URL ਦੀ ਜਾਂਚ ਕਰਨ ਲਈ ਲਿੰਕਾਂ 'ਤੇ ਹੋਵਰ ਕਰੋ। ਜੇਕਰ ਇਹ ਕੰਪਨੀ ਦੀ ਅਧਿਕਾਰਤ ਵੈੱਬਸਾਈਟ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ, ਤਾਂ ਇਸ 'ਤੇ ਕਲਿੱਕ ਨਾ ਕਰੋ।</li>
+            <li><b>ਨਿੱਜੀ ਜਾਣਕਾਰੀ ਲਈ ਬੇਨਤੀਆਂ</b>: ਕਿਸੇ ਵੀ ਈਮੇਲ ਜਾਂ ਸੁਨੇਹੇ ਤੋਂ ਸਾਵਧਾਨ ਰਹੋ ਜੋ ਤੁਹਾਡੇ ਪਾਸਵਰਡ, ਸਮਾਜਿਕ ਸੁਰੱਖਿਆ ਨੰਬਰ, ਜਾਂ ਹੋਰ ਨਿੱਜੀ ਡੇਟਾ ਲਈ ਪੁੱਛਦਾ ਹੈ।</li>
+          </ul>
+          <h2>ਆਪਣੇ ਆਪ ਨੂੰ ਕਿਵੇਂ ਬਚਾਉਣਾ ਹੈ</h2>
+          <ol>
+            <li><b>ਭੇਜਣ ਵਾਲੇ ਨੂੰ ਪ੍ਰਮਾਣਿਤ ਕਰੋ</b>: ਹਮੇਸ਼ਾ ਭੇਜਣ ਵਾਲੇ ਦੇ ਈਮੇਲ ਪਤੇ ਦੀ ਜਾਂਚ ਕਰੋ। ਇਹ ਅਧਿਕਾਰਤ ਡੋਮੇਨ ਨਾਲ ਮੇਲ ਖਾਂਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।</li>
+            <li><b>ਲਿੰਕਾਂ 'ਤੇ ਕਲਿੱਕ ਕਰਨ ਤੋਂ ਬਚੋ</b>: ਕਿਸੇ ਲਿੰਕ 'ਤੇ ਕਲਿੱਕ ਕਰਨ ਦੀ ਬਜਾਏ, ਆਪਣੇ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਵੈੱਬਸਾਈਟ ਦਾ ਪਤਾ ਖੁਦ ਟਾਈਪ ਕਰੋ।</li>
+            <li><b>ਮਲਟੀ-ਫੈਕਟਰ ਪ੍ਰਮਾਣਿਕਤਾ (MFA) ਦੀ ਵਰਤੋਂ ਕਰੋ</b>: ਇਹ ਤੁਹਾਡੇ ਖਾਤਿਆਂ ਵਿੱਚ ਸੁਰੱਖਿਆ ਦੀ ਇੱਕ ਵਾਧੂ ਪਰਤ ਜੋੜਦਾ ਹੈ।</li>
+            <li><b>ਫਿਸ਼ਿੰਗ ਕੋਸ਼ਿਸ਼ਾਂ ਦੀ ਰਿਪੋਰਟ ਕਰੋ</b>: ਸ਼ੱਕੀ ਈਮੇਲਾਂ ਨੂੰ ਆਪਣੇ ਈਮੇਲ ਪ੍ਰਦਾਤਾ ਜਾਂ ਜਿਸ ਕੰਪਨੀ ਦਾ ਭੇਸ ਧਾਰਿਆ ਜਾ ਰਿਹਾ ਹੈ, ਨੂੰ ਅੱਗੇ ਭੇਜੋ।</li>
+          </ol>`,
+        },
+        videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+        videoTitle: 'How to Spot a Phishing Email',
+        videoDescription: 'A detailed video guide on protecting yourself from phishing scams.',
+        difficulty: 'beginner',
+        estimatedTime: 10,
+        tags: ['phishing', 'scam', 'security', 'cybersecurity'],
+      },
+      {
+        _id: 'fa-test2',
+        title: {
+          en: "Online Shopping Fraud",
+          hi: "ऑनलाइन खरीदारी धोखाधड़ी",
+          pa: "ਔਨਲਾਈਨ ਖਰੀਦਦਾਰੀ ਧੋਖਾਧੜੀ"
+        },
+        description: {
+          en: "Protect yourself from fraudulent e-commerce websites and sellers.",
+          hi: "धोखाधड़ी वाली ई-कॉमर्स वेबसाइटों और विक्रेताओं से खुद को बचाएं।",
+          pa: "ਧੋਖੇਬਾਜ਼ ਈ-ਕਾਮਰਸ ਵੈੱਬਸਾਈਟਾਂ ਅਤੇ ਵਿਕਰੇਤਾਵਾਂ ਤੋਂ ਆਪਣੇ ਆਪ ਨੂੰ ਬਚਾਓ।"
+        },
+        content: {
+          en: "Online shopping fraud involves deceptive practices used by criminals to steal money or information during online purchases.",
+          hi: "ऑनलाइन खरीदारी धोखाधड़ी में ऑनलाइन खरीद के दौरान पैसे या जानकारी चुराने के लिए अपराधियों द्वारा उपयोग की जाने वाली भ्रामक प्रथाएं शामिल हैं।",
+          pa: "ਔਨਲਾਈਨ ਖਰੀਦਦਾਰੀ ਧੋਖਾਧੜੀ ਵਿੱਚ ਔਨਲਾਈਨ ਖਰੀਦਾਂ ਦੌਰਾਨ ਪੈਸੇ ਜਾਂ ਜਾਣਕਾਰੀ ਚੋਰੀ ਕਰਨ ਲਈ ਅਪਰਾਧੀਆਂ ਦੁਆਰਾ ਵਰਤੀਆਂ ਜਾਂਦੀਆਂ ਧੋਖੇਬਾਜ਼ ਪ੍ਰਥਾਵਾਂ ਸ਼ਾਮਲ ਹਨ।"
+        },
+        detailedContent: {
+          en: `
+          <h1>Online Shopping Fraud</h1>
+          <p>Fraudulent online sellers and websites are a major risk. Here's how to shop safely online:</p>
+          <h2>Signs of a Fake Website</h2>
+          <ul>
+            <li><b>No SSL Certificate</b>: Look for a padlock icon or 'https://' in the URL. If it's missing, the site is not secure.</li>
+            <li><b>Unbelievable Deals</b>: If a deal seems too good to be true, it probably is.</li>
+            <li><b>Poor Design and Content</b>: Websites with low-quality images, bad grammar, and no contact information are often fake.</li>
+          </ul>
+          <h2>Safe Shopping Practices</h2>
+          <ol>
+            <li><b>Use Trusted Retailers</b>: Stick to well-known e-commerce platforms.</li>
+            <li><b>Check Reviews</b>: Look for customer reviews of the website or seller before making a purchase.</li>
+            <li><b>Use Secure Payment Methods</b>: Use credit cards or secure payment gateways like PayPal, which offer buyer protection.</li>
+          </ol>`,
+          hi: `
+          <h1>ऑनलाइन खरीदारी धोखाधड़ी</h1>
+          <p>धोखाधड़ी वाले ऑनलाइन विक्रेता और वेबसाइट एक बड़ा जोखिम हैं। यहां सुरक्षित रूप से ऑनलाइन खरीदारी कैसे करें:</p>
+          <h2>नकली वेबसाइट के संकेत</h2>
+          <ul>
+            <li><b>कोई SSL प्रमाणपत्र नहीं</b>: URL में पैडलॉक आइकन या 'https://' देखें। यदि यह अनुपस्थित है, तो साइट सुरक्षित नहीं है।</li>
+            <li><b>अविश्वसनीय सौदे</b>: यदि कोई सौदा इतना अच्छा लगता है कि सच होना मुश्किल है, तो शायद वह है।</li>
+            <li><b>खराब डिजाइन और सामग्री</b>: कम-गुणवत्ता वाली छवियों, खराब व्याकरण और कोई संपर्क जानकारी वाली वेबसाइटें अक्सर नकली होती हैं।</li>
+          </ul>
+          <h2>सुरक्षित खरीदारी अभ्यास</h2>
+          <ol>
+            <li><b>विश्वसनीय खुदरा विक्रेताओं का उपयोग करें</b>: अच्छी तरह से ज्ञात ई-कॉमर्स प्लेटफार्मों से जुड़े रहें।</li>
+            <li><b>समीक्षाएं जांचें</b>: खरीदारी करने से पहले वेबसाइट या विक्रेता की ग्राहक समीक्षाएं देखें।</li>
+            <li><b>सुरक्षित भुगतान विधियों का उपयोग करें</b>: क्रेडिट कार्ड या पेपैल जैसे सुरक्षित भुगतान गेटवे का उपयोग करें, जो खरीदार को सुरक्षा प्रदान करते हैं।</li>
+          </ol>`,
+          pa: `
+          <h1>ਔਨਲਾਈਨ ਖਰੀਦਦਾਰੀ ਧੋਖਾਧੜੀ</h1>
+          <p>ਧੋਖੇਬਾਜ਼ ਔਨਲਾਈਨ ਵਿਕਰੇਤਾ ਅਤੇ ਵੈੱਬਸਾਈਟਾਂ ਇੱਕ ਵੱਡਾ ਜੋਖਮ ਹਨ। ਇੱਥੇ ਸੁਰੱਖਿਅਤ ਢੰਗ ਨਾਲ ਔਨਲਾਈਨ ਖਰੀਦਦਾਰੀ ਕਿਵੇਂ ਕਰਨੀ ਹੈ:</p>
+          <h2>ਨਕਲੀ ਵੈੱਬਸਾਈਟ ਦੇ ਸੰਕੇਤ</h2>
+          <ul>
+            <li><b>ਕੋਈ SSL ਸਰਟੀਫਿਕੇਟ ਨਹੀਂ</b>: URL ਵਿੱਚ ਇੱਕ ਪੈਡਲੌਕ ਆਈਕਨ ਜਾਂ 'https://' ਦੀ ਭਾਲ ਕਰੋ। ਜੇਕਰ ਇਹ ਗੁੰਮ ਹੈ, ਤਾਂ ਸਾਈਟ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਹੈ।</li>
+            <li><b>ਅਵਿਸ਼ਵਾਸ਼ਯੋਗ ਸੌਦੇ</b>: ਜੇਕਰ ਕੋਈ ਸੌਦਾ ਇੰਨਾ ਵਧੀਆ ਲੱਗਦਾ ਹੈ ਕਿ ਸੱਚ ਹੋਣਾ ਮੁਸ਼ਕਲ ਹੈ, ਤਾਂ ਇਹ ਸ਼ਾਇਦ ਹੈ।</li>
+            <li><b>ਮਾੜਾ ਡਿਜ਼ਾਈਨ ਅਤੇ ਸਮੱਗਰੀ</b>: ਘੱਟ-ਗੁਣਵੱਤਾ ਵਾਲੀਆਂ ਤਸਵੀਰਾਂ, ਮਾੜੇ ਵਿਆਕਰਨ, ਅਤੇ ਕੋਈ ਸੰਪਰਕ ਜਾਣਕਾਰੀ ਵਾਲੀਆਂ ਵੈੱਬਸਾਈਟਾਂ ਅਕਸਰ ਨਕਲੀ ਹੁੰਦੀਆਂ ਹਨ।</li>
+          </ul>
+          <h2>ਸੁਰੱਖਿਅਤ ਖਰੀਦਦਾਰੀ ਅਭਿਆਸ</h2>
+          <ol>
+            <li><b>ਭਰੋਸੇਯੋਗ ਰਿਟੇਲਰਾਂ ਦੀ ਵਰਤੋਂ ਕਰੋ</b>: ਚੰਗੀ ਤਰ੍ਹਾਂ ਜਾਣੇ-ਪਛਾਣੇ ਈ-ਕਾਮਰਸ ਪਲੇਟਫਾਰਮਾਂ ਨਾਲ ਜੁੜੇ ਰਹੋ।</li>
+            <li><b>ਸਮੀਖਿਆਵਾਂ ਦੀ ਜਾਂਚ ਕਰੋ</b>: ਖਰੀਦਦਾਰੀ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਵੈੱਬਸਾਈਟ ਜਾਂ ਵਿਕਰੇਤਾ ਦੀਆਂ ਗਾਹਕ ਸਮੀਖਿਆਵਾਂ ਵੇਖੋ।</li>
+            <li><b>ਸੁਰੱਖਿਅਤ ਭੁਗਤਾਨ ਵਿਧੀਆਂ ਦੀ ਵਰਤੋਂ ਕਰੋ</b>: ਕ੍ਰੈਡਿਟ ਕਾਰਡਾਂ ਜਾਂ ਪੇਪਾਲ ਵਰਗੇ ਸੁਰੱਖਿਅਤ ਭੁਗਤਾਨ ਗੇਟਵੇ ਦੀ ਵਰਤੋਂ ਕਰੋ, ਜੋ ਖਰੀਦਦਾਰ ਨੂੰ ਸੁਰੱਖਿਆ ਪ੍ਰਦਾਨ ਕਰਦੇ ਹਨ।</li>
+          </ol>`,
+        },
+        videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+        videoTitle: 'Stay Safe While Shopping Online',
+        videoDescription: 'Tips and tricks to avoid getting scammed on e-commerce sites.',
+        difficulty: 'intermediate',
+        estimatedTime: 15,
+        tags: ['online-shopping', 'fraud', 'e-commerce', 'safety'],
+      },
+    ];
+  };
+
   const handleTitlePress = (content) => {
-    const contentToDisplay = content.detailedContent || content.content;
+    const contentToDisplay = content.detailedContent?.[language] || content.detailedContent?.en;
+
     if (contentToDisplay) {
       setSelectedContent({
         ...content,
@@ -133,18 +236,18 @@ export default function FraudAwarenessModule() {
       });
       setViewMode('tutorial');
     } else {
-      Alert.alert('No Content', 'No detailed content is available for this topic.');
+      Alert.alert('No Content', `No detailed content is available for this topic in ${language.toUpperCase()}.`);
     }
   };
 
   const handleVideoPress = (content) => {
-    if (content.videoUrl && content.videoUrl !== 'https://example.com/video.mp4') {
+    if (content.videoUrl) {
       setSelectedVideo({
         url: content.videoUrl,
-        title: content.videoTitle || content.title,
-        description: content.videoDescription || content.description
+        title: content.videoTitle || content.title?.[language] || content.title.en,
+        description: content.videoDescription || content.description?.[language] || content.description.en,
       });
-      setViewMode('video');
+      setVideoLoading(true);
       setVideoModalVisible(true);
     } else {
       Alert.alert('No Video', 'No valid video is available for this content.');
@@ -159,15 +262,15 @@ export default function FraudAwarenessModule() {
   const closeVideoModal = () => {
     setVideoModalVisible(false);
     setSelectedVideo(null);
-    setViewMode('list');
+    setVideoLoading(true);
   };
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
-      case 'beginner': return '#4CAF50';
-      case 'intermediate': return '#FF9800';
-      case 'advanced': return '#F44336';
-      default: return '#2196F3';
+      case 'beginner': return '#27ae60';
+      case 'intermediate': return '#f39c12';
+      case 'advanced': return '#e74c3c';
+      default: return '#3498db';
     }
   };
 
@@ -191,33 +294,36 @@ export default function FraudAwarenessModule() {
   const renderContentItem = ({ item }) => {
     return (
       <View style={styles.contentItem}>
-        <View style={styles.contentRow}>
-          <TouchableOpacity 
-            style={styles.titleSection}
-            onPress={() => handleTitlePress(item)}
-          >
-            <Text style={styles.contentTitle}>{item.title}</Text>
-            <Text style={styles.contentDescription} numberOfLines={2}>
-              {item.content || item.description}
+        <TouchableOpacity
+          style={styles.cardContentContainer}
+          onPress={() => handleTitlePress(item)}
+          activeOpacity={0.8}
+        >
+          <RenderHtml
+            contentWidth={width}
+            source={{ html: item.title?.[language] || item.title?.en }}
+            tagsStyles={{ b: styles.contentTitle, h1: styles.contentTitle, p: styles.contentTitle }}
+          />
+          <Text style={styles.contentDescription} numberOfLines={2}>
+            {item.description?.[language] || item.description?.en || 'No description available.'}
+          </Text>
+          <View style={styles.metaInfo}>
+            <Text style={[styles.difficultyBadge, { color: getDifficultyColor(item.difficulty) }]}>
+              {getDifficultyIcon(item.difficulty)} {item.difficulty || 'General'}
             </Text>
-            <View style={styles.metaInfo}>
-              <Text style={[styles.difficultyBadge, { color: getDifficultyColor(item.difficulty) }]}>
-                {getDifficultyIcon(item.difficulty)} {item.difficulty || 'General'}
-              </Text>
-              <Text style={styles.timeEstimate}>⏱ {formatTime(item.estimatedTime)}</Text>
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.videoIconSection}
-            onPress={() => handleVideoPress(item)}
-          >
-            <View style={styles.videoButton}>
-              <Text style={styles.videoIcon}>▶️</Text>
-            </View>
-            <Text style={styles.videoLabel}>Watch</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.timeEstimate}>⏱ {formatTime(item.estimatedTime)}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.videoIconSection}
+          onPress={() => handleVideoPress(item)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.videoButton}>
+            <Text style={styles.videoIcon}>▶️</Text>
+          </View>
+          <Text style={styles.videoLabel}>Watch</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -225,117 +331,85 @@ export default function FraudAwarenessModule() {
   const renderTutorialContent = () => {
     if (!selectedContent || !selectedContent.tutorial) {
       return (
-        <View style={styles.noTutorialContainer}>
+        <SafeAreaView style={styles.noTutorialContainer}>
           <Text style={styles.noTutorialText}>No tutorial content available for this topic.</Text>
           <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
             <Text style={styles.backButtonText}>← Back to List</Text>
           </TouchableOpacity>
-        </View>
+        </SafeAreaView>
       );
     }
+
+    const source = { html: selectedContent.tutorial };
+
+    const tagsStyles = {
+      h1: styles.tutorialMainHeading,
+      h2: styles.tutorialSubHeading,
+      h3: styles.tutorialSubSubHeading,
+      p: styles.tutorialParagraph,
+      li: styles.bulletText,
+      ul: { marginBottom: 16, paddingLeft: 0, listStyleType: 'disc' },
+      ol: { marginBottom: 16, paddingLeft: 0, listStyleType: 'decimal' },
+      b: styles.boldText,
+      strong: styles.boldText,
+    };
+
     return (
-      <ScrollView style={styles.tutorialContainer}>
+      <SafeAreaView style={styles.tutorialContainer}>
         <View style={styles.tutorialHeader}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
             <Text style={styles.backButtonText}>← Back to List</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.headerVideoButton}
             onPress={() => handleVideoPress(selectedContent)}
+            activeOpacity={0.8}
           >
             <Text style={styles.headerVideoIcon}>▶️</Text>
           </TouchableOpacity>
         </View>
-        
-        <View style={styles.tutorialCard}>
-          <Text style={styles.tutorialTitle}>{selectedContent.title}</Text>
-          
-          <View style={styles.tutorialMeta}>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Difficulty:</Text>
-              <Text style={[styles.metaValue, { color: getDifficultyColor(selectedContent.difficulty) }]}>
-                {getDifficultyIcon(selectedContent.difficulty)} {selectedContent.difficulty || 'General'}
-              </Text>
-            </View>
-            
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Estimated Time:</Text>
-              <Text style={styles.metaValue}>⏱ {formatTime(selectedContent.estimatedTime)}</Text>
-            </View>
-          </View>
-          
-          <View style={styles.tutorialContent}>
-            {selectedContent.tutorial.split('\n').map((paragraph, index) => {
-              if (paragraph.trim() === '') return null;
-              
-              if (paragraph.startsWith('# ')) {
-                return (
-                  <Text key={index} style={styles.tutorialMainHeading}>
-                    {paragraph.replace('# ', '')}
-                  </Text>
-                );
-              } else if (paragraph.startsWith('## ')) {
-                return (
-                  <Text key={index} style={styles.tutorialSubHeading}>
-                    {paragraph.replace('## ', '')}
-                  </Text>
-                );
-              } else if (paragraph.startsWith('### ')) {
-                return (
-                  <Text key={index} style={styles.tutorialSubSubHeading}>
-                    {paragraph.replace('### ', '')}
-                  </Text>
-                );
-              } else if (paragraph.startsWith('- *') || paragraph.startsWith(' **')) {
-                const cleanText = paragraph.replace(/^[-]\s/, '').replace(/\\/g, '');
-                return (
-                  <View key={index} style={styles.bulletPoint}>
-                    <Text style={styles.bulletSymbol}>•</Text>
-                    <Text style={styles.bulletText}>{cleanText}</Text>
-                  </View>
-                );
-              } else if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
-                return (
-                  <View key={index} style={styles.bulletPoint}>
-                    <Text style={styles.bulletSymbol}>•</Text>
-                    <Text style={styles.bulletText}>{paragraph.replace(/^[-]\s/, '')}</Text>
-                  </View>
-                );
-              } else if (paragraph.match(/^\d+\./)) {
-                return (
-                  <View key={index} style={styles.numberedPoint}>
-                    <Text style={styles.numberedText}>{paragraph}</Text>
-                  </View>
-                );
-              } else if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                return (
-                  <Text key={index} style={styles.boldText}>
-                    {paragraph.replace(/\*\*/g, '')}
-                  </Text>
-                );
-              } else {
-                return (
-                  <Text key={index} style={styles.tutorialParagraph}>
-                    {paragraph.replace(/\\/g, '')}
-                  </Text>
-                );
-              }
-            })}
-          </View>
-          
-          {selectedContent.tags && selectedContent.tags.length > 0 && (
-            <View style={styles.contentSection}>
-              <Text style={styles.sectionTitle}>🏷 Tags</Text>
-              <View style={styles.tagsContainer}>
-                {selectedContent.tags.map((tag, index) => (
-                  <Text key={index} style={styles.tag}>#{tag}</Text>
-                ))}
+
+        <ScrollView style={styles.tutorialScroll}>
+          <View style={styles.tutorialCard}>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: selectedContent.title?.[language] || selectedContent.title?.en }}
+              tagsStyles={{ b: styles.tutorialTitle, h1: styles.tutorialTitle, p: styles.tutorialTitle }}
+            />
+            <View style={styles.tutorialMeta}>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Difficulty:</Text>
+                <Text style={[styles.metaValue, { color: getDifficultyColor(selectedContent.difficulty) }]}>
+                  {getDifficultyIcon(selectedContent.difficulty)} {selectedContent.difficulty || 'General'}
+                </Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Time:</Text>
+                <Text style={styles.metaValue}>⏱ {formatTime(selectedContent.estimatedTime)}</Text>
               </View>
             </View>
-          )}
-        </View>
-      </ScrollView>
+
+            <View style={styles.tutorialContent}>
+              <RenderHtml
+                contentWidth={width}
+                source={source}
+                tagsStyles={tagsStyles}
+              />
+            </View>
+
+            {selectedContent.tags && selectedContent.tags.length > 0 && (
+              <View style={styles.contentSection}>
+                <Text style={styles.sectionTitle}>🏷 Tags</Text>
+                <View style={styles.tagsContainer}>
+                  {selectedContent.tags.map((tag, index) => (
+                    <Text key={index} style={styles.tag}>#{tag}</Text>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     );
   };
 
@@ -352,46 +426,46 @@ export default function FraudAwarenessModule() {
             <Text style={styles.closeButtonText}>✕ Close</Text>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.videoContainer}>
-          <View style={styles.videoPlayerPlaceholder}>
-            <Text style={styles.videoPlayerIcon}>🎥</Text>
-            <Text style={styles.videoPlayerTitle}>Video Player</Text>
-            <Text style={styles.videoPlayerSubtitle}>
-              {selectedVideo?.title}
-            </Text>
-            <Text style={styles.videoUrl}>
-              URL: {selectedVideo?.url}
-            </Text>
-            <View style={styles.videoControlsContainer}>
-              <TouchableOpacity style={styles.videoControlButton}>
-                <Text style={styles.videoControlIcon}>⏮</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.videoPlayButton}>
-                <Text style={styles.videoPlayIcon}>▶️</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.videoControlButton}>
-                <Text style={styles.videoControlIcon}>⏭</Text>
-              </TouchableOpacity>
+          {selectedVideo?.url ? (
+            <>
+              <Video
+                source={{ uri: selectedVideo.url }}
+                style={styles.videoPlayer}
+                controls={true}
+                resizeMode="contain"
+                onLoad={() => setVideoLoading(false)}
+                onError={(e) => {
+                  console.log('Video error:', e);
+                  setVideoLoading(false);
+                  Alert.alert('Video Error', 'The video could not be played.');
+                }}
+                onLoadStart={() => setVideoLoading(true)}
+              />
+              {videoLoading && (
+                <View style={styles.videoLoadingOverlay}>
+                  <ActivityIndicator size="large" color="#FFF" />
+                  <Text style={styles.videoLoadingText}>Loading video...</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={styles.videoPlaceholder}>
+              <Text style={styles.videoPlaceholderIcon}>🎥</Text>
+              <Text style={styles.videoPlaceholderText}>No video available for this topic.</Text>
             </View>
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBar}>
-                <View style={styles.progressFill} />
-              </View>
-              <Text style={styles.timeText}>0:00 / 15:30</Text>
-            </View>
-            <Text style={styles.videoNote}>
-              Replace this placeholder with react-native-video or similar library
-            </Text>
-          </View>
+          )}
         </View>
-        
+
         {selectedVideo?.description && (
           <View style={styles.videoDescription}>
             <Text style={styles.videoDescriptionTitle}>About this video:</Text>
-            <Text style={styles.videoDescriptionText}>
-              {selectedVideo.description}
-            </Text>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: `<p>${selectedVideo.description}</p>` }}
+              tagsStyles={{ p: styles.videoDescriptionText }}
+            />
           </View>
         )}
       </View>
@@ -400,10 +474,10 @@ export default function FraudAwarenessModule() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#F44336" />
         <Text style={styles.loadingText}>Loading Fraud Awareness content...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -412,12 +486,33 @@ export default function FraudAwarenessModule() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.mainTitle}>🚨 Fraud Awareness</Text>
         <Text style={styles.subtitle}>
-          Tap a topic to learn more • Tap video icon to watch
+          Tap title for tutorial • Tap video icon to watch
         </Text>
+        <View style={styles.languageSelector}>
+          <TouchableOpacity
+            style={[styles.langButton, language === 'en' && styles.langButtonActive]}
+            onPress={() => setLanguage('en')}
+          >
+            <Text style={[styles.langText, language === 'en' && styles.langTextActive]}>English</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.langButton, language === 'hi' && styles.langButtonActive]}
+            onPress={() => setLanguage('hi')}
+          >
+            <Text style={[styles.langText, language === 'hi' && styles.langTextActive]}>हिंदी</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.langButton, language === 'pa' && styles.langButtonActive]}
+            onPress={() => setLanguage('pa')}
+          >
+            <Text style={[styles.langText, language === 'pa' && styles.langTextActive]}>ਪੰਜਾਬੀ</Text>
+          </TouchableOpacity>
+        </View>
+        
         {learningContent.length > 0 && (
           <Text style={styles.contentCount}>
             {learningContent.length} topic{learningContent.length !== 1 ? 's' : ''} available
@@ -449,7 +544,7 @@ export default function FraudAwarenessModule() {
       )}
       
       {renderVideoModal()}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -492,7 +587,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
+  },
+  languageSelector: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  langButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  langButtonActive: {
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  langText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  langTextActive: {
+    color: '#D32F2F',
   },
   contentCount: {
     fontSize: 12,
@@ -518,6 +640,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   contentItem: {
+    flexDirection: 'row',
     backgroundColor: 'white',
     borderRadius: 16,
     marginBottom: 16,
@@ -526,12 +649,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    overflow: 'hidden',
   },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  titleSection: {
+  cardContentContainer: {
     flex: 1,
     padding: 20,
     paddingRight: 12,
@@ -540,7 +660,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#2c3e50',
-    marginBottom: 8,
+    marginBottom: 4,
     lineHeight: 24,
   },
   contentDescription: {
@@ -569,8 +689,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f8f9fa',
-    borderTopRightRadius: 16,
-    borderBottomRightRadius: 16,
   },
   videoButton: {
     width: 50,
@@ -599,12 +717,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FBE8E7',
   },
+  tutorialScroll: {
+    flex: 1,
+  },
   tutorialHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   backButton: {
@@ -634,8 +755,8 @@ const styles = StyleSheet.create({
   },
   tutorialCard: {
     backgroundColor: 'white',
-    margin: 20,
-    marginTop: 0,
+    marginHorizontal: 20,
+    marginBottom: 20,
     borderRadius: 20,
     padding: 24,
     shadowColor: '#000',
@@ -702,44 +823,26 @@ const styles = StyleSheet.create({
     color: '#5d6d7e',
     lineHeight: 24,
     marginBottom: 12,
-    textAlign: 'justify',
-  },
-  bulletPoint: {
-    flexDirection: 'row',
-    marginBottom: 8,
-    paddingLeft: 16,
-  },
-  bulletSymbol: {
-    fontSize: 16,
-    color: '#D32F2F',
-    marginRight: 12,
-    fontWeight: 'bold',
-    marginTop: 2,
   },
   bulletText: {
-    fontSize: 15,
-    color: '#5d6d7e',
-    flex: 1,
-    lineHeight: 22,
-  },
-  numberedPoint: {
-    marginBottom: 8,
-    paddingLeft: 16,
-  },
-  numberedText: {
     fontSize: 15,
     color: '#5d6d7e',
     lineHeight: 22,
   },
   boldText: {
-    fontSize: 15,
     fontWeight: 'bold',
+    fontSize: 15,
     color: '#2c3e50',
-    marginBottom: 8,
-    marginTop: 8,
+    lineHeight: 24,
   },
   contentSection: {
     marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 12,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -824,103 +927,40 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: '#000',
   },
-  videoPlayerPlaceholder: {
-    width: width * 0.95,
-    height: height * 0.5,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
+  videoPlayer: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+  },
+  videoLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#333',
   },
-  videoPlayerIcon: {
+  videoLoadingText: {
+    marginTop: 10,
+    color: '#FFF',
+    fontSize: 16,
+  },
+  videoPlaceholder: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlaceholderIcon: {
     fontSize: 60,
     marginBottom: 16,
+    color: '#FFF',
   },
-  videoPlayerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  videoPlayerSubtitle: {
+  videoPlaceholderText: {
     color: '#ccc',
     fontSize: 16,
-    marginBottom: 16,
     textAlign: 'center',
     paddingHorizontal: 20,
-  },
-  videoUrl: {
-    color: '#888',
-    fontSize: 12,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  videoControlsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  videoControlButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 10,
-  },
-  videoPlayButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#E53935',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 15,
-  },
-  videoControlIcon: {
-    fontSize: 20,
-    color: 'white',
-  },
-  videoPlayIcon: {
-    fontSize: 28,
-    color: 'white',
-  },
-  progressBarContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  progressBar: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#333',
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressFill: {
-    width: '30%',
-    height: '100%',
-    backgroundColor: '#E53935',
-    borderRadius: 2,
-  },
-  timeText: {
-    color: '#ccc',
-    fontSize: 12,
-  },
-  videoNote: {
-    color: '#666',
-    fontSize: 10,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 16,
   },
   videoDescription: {
     backgroundColor: 'rgba(0,0,0,0.9)',

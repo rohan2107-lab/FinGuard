@@ -39,6 +39,9 @@ import EditProfile from './src/screens/bottomComponents/Profile/EditProfile';
 import Security from './src/screens/bottomComponents/Profile/Security';
 import Settings from './src/screens/bottomComponents/Profile/Settings';
 import HelpAndSupport from './src/screens/bottomComponents/Profile/HelpAndSupport';
+//new section
+import Articles from './src/screens/Categories/Articles/Articles';
+import News from './src/screens/Categories/News/News';
 
 // Game Section
 import GamesHome from './src/screens/Games/GamesHome';
@@ -115,6 +118,9 @@ export default function App() {
           <Stack.Screen name="MutualFundsTutorial" component={MutualFundsTutorial} />
           <Stack.Screen name="FraudTutorial" component={FraudTutorial} />
           <Stack.Screen name="TaxTutorial" component={TaxTutorial} />
+          {/* new section */}
+          <Stack.Screen name="Articles" component={Articles} />
+          <Stack.Screen name="News" component={News} />
 
           {/* ✅ Tabs as main app */}
           <Stack.Screen name="TabNavigation" component={TabNavigation} />

@@ -1,8 +1,4 @@
 import * as React from "react";
-
-import { useState } from "react";
-import { StyleSheet, View, Text, Pressable, TextInput, Image, Alert } from "react-native";
-
 import { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -10,22 +6,24 @@ import {
   Text,
   Pressable,
   TextInput,
-  Image,
+  Alert, // It's better to use Alert than the global window.alert
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
-import Baseshape from "../../assets/base-shape.svg";
-import Facebook from "../../assets/Facebook.svg";
-import Google from "../../assets/Google.svg";
-import Vector from "../../assets/Eye-Pass.svg";
-
-import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
-import { useNavigation, CommonActions } from "@react-navigation/native";
 import axios from 'axios';
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import App from "../../../App";
-import { appAxios } from "../../api/apiconfig";
+import { useNavigation, CommonActions } from "@react-navigation/native";
+
+// SVG imports - assuming these paths are correct
+import Vector from "../../assets/Eye-Pass.svg";
+import Google from "../../assets/Google.svg";
+import Facebook from "../../assets/Facebook.svg";
+
+// Import custom constants
+import { Color, Fonts, FontSize, Border } from "../../constants/GlobleStyle";
+
+// If `appAxios` is a separate configured instance, you should use that one.
+// I've kept the `axios` import for the example, but you'll need to decide which to use.
+// const { appAxios } = require("../../api/apiconfig");
 
 const Welcome = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -34,42 +32,55 @@ const Welcome = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
-
-  // Login API setup start (rohan)
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter email and password");
-
-  // Added from main branch: check stored token on mount
+  // Check for an existing token on app start
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await AsyncStorage.getItem("authToken");
-      console.log("+++++", token);
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        if (token) {
+          console.log("Found existing token:", token);
+          // Optional: Navigate directly to the main app if a token exists
+          // navigation.dispatch(
+          //   CommonActions.reset({
+          //     index: 0,
+          //     routes: [{ name: 'MainApp' }],
+          //   })
+          // );
+        }
+      } catch (error) {
+        console.error("Failed to fetch token from storage:", error);
+      }
     };
     fetchToken();
   }, []);
 
-  // Login API setup
   const handleLogin = async () => {
     if (!email || !password) {
-      alert("Please enter email and password");
-
+      Alert.alert("Error", "Please enter email and password");
       return;
     }
     setLoading(true);
     try {
-
-      const response = await axios.post('http:/10.9.52.8:8000/api/auth/login', {
+      // Choose one of the following API calls, not both.
+      // Option 1: Using plain axios
+      const response = await axios.post('http://10.77.224.93:8000/api/auth/login', {
         email,
         password,
       });
+
+      // Option 2: Using a pre-configured axios instance (appAxios)
+      // const response = await appAxios.post("api/auth/login", {
+      //   email,
+      //   password,
+      // });
+
       if (response.status === 200) {
         Alert.alert("Success", "Login successful!");
         const token = response.data.data.token;
-        console.log('data', response.data);
-        console.log('token', response.data.data.token);
+        console.log('Login successful, token:', token);
         await AsyncStorage.setItem('authToken', token);
-        // Navigate to main app screen
+        
+        // Navigate to the main app screen after successful login
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -80,15 +91,14 @@ const Welcome = () => {
         Alert.alert("Error", "Login failed: " + response.data.message);
       }
     } catch (error) {
-      console.log(error.response?.data || error.message);
+      console.log("Login error details:", error.response?.data || error.message);
       Alert.alert("Error", "Login error: " + (error.response?.data?.message || error.message));
     }
     setLoading(false);
   };
-  // Login API setup end (Rohan)
 
   const handleForgotPassword = () => {
-    // Navigate to forgot password screen or handle forgot password logic
+    // Navigate to forgot password screen
     console.log("Forgot password pressed");
     // navigation.navigate("ForgotPassword");
   };
@@ -98,42 +108,9 @@ const Welcome = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    // Handle social login logic
+    // Handle social login logic here
     console.log(`${provider} login pressed`);
   };
-
-      const response = await appAxios.post(
-        "api/auth/login",
-        {
-          email,
-          password,
-        }
-      );
-      if (response.status === 200) {
-        alert("Login successful!");
-        const token = response.data.data.token;
-        console.log("data", response.data);
-        console.log("token", token);
-        await AsyncStorage.setItem("authToken", token);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "MainApp" }],
-          })
-        );
-      } else {
-        alert("Login failed: " + response.data.message);
-      }
-    } catch (error) {
-      console.log(error.response?.data || error.message);
-      alert(
-        "Login error: " +
-          (error.response?.data?.message || error.message)
-      );
-    }
-    setLoading(false);
-  };
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -181,62 +158,45 @@ const Welcome = () => {
             </Text>
           </Pressable>
 
-          
           <Pressable style={styles.forgotPassword} onPress={handleForgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </Pressable>
           
           <Pressable style={styles.signUpBtn} onPress={handleSignUp}>
             <Text style={styles.signUpBtnText}>Sign Up</Text>
-
-          <Pressable style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </Pressable>
-          <Pressable style={styles.signUpBtn}>
-            <Text
-              style={styles.signUpBtnText}
-              onPress={() => {
-                navigation.navigate("CreateAccount");
-              }}
-            >
-              Sign Up
-            </Text>
 
-          </Pressable>
-          
+          {/* This section appears to be for a different login method, possibly biometric */}
           <Text style={styles.fingerprintText}>
-            Use <Text style={styles.fingerprintHighlight}>Fingerprint</Text> To
-            Access
+            Use <Text style={styles.fingerprintHighlight}>Fingerprint</Text> To Access
           </Text>
           
           <Text style={styles.orText}>or sign up with</Text>
           
           <View style={styles.socialRow}>
-
+            {/* You had a duplicate Google button, this combines them */}
             <Pressable 
               style={styles.socialBtn} 
               onPress={() => handleSocialLogin('Google')}
             >
               <Google width={33} height={33} />
             </Pressable>
+            {/* Added a Facebook button, since it was imported but not used */}
+            <Pressable 
+              style={styles.socialBtn} 
+              onPress={() => handleSocialLogin('Facebook')}
+            >
+              <Facebook width={33} height={33} />
+            </Pressable>
           </View>
-
+          
+          {/* This bottom text was duplicated, I've used the more structured version */}
           <View style={styles.bottomTextContainer}>
             <Text style={styles.bottomText}>Don't have an account? </Text>
             <Pressable onPress={handleSignUp}>
               <Text style={styles.bottomSignUp}>Sign Up</Text>
             </Pressable>
           </View>
-
-            <Pressable style={styles.socialBtn}>
-              <Google width={33} height={33} />
-            </Pressable>
-          </View>
-          <Text style={styles.bottomText}>
-            Don’t have an account?{" "}
-            <Text style={styles.bottomSignUp}>Sign Up</Text>
-          </Text>
-
         </View>
       </View>
     </SafeAreaView>
@@ -391,11 +351,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: Fonts.leagueSpartanLight,
     color: Color.colorDarkslategray200,
-
-
-    textAlign: "center",
-    marginTop: 8,
-
   },
   bottomSignUp: {
     fontSize: 13,

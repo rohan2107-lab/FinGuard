@@ -9,63 +9,30 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Dimensions
+  Dimensions,
+  SafeAreaView,
 } from 'react-native';
 import Video from 'react-native-video';
-
+import RenderHtml from 'react-native-render-html';
 
 const { width, height } = Dimensions.get('window');
 
 export default function FinanceTutorial() {
-
-  const [learningContent, setLearningContent] = useState([]);
-  const [selectedContent, setSelectedContent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [contentLoading, setContentLoading] = useState(false);
-
-  // Replace with your actual API base URL
-  const API_BASE_URL = 'http://10.172.41.48:8000';
-  
-  useEffect(() => {
-    fetchLearningContent();
-  }, []);
-
-  const fetchLearningContent = async () => {
-    try {
-      setLoading(true);
-      // Using category slug for finance content
-      const response = await fetch('${API_BASE_URL}/api/learning/content/category/finance');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch learning content');
-      }
-      
-      const data = await response.json();
-      setLearningContent(data);
-    } catch (error) {
-      console.error('Error fetching learning content:', error);
-      Alert.alert('Error', 'Failed to load learning content. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-
-
-
   const [learningContent, setLearningContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'tutorial', 'video'
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'tutorial'
   const [videoLoading, setVideoLoading] = useState(true);
+  const [language, setLanguage] = useState('en'); // Default to English
 
-  const API_BASE_URL = 'http://10.172.41.93:8000';
+  // Replace with your actual API base URL
+  const API_BASE_URL = 'http://10.77.224.93:8000';
 
   useEffect(() => {
     fetchFinanceBasicsContent();
-  }, []);
+  }, [language]); // Re-fetch content when language changes
 
   const fetchFinanceBasicsContent = async () => {
     try {
@@ -93,41 +60,7 @@ export default function FinanceTutorial() {
         setLearningContent(data);
       } else {
         console.warn('Unexpected data structure:', data);
-        const testData = [
-          {
-            _id: 'test1',
-            title: 'Understanding Compound Interest',
-            description: "Learn how compound interest works and why it's important for wealth building",
-            content: "Tax planning is a crucial aspect of financial management...",
-            detailedContent: "This comprehensive guide covers all aspects of tax planning including...",
-            videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-            videoTitle: 'Compound Interest Explained',
-            videoDescription: 'A comprehensive guide to compound interest',
-            difficulty: 'beginner',
-            estimatedTime: 45,
-            tags: ['compound-interest', 'saving', 'investing', 'beginners'],
-            prerequisites: ['Basic math', 'Understanding of simple interest'],
-            learningObjectives: ['Calculate compound interest', 'Understand time value of money'],
-            isPublished: true,
-          },
-          {
-            _id: 'test2',
-            title: 'Building Your First Budget',
-            description: "Step-by-step guide to creating and maintaining a personal budget that works.",
-            content: "A budget is your roadmap to financial success.",
-            detailedContent: `# Building Your First Budget
-A budget is your roadmap to financial success. It helps you control your spending, save money, and reach your financial goals.
-...
-`,
-            videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-            videoTitle: 'How to Create Your First Budget - Step by Step',
-            videoDescription: 'Learn how to build a realistic budget that you can actually stick to.',
-            difficulty: 'beginner',
-            estimatedTime: 25,
-            tags: ['budgeting', 'money management', 'savings'],
-          }
-        ];
-        setLearningContent(testData);
+        setLearningContent(getTestData());
       }
     } catch (error) {
       console.error('Error fetching learning content:', error);
@@ -135,42 +68,153 @@ A budget is your roadmap to financial success. It helps you control your spendin
         'Connection Error',
         `Unable to connect to server. Showing test data instead.`
       );
-      const testData = [
-        {
-          _id: 'error-test1',
-          title: 'Introduction to Personal Finance',
-          description: 'Learn the fundamentals of managing your personal finances effectively.',
-          content: 'This is the short introduction to personal finance.',
-          detailedContent: 'This is the full, detailed guide to personal finance, including sections on budgeting, saving, and investing.',
-          videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-          videoTitle: 'Personal Finance Basics',
-          videoDescription: 'A comprehensive introduction to personal finance.',
-          isPublished: true,
-          difficulty: 'beginner',
-          estimatedTime: 30
-        },
-        {
-          _id: 'error-test2',
-          title: 'Investment Fundamentals',
-          description: 'Understanding different types of investments and how to get started.',
-          content: 'Here are the basics of investing.',
-          detailedContent: 'This tutorial covers the different types of investments, including stocks, bonds, and mutual funds, and explains key principles like diversification.',
-          videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
-          videoTitle: 'Investment Basics for Beginners',
-          videoDescription: 'Learn the fundamentals of investing.',
-          isPublished: true,
-          difficulty: 'intermediate',
-          estimatedTime: 45
-        }
-      ];
-      setLearningContent(testData);
+      setLearningContent(getTestData());
     } finally {
       setLoading(false);
     }
   };
 
+  const getTestData = () => {
+    return [
+      {
+        _id: 'test1',
+        title: {
+          en: "<b>Understanding Compound Interest</b>",
+          hi: "<b>चक्रवृद्धि ब्याज को समझना</b>",
+          pa: "<b>ਚੱਕਰਵਿਧ ਬਿਆਜ ਨੂੰ ਸਮਝਣਾ</b>"
+        },
+        description: {
+          en: "Learn how compound interest works and why it's important for wealth building.",
+          hi: "सीखें कि चक्रवृद्धि ब्याज कैसे काम करता है और यह धन बनाने के लिए क्यों महत्वपूर्ण है।",
+          pa: "ਸਮਝੋ ਕਿ ਚੱਕਰਵਿਧ ਬਿਆਜ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ ਅਤੇ ਇਹ ਦੌਲਤ ਬਣਾਉਣ ਲਈ ਕਿਉਂ ਜ਼ਰੂਰੀ ਹੈ।"
+        },
+        content: {
+          en: "<p>Tax planning is a crucial aspect of financial management...</p>",
+          hi: "<p>कर नियोजन वित्तीय प्रबंधन का एक महत्वपूर्ण पहलू है...</p>",
+          pa: "<p>ਟੈਕਸ ਪਲਾਨਿੰਗ ਵਿੱਤੀ ਪ੍ਰਬੰਧਨ ਦਾ ਇੱਕ ਮਹੱਤਵਪੂਰਨ ਪਹਿਲੂ ਹੈ...</p>"
+        },
+        detailedContent: {
+          en: `
+          <h1>Understanding Compound Interest</h1>
+          <p>Compound interest is the interest on a loan or deposit calculated based on both the initial principal and the accumulated interest from previous periods.</p>
+          <p>It's often referred to as "interest on interest" and is one of the most powerful concepts in finance.</p>
+          <h2>Why is it so powerful?</h2>
+          <p>Compound interest allows your money to grow exponentially over time. Here's how it works:</p>
+          <ul>
+            <li>In the first period, you earn interest on your initial investment (the principal).</li>
+            <li>In the second period, you earn interest on the principal PLUS the interest you earned in the first period.</li>
+            <li>This cycle continues, with each period's interest being added to the principal for the next period's calculation.</li>
+          </ul>`,
+          hi: `
+          <h1>चक्रवृद्धि ब्याज को समझना</h1>
+          <p>चक्रवृद्धि ब्याज किसी ऋण या जमा पर प्रारंभिक मूलधन और पिछले अवधियों से संचित ब्याज दोनों के आधार पर गणना किया गया ब्याज है।</p>
+          <p>इसे अक्सर "ब्याज पर ब्याज" के रूप में जाना जाता है और यह वित्त में सबसे शक्तिशाली अवधारणाओं में से एक है।</p>
+          <h2>यह इतना शक्तिशाली क्यों है?</h2>
+          <p>चक्रवृद्धि ब्याज आपके पैसे को समय के साथ तेजी से बढ़ने देता है। यह इस तरह काम करता है:</p>
+          <ul>
+            <li>पहली अवधि में, आप अपने प्रारंभिक निवेश (मूलधन) पर ब्याज कमाते हैं।</li>
+            <li>दूसरी अवधि में, आप मूलधन और पहली अवधि में अर्जित ब्याज दोनों पर ब्याज कमाते हैं।</li>
+            <li>यह चक्र जारी रहता है, जिसमें प्रत्येक अवधि का ब्याज अगली अवधि की गणना के लिए मूलधन में जोड़ा जाता है।</li>
+          </ul>`,
+          pa: `
+          <h1>ਚੱਕਰਵਿਧ ਬਿਆਜ ਨੂੰ ਸਮਝਣਾ</h1>
+          <p>ਚੱਕਰਵਿਧ ਬਿਆਜ ਕਿਸੇ ਕਰਜ਼ੇ ਜਾਂ ਜਮ੍ਹਾਂ ਉੱਤੇ ਅਸਲ ਮੂਲ ਅਤੇ ਪਿਛਲੀਆਂ ਮਿਆਦਾਂ ਦੇ ਇਕੱਠੇ ਹੋਏ ਬਿਆਜ ਦੋਵਾਂ ਉੱਤੇ ਗਣਨਾ ਕੀਤਾ ਗਿਆ ਬਿਆਜ ਹੈ।</p>
+          <p>ਇਸਨੂੰ ਅਕਸਰ "ਬਿਆਜ ਉੱਤੇ ਬਿਆਜ" ਕਿਹਾ ਜਾਂਦਾ ਹੈ ਅਤੇ ਇਹ ਵਿੱਤ ਵਿੱਚ ਸਭ ਤੋਂ ਸ਼ਕਤੀਸ਼ਾਲੀ ਧਾਰਨਾਵਾਂ ਵਿੱਚੋਂ ਇੱਕ ਹੈ।</p>
+          <h2>ਇਹ ਇੰਨਾ ਸ਼ਕਤੀਸ਼ਾਲੀ ਕਿਉਂ ਹੈ?</h2>
+          <p>ਚੱਕਰਵਿਧ ਬਿਆਜ ਤੁਹਾਡੇ ਪੈਸੇ ਨੂੰ ਸਮੇਂ ਦੇ ਨਾਲ ਤੇਜ਼ੀ ਨਾਲ ਵਧਾਉਣ ਦਿੰਦਾ ਹੈ। ਇਹ ਇਸ ਤਰ੍ਹਾਂ ਕੰਮ ਕਰਦਾ ਹੈ:</p>
+          <ul>
+            <li>ਪਹਿਲੀ ਮਿਆਦ ਵਿੱਚ, ਤੁਸੀਂ ਆਪਣੇ ਮੁੱਢਲੇ ਨਿਵੇਸ਼ (ਮੂਲ) ਉੱਤੇ ਬਿਆਜ ਕਮਾਉਂਦੇ ਹੋ।</li>
+            <li>ਦੂਜੀ ਮਿਆਦ ਵਿੱਚ, ਤੁਸੀਂ ਮੂਲ ਅਤੇ ਪਹਿਲੀ ਮਿਆਦ ਵਿੱਚ ਕਮਾਏ ਬਿਆਜ ਦੋਵਾਂ ਉੱਤੇ ਬਿਆਜ ਕਮਾਉਂਦੇ ਹੋ।</li>
+            <li>ਇਹ ਚੱਕਰ ਜਾਰੀ ਰਹਿੰਦਾ ਹੈ, ਜਿੱਥੇ ਹਰ ਮਿਆਦ ਦਾ ਬਿਆਜ ਅਗਲੀ ਮਿਆਦ ਦੀ ਗਣਨਾ ਲਈ ਮੂਲ ਵਿੱਚ ਜੋੜਿਆ ਜਾਂਦਾ ਹੈ।</li>
+          </ul>`
+        },
+        videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+        videoTitle: 'Compound Interest Explained',
+        videoDescription: 'A comprehensive guide to compound interest.',
+        difficulty: 'beginner',
+        estimatedTime: 45,
+        tags: ['compound-interest', 'saving', 'investing', 'beginners'],
+        prerequisites: ['Basic math', 'Understanding of simple interest'],
+        learningObjectives: ['Calculate compound interest', 'Understand time value of money'],
+        isPublished: true,
+      },
+      {
+        _id: 'test2',
+        title: {
+          en: "<b>Building Your First Budget</b>",
+          hi: "<b>अपना पहला बजट बनाना</b>",
+          pa: "<b>ਆਪਣਾ ਪਹਿਲਾ ਬਜਟ ਬਣਾਉਣਾ</b>"
+        },
+        description: {
+          en: "Step-by-step guide to creating and maintaining a personal budget that works.",
+          hi: "एक व्यक्तिगत बजट बनाने और बनाए रखने के लिए चरण-दर-चरण मार्गदर्शिका जो काम करता है।",
+          pa: "ਇੱਕ ਨਿੱਜੀ ਬਜਟ ਬਣਾਉਣ ਅਤੇ ਬਣਾਈ ਰੱਖਣ ਲਈ ਕਦਮ-ਦਰ-ਕਦਮ ਗਾਈਡ ਜੋ ਕੰਮ ਕਰਦਾ ਹੈ।"
+        },
+        content: {
+          en: "<p>A budget is your roadmap to financial success.</p>",
+          hi: "<p>एक बजट वित्तीय सफलता के लिए आपका रोडमैप है।</p>",
+          pa: "<p>ਇੱਕ ਬਜਟ ਵਿੱਤੀ ਸਫ਼ਲਤਾ ਲਈ ਤੁਹਾਡਾ ਰੋਡਮੈਪ ਹੈ।</p>"
+        },
+        detailedContent: {
+          en: `<h1>Building Your First Budget</h1>
+          <p>A budget is your roadmap to financial success. It helps you control your spending, save money, and reach your financial goals. A simple budget helps you:</p>
+          <ul>
+            <li>Track where your money is going.</li>
+            <li>Find areas where you can cut back.</li>
+            <li>Allocate funds for savings and investments.</li>
+          </ul>
+          <h2>The 50/30/20 Rule</h2>
+          <p>A popular budgeting method is the 50/30/20 rule:</p>
+          <ul>
+            <li><b>50% Needs:</b> Essential expenses like rent, utilities, and groceries.</li>
+            <li><b>30% Wants:</b> Non-essential items like dining out, entertainment, and hobbies.</li>
+            <li><b>20% Savings/Debt:</b> Money for your emergency fund, retirement, and paying off debt.</li>
+          </ul>
+          `,
+          hi: `<h1>अपना पहला बजट बनाना</h1>
+          <p>एक बजट वित्तीय सफलता के लिए आपका रोडमैप है। यह आपको अपने खर्च को नियंत्रित करने, पैसे बचाने और अपने वित्तीय लक्ष्यों तक पहुंचने में मदद करता है। एक सरल बजट आपको मदद करता है:</p>
+          <ul>
+            <li>यह ट्रैक करने में कि आपका पैसा कहाँ जा रहा है।</li>
+            <li>ऐसे क्षेत्रों को खोजने में जहाँ आप खर्च कम कर सकते हैं।</li>
+            <li>बचत और निवेश के लिए धन आवंटित करने में।</li>
+          </ul>
+          <h2>50/30/20 नियम</h2>
+          <p>एक लोकप्रिय बजटिंग विधि 50/30/20 नियम है:</p>
+          <ul>
+            <li><b>50% आवश्यकताएं:</b> आवश्यक खर्च जैसे किराया, उपयोगिताएं, और किराने का सामान।</li>
+            <li><b>30% इच्छाएं:</b> गैर-आवश्यक वस्तुएं जैसे बाहर खाना, मनोरंजन, और शौक।</li>
+            <li><b>20% बचत/ऋण:</b> आपके आपातकालीन निधि, सेवानिवृत्ति, और ऋण चुकाने के लिए पैसा।</li>
+          </ul>
+          `,
+          pa: `<h1>ਆਪਣਾ ਪਹਿਲਾ ਬਜਟ ਬਣਾਉਣਾ</h1>
+          <p>ਇੱਕ ਬਜਟ ਵਿੱਤੀ ਸਫ਼ਲਤਾ ਲਈ ਤੁਹਾਡਾ ਰੋਡਮੈਪ ਹੈ। ਇਹ ਤੁਹਾਨੂੰ ਆਪਣੇ ਖਰਚ ਨੂੰ ਕੰਟਰੋਲ ਕਰਨ, ਪੈਸੇ ਬਚਾਉਣ ਅਤੇ ਆਪਣੇ ਵਿੱਤੀ ਟੀਚਿਆਂ ਤੱਕ ਪਹੁੰਚਣ ਵਿੱਚ ਮਦਦ ਕਰਦਾ ਹੈ। ਇੱਕ ਸਧਾਰਨ ਬਜਟ ਤੁਹਾਡੀ ਮਦਦ ਕਰਦਾ ਹੈ:</p>
+          <ul>
+            <li>ਇਹ ਟਰੈਕ ਕਰਨ ਵਿੱਚ ਕਿ ਤੁਹਾਡਾ ਪੈਸਾ ਕਿੱਥੇ ਜਾ ਰਿਹਾ ਹੈ।</li>
+            <li>ਉਹਨਾਂ ਖੇਤਰਾਂ ਨੂੰ ਲੱਭਣ ਵਿੱਚ ਜਿੱਥੇ ਤੁਸੀਂ ਖਰਚ ਘਟਾ ਸਕਦੇ ਹੋ।</li>
+            <li>ਬਚਤ ਅਤੇ ਨਿਵੇਸ਼ ਲਈ ਫੰਡ ਵੰਡਣ ਵਿੱਚ।</li>
+          </ul>
+          <h2>50/30/20 ਨਿਯਮ</h2>
+          <p>ਇੱਕ ਪ੍ਰਸਿੱਧ ਬਜਟਿੰਗ ਵਿਧੀ 50/30/20 ਨਿਯਮ ਹੈ:</p>
+          <ul>
+            <li><b>50% ਜ਼ਰੂਰਤਾਂ:</b> ਜ਼ਰੂਰੀ ਖਰਚੇ ਜਿਵੇਂ ਕਿਰਾਇਆ, ਉਪਯੋਗਤਾਵਾਂ, ਅਤੇ ਕਰਿਆਨਾ।</li>
+            <li><b>30% ਇੱਛਾਵਾਂ:</b> ਗੈਰ-ਜ਼ਰੂਰੀ ਵਸਤੂਆਂ ਜਿਵੇਂ ਬਾਹਰ ਖਾਣਾ, ਮਨੋਰੰਜਨ, ਅਤੇ ਸ਼ੌਕ।</li>
+            <li><b>20% ਬਚਤ/ਕਰਜ਼ਾ:</b> ਤੁਹਾਡੇ ਐਮਰਜੈਂਸੀ ਫੰਡ, ਰਿਟਾਇਰਮੈਂਟ, ਅਤੇ ਕਰਜ਼ਾ ਚੁਕਾਉਣ ਲਈ ਪੈਸਾ।</li>
+          </ul>
+          `
+        },
+        videoUrl: 'https://res.cloudinary.com/dn2bkta45/video/upload/v1755507891/videos/azfp76mopx9frgbnl2yg.mp4',
+        videoTitle: 'How to Create Your First Budget - Step by Step',
+        videoDescription: 'Learn how to build a realistic budget that you can actually stick to.',
+        difficulty: 'beginner',
+        estimatedTime: 25,
+        tags: ['budgeting', 'money management', 'savings'],
+      },
+    ];
+  };
+
   const handleTitlePress = (content) => {
-    const contentToDisplay = content.detailedContent || content.content;
+    const contentToDisplay = content.detailedContent?.[language] || content.detailedContent?.en;
+
     if (contentToDisplay) {
       setSelectedContent({
         ...content,
@@ -178,7 +222,7 @@ A budget is your roadmap to financial success. It helps you control your spendin
       });
       setViewMode('tutorial');
     } else {
-      Alert.alert('No Content', 'No detailed content is available for this topic.');
+      Alert.alert('No Content', `No detailed content is available for this topic in ${language.toUpperCase()}.`);
     }
   };
 
@@ -186,10 +230,9 @@ A budget is your roadmap to financial success. It helps you control your spendin
     if (content.videoUrl) {
       setSelectedVideo({
         url: content.videoUrl,
-        title: content.videoTitle || content.title,
-        description: content.videoDescription || content.description
+        title: content.videoTitle || content.title?.[language] || content.title.en,
+        description: content.videoDescription || content.description?.[language] || content.description.en,
       });
-
       setVideoLoading(true);
       setVideoModalVisible(true);
     } else {
@@ -210,59 +253,10 @@ A budget is your roadmap to financial success. It helps you control your spendin
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
-      case 'beginner': return '#4CAF50';
-      case 'intermediate': return '#FF9800';
-      case 'advanced': return '#F44336';
-      default: return '#2196F3';
-
-      
-      console.log('All content response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log('All content error response:', errorText);
-        throw new Error(`Failed to fetch all learning content: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Fetched all content data:', data);
-      
-      // Filter for finance-related content if no specific category
-      const financeContent = Array.isArray(data) ? data.filter(item => 
-        item.title?.toLowerCase().includes('finance') ||
-        item.description?.toLowerCase().includes('finance') ||
-        item.category?.toLowerCase().includes('finance') ||
-        item.tags?.some(tag => tag.toLowerCase().includes('finance'))
-      ) : [];
-      
-      setLearningContent(financeContent);
-      
-    } catch (error) {
-      console.error('Error fetching all learning content:', error);
-      setLearningContent([]);
-
-    }
-  };
-
-  const fetchContentDetails = async (contentId) => {
-    try {
-      setContentLoading(true);
-
-      const response = await fetch('${API_BASE_URL}/api/learning/content/${contentId}');
-
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch content details');
-      }
-      
-      const data = await response.json();
-      setSelectedContent(data);
-    } catch (error) {
-      console.error('Error fetching content details:', error);
-      Alert.alert('Error', 'Failed to load content details. Please try again.');
-    } finally {
-      setContentLoading(false);
-
+      case 'beginner': return '#27ae60';
+      case 'intermediate': return '#f39c12';
+      case 'advanced': return '#e74c3c';
+      default: return '#3498db';
     }
   };
 
@@ -286,33 +280,38 @@ A budget is your roadmap to financial success. It helps you control your spendin
   const renderContentItem = ({ item }) => {
     return (
       <View style={styles.contentItem}>
-        <View style={styles.contentRow}>
-          <TouchableOpacity
-            style={styles.titleSection}
-            onPress={() => handleTitlePress(item)}
-          >
-            <Text style={styles.contentTitle}>{item.title}</Text>
-            <Text style={styles.contentDescription} numberOfLines={2}>
-              {item.content || item.description}
+        <TouchableOpacity
+          style={styles.cardContentContainer}
+          onPress={() => handleTitlePress(item)}
+          activeOpacity={0.8}
+        >
+          {/* RENDER THE TITLE IN THE SELECTED LANGUAGE */}
+          <RenderHtml
+            contentWidth={width}
+            source={{ html: item.title?.[language] || item.title?.en }}
+            tagsStyles={{ b: styles.contentTitle, h1: styles.contentTitle, p: styles.contentTitle }}
+          />
+          {/* RENDER THE DESCRIPTION IN THE SELECTED LANGUAGE */}
+          <Text style={styles.contentDescription} numberOfLines={2}>
+            {item.description?.[language] || item.description?.en || 'No description available.'}
+          </Text>
+          <View style={styles.metaInfo}>
+            <Text style={[styles.difficultyBadge, { color: getDifficultyColor(item.difficulty) }]}>
+              {getDifficultyIcon(item.difficulty)} {item.difficulty || 'General'}
             </Text>
-            <View style={styles.metaInfo}>
-              <Text style={[styles.difficultyBadge, { color: getDifficultyColor(item.difficulty) }]}>
-                {getDifficultyIcon(item.difficulty)} {item.difficulty || 'General'}
-              </Text>
-              <Text style={styles.timeEstimate}>⏱ {formatTime(item.estimatedTime)}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.videoIconSection}
-            onPress={() => handleVideoPress(item)}
-          >
-            <View style={styles.videoButton}>
-              <Text style={styles.videoIcon}>▶️</Text>
-            </View>
-            <Text style={styles.videoLabel}>Watch</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.timeEstimate}>⏱ {formatTime(item.estimatedTime)}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.videoIconSection}
+          onPress={() => handleVideoPress(item)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.videoButton}>
+            <Text style={styles.videoIcon}>▶️</Text>
+          </View>
+          <Text style={styles.videoLabel}>Watch</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -320,16 +319,31 @@ A budget is your roadmap to financial success. It helps you control your spendin
   const renderTutorialContent = () => {
     if (!selectedContent || !selectedContent.tutorial) {
       return (
-        <View style={styles.noTutorialContainer}>
+        <SafeAreaView style={styles.noTutorialContainer}>
           <Text style={styles.noTutorialText}>No tutorial content available for this topic.</Text>
           <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
             <Text style={styles.backButtonText}>← Back to List</Text>
           </TouchableOpacity>
-        </View>
+        </SafeAreaView>
       );
     }
+
+    const source = { html: selectedContent.tutorial };
+
+    const tagsStyles = {
+      h1: styles.tutorialMainHeading,
+      h2: styles.tutorialSubHeading,
+      h3: styles.tutorialSubSubHeading,
+      p: styles.tutorialParagraph,
+      li: styles.bulletText,
+      ul: { marginBottom: 16, paddingLeft: 0, listStyleType: 'disc' },
+      ol: { marginBottom: 16, paddingLeft: 0, listStyleType: 'decimal' },
+      b: styles.boldText,
+      strong: styles.boldText,
+    };
+
     return (
-      <ScrollView style={styles.tutorialContainer}>
+      <SafeAreaView style={styles.tutorialContainer}>
         <View style={styles.tutorialHeader}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
             <Text style={styles.backButtonText}>← Back to List</Text>
@@ -337,99 +351,53 @@ A budget is your roadmap to financial success. It helps you control your spendin
           <TouchableOpacity
             style={styles.headerVideoButton}
             onPress={() => handleVideoPress(selectedContent)}
+            activeOpacity={0.8}
           >
             <Text style={styles.headerVideoIcon}>▶️</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tutorialCard}>
-          <Text style={styles.tutorialTitle}>{selectedContent.title}</Text>
-
-          <View style={styles.tutorialMeta}>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Difficulty:</Text>
-              <Text style={[styles.metaValue, { color: getDifficultyColor(selectedContent.difficulty) }]}>
-                {getDifficultyIcon(selectedContent.difficulty)} {selectedContent.difficulty || 'General'}
-              </Text>
-            </View>
-
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Estimated Time:</Text>
-              <Text style={styles.metaValue}>⏱ {formatTime(selectedContent.estimatedTime)}</Text>
-            </View>
-          </View>
-
-          <View style={styles.tutorialContent}>
-            {selectedContent.tutorial.split('\n').map((paragraph, index) => {
-              if (paragraph.trim() === '') return null;
-
-              if (paragraph.startsWith('# ')) {
-                return (
-                  <Text key={index} style={styles.tutorialMainHeading}>
-                    {paragraph.replace('# ', '')}
-                  </Text>
-                );
-              } else if (paragraph.startsWith('## ')) {
-                return (
-                  <Text key={index} style={styles.tutorialSubHeading}>
-                    {paragraph.replace('## ', '')}
-                  </Text>
-                );
-              } else if (paragraph.startsWith('### ')) {
-                return (
-                  <Text key={index} style={styles.tutorialSubSubHeading}>
-                    {paragraph.replace('### ', '')}
-                  </Text>
-                );
-              } else if (paragraph.startsWith('- *') || paragraph.startsWith(' **')) {
-                const cleanText = paragraph.replace(/^[-]\s/, '').replace(/\\/g, '');
-                return (
-                  <View key={index} style={styles.bulletPoint}>
-                    <Text style={styles.bulletSymbol}>•</Text>
-                    <Text style={styles.bulletText}>{cleanText}</Text>
-                  </View>
-                );
-              } else if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
-                return (
-                  <View key={index} style={styles.bulletPoint}>
-                    <Text style={styles.bulletSymbol}>•</Text>
-                    <Text style={styles.bulletText}>{paragraph.replace(/^[-]\s/, '')}</Text>
-                  </View>
-                );
-              } else if (paragraph.match(/^\d+\./)) {
-                return (
-                  <View key={index} style={styles.numberedPoint}>
-                    <Text style={styles.numberedText}>{paragraph}</Text>
-                  </View>
-                );
-              } else if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                return (
-                  <Text key={index} style={styles.boldText}>
-                    {paragraph.replace(/\*\*/g, '')}
-                  </Text>
-                );
-              } else {
-                return (
-                  <Text key={index} style={styles.tutorialParagraph}>
-                    {paragraph.replace(/\\/g, '')}
-                  </Text>
-                );
-              }
-            })}
-          </View>
-
-          {selectedContent.tags && selectedContent.tags.length > 0 && (
-            <View style={styles.contentSection}>
-              <Text style={styles.sectionTitle}>🏷 Tags</Text>
-              <View style={styles.tagsContainer}>
-                {selectedContent.tags.map((tag, index) => (
-                  <Text key={index} style={styles.tag}>#{tag}</Text>
-                ))}
+        <ScrollView style={styles.tutorialScroll}>
+          <View style={styles.tutorialCard}>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: selectedContent.title?.[language] || selectedContent.title?.en }}
+              tagsStyles={{ b: styles.tutorialTitle, h1: styles.tutorialTitle, p: styles.tutorialTitle }}
+            />
+            <View style={styles.tutorialMeta}>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Difficulty:</Text>
+                <Text style={[styles.metaValue, { color: getDifficultyColor(selectedContent.difficulty) }]}>
+                  {getDifficultyIcon(selectedContent.difficulty)} {selectedContent.difficulty || 'General'}
+                </Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Time:</Text>
+                <Text style={styles.metaValue}>⏱ {formatTime(selectedContent.estimatedTime)}</Text>
               </View>
             </View>
-          )}
-        </View>
-      </ScrollView>
+
+            <View style={styles.tutorialContent}>
+              <RenderHtml
+                contentWidth={width}
+                source={source}
+                tagsStyles={tagsStyles}
+              />
+            </View>
+
+            {selectedContent.tags && selectedContent.tags.length > 0 && (
+              <View style={styles.contentSection}>
+                <Text style={styles.sectionTitle}>🏷 Tags</Text>
+                <View style={styles.tagsContainer}>
+                  {selectedContent.tags.map((tag, index) => (
+                    <Text key={index} style={styles.tag}>#{tag}</Text>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     );
   };
 
@@ -481,9 +449,11 @@ A budget is your roadmap to financial success. It helps you control your spendin
         {selectedVideo?.description && (
           <View style={styles.videoDescription}>
             <Text style={styles.videoDescriptionTitle}>About this video:</Text>
-            <Text style={styles.videoDescriptionText}>
-              {selectedVideo.description}
-            </Text>
+            <RenderHtml
+              contentWidth={width}
+              source={{ html: `<p>${selectedVideo.description}</p>` }}
+              tagsStyles={{ p: styles.videoDescriptionText }}
+            />
           </View>
         )}
       </View>
@@ -492,10 +462,10 @@ A budget is your roadmap to financial success. It helps you control your spendin
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4A90E2" />
         <Text style={styles.loadingText}>Loading finance content...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -504,13 +474,32 @@ A budget is your roadmap to financial success. It helps you control your spendin
   }
 
   return (
-
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.mainTitle}>📚 Learn Finance Basics</Text>
         <Text style={styles.subtitle}>
           Tap title for tutorial • Tap video icon to watch
         </Text>
+        <View style={styles.languageSelector}>
+          <TouchableOpacity
+            style={[styles.langButton, language === 'en' && styles.langButtonActive]}
+            onPress={() => setLanguage('en')}
+          >
+            <Text style={[styles.langText, language === 'en' && styles.langTextActive]}>English</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.langButton, language === 'hi' && styles.langButtonActive]}
+            onPress={() => setLanguage('hi')}
+          >
+            <Text style={[styles.langText, language === 'hi' && styles.langTextActive]}>हिंदी</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.langButton, language === 'pa' && styles.langButtonActive]}
+            onPress={() => setLanguage('pa')}
+          >
+            <Text style={[styles.langText, language === 'pa' && styles.langTextActive]}>ਪੰਜਾਬੀ</Text>
+          </TouchableOpacity>
+        </View>
 
         {learningContent.length > 0 && (
           <Text style={styles.contentCount}>
@@ -521,11 +510,6 @@ A budget is your roadmap to financial success. It helps you control your spendin
         <TouchableOpacity style={styles.headerRefreshButton} onPress={fetchFinanceBasicsContent}>
           <Text style={styles.headerRefreshButtonText}>🔄 Refresh</Text>
         </TouchableOpacity>
-
-
-      </View>git 
-
-
       </View>
 
       {learningContent.length === 0 ? (
@@ -534,15 +518,7 @@ A budget is your roadmap to financial success. It helps you control your spendin
           <Text style={styles.emptyDescription}>
             Learning content will appear here once available.
           </Text>
-
           <TouchableOpacity style={styles.refreshButton} onPress={fetchFinanceBasicsContent}>
-
-
-          <TouchableOpacity style={styles.refreshButton} onPress={fetchLearningContent}>
-
-          <TouchableOpacity style={styles.refreshButton} onPress={initializeApp}>
-
-
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -555,13 +531,8 @@ A budget is your roadmap to financial success. It helps you control your spendin
           showsVerticalScrollIndicator={false}
         />
       )}
-
-
       {renderVideoModal()}
-
-
-
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -601,10 +572,37 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
+  },
+  languageSelector: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  langButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  langButtonActive: {
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  langText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  langTextActive: {
+    color: '#667eea',
   },
   contentCount: {
     fontSize: 12,
@@ -627,10 +625,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
-
     padding: 20,
   },
   contentItem: {
+    flexDirection: 'row',
     backgroundColor: 'white',
     borderRadius: 16,
     marginBottom: 16,
@@ -639,21 +637,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    overflow: 'hidden',
   },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  titleSection: {
+  cardContentContainer: {
     flex: 1,
     padding: 20,
     paddingRight: 12,
   },
   contentTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 8,
+    marginBottom: 4,
     lineHeight: 24,
   },
   contentDescription: {
@@ -681,9 +676,7 @@ const styles = StyleSheet.create({
     width: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8f9fa',
-    borderTopRightRadius: 16,
-    borderBottomRightRadius: 16,
+    backgroundColor: '#ecf0f1',
   },
   videoButton: {
     width: 50,
@@ -712,18 +705,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
-
+  tutorialScroll: {
+    flex: 1,
+  },
   tutorialHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-
-  backButton: {
-
-    padding: 20,
-
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   backButton: {
@@ -734,7 +724,6 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
     fontWeight: '600',
   },
-
   headerVideoButton: {
     backgroundColor: '#e74c3c',
     width: 50,
@@ -753,65 +742,9 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   tutorialCard: {
-
-
-  contentItem: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  contentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  contentTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-  arrow: {
-    fontSize: 18,
-    color: '#4A90E2',
-    fontWeight: 'bold',
-  },
-  contentPreview: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  duration: {
-    fontSize: 12,
-    color: '#4A90E2',
-    fontWeight: '500',
-  },
-  detailContainer: {
-    flex: 1,
-    backgroundColor: '#F0F4F8',
-  },
-  backButton: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#4A90E2',
-    fontWeight: '600',
-  },
-
-  detailCard: {
-
-    backgroundColor: 'white',
-    margin: 20,
-    marginTop: 0,
+    marginHorizontal: 20,
+    marginBottom: 20,
     borderRadius: 20,
     padding: 24,
     shadowColor: '#000',
@@ -878,44 +811,26 @@ const styles = StyleSheet.create({
     color: '#5d6d7e',
     lineHeight: 24,
     marginBottom: 12,
-    textAlign: 'justify',
-  },
-  bulletPoint: {
-    flexDirection: 'row',
-    marginBottom: 8,
-    paddingLeft: 16,
-  },
-  bulletSymbol: {
-    fontSize: 16,
-    color: '#4A90E2',
-    marginRight: 12,
-    fontWeight: 'bold',
-    marginTop: 2,
   },
   bulletText: {
-    fontSize: 15,
-    color: '#5d6d7e',
-    flex: 1,
-    lineHeight: 22,
-  },
-  numberedPoint: {
-    marginBottom: 8,
-    paddingLeft: 16,
-  },
-  numberedText: {
     fontSize: 15,
     color: '#5d6d7e',
     lineHeight: 22,
   },
   boldText: {
-    fontSize: 15,
     fontWeight: 'bold',
+    fontSize: 15,
     color: '#2c3e50',
-    marginBottom: 8,
-    marginTop: 8,
+    lineHeight: 24,
   },
   contentSection: {
     marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 12,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -977,7 +892,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  // Video Modal Styles
   videoModalContainer: {
     flex: 1,
     backgroundColor: '#000',
@@ -1005,7 +919,7 @@ const styles = StyleSheet.create({
   },
   videoPlayer: {
     width: '100%',
-    aspectRatio: 16 / 9, // Standard video aspect ratio
+    aspectRatio: 16 / 9,
   },
   videoLoadingOverlay: {
     ...StyleSheet.absoluteFillObject,
